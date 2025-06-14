@@ -25,6 +25,10 @@ export const EmploymentIncomeSchema = z.object({
     (val) => (val === "" ? undefined : Number(val)),
     z.number({ invalid_type_error: "Monthly income must be a number"}).min(0, "Monthly income cannot be negative")
   ),
+  yearsInCurrentJobOrBusiness: z.preprocess(
+    (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Years in job/business must be a number" }).min(0, "Years cannot be negative").optional()
+  ),
 });
 
 export const LoanPropertyDetailsSchema = z.object({
@@ -42,6 +46,7 @@ export const LoanPropertyDetailsSchema = z.object({
     (val) => (val === "" ? undefined : Number(val)),
     z.number({ invalid_type_error: "Property value must be a number"}).min(1, "Estimated property value is required")
   ),
+  propertyType: z.enum(["apartment", "independent_house", "plot_construction"], { required_error: "Property type is required" }),
 });
 
 export const ExistingLoansSchema = z.object({
@@ -56,13 +61,69 @@ export const ExistingLoansSchema = z.object({
   ),
 }).default({});
 
+export const HomeLoanDocumentUploadSchema = z.object({
+  panCard: z.string().optional().describe("PAN Card"),
+  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
+  photograph: z.string().optional().describe("Passport Size Photograph"),
+  incomeProof: z.string().optional().describe("Income Proof (Salary Slip / ITR)"),
+  bankStatement: z.string().optional().describe("Bank Statement (Last 6 Months)"),
+  propertyDocs: z.string().optional().describe("Property Documents / Sale Agreement"),
+  allotmentLetter: z.string().optional().describe("Allotment Letter (if any)"),
+  employmentProof: z.string().optional().describe("Employment/Business Proof"),
+  existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if applicable)"),
+});
+export type HomeLoanDocumentUploadFormData = z.infer<typeof HomeLoanDocumentUploadSchema>;
 
 export const HomeLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
-  residentialAddress: ResidentialAddressSchema,
+  residentialAddress: ResidentialAddressSchema, // This is CURRENT address
+  isPermanentAddressDifferent: z.boolean().optional().default(false),
+  permanentAddress: ResidentialAddressSchema.optional(),
   employmentIncome: EmploymentIncomeSchema,
   loanPropertyDetails: LoanPropertyDetailsSchema,
+  hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
   existingLoans: ExistingLoansSchema.optional(),
+  documentUploads: HomeLoanDocumentUploadSchema.optional(),
+}).superRefine((data, ctx) => {
+  if (data.isPermanentAddressDifferent) {
+    if (!data.permanentAddress) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Permanent address details are required.", path: ["permanentAddress", "fullAddress"]});
+    } else {
+        if (!data.permanentAddress.fullAddress) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "fullAddress"], message: "Full address is required for permanent address."});
+        }
+        if (!data.permanentAddress.city) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "city"], message: "City is required for permanent address."});
+        }
+        if (!data.permanentAddress.state) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "state"], message: "State is required for permanent address."});
+        }
+        if (!data.permanentAddress.pincode || !/^\d{6}$/.test(data.permanentAddress.pincode) ) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "pincode"], message: "Valid Pincode is required for permanent address."});
+        }
+    }
+  }
+
+  if (data.hasExistingLoans === "yes") {
+    if (!data.existingLoans) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "EMI and Bank Name are required if you have existing loans.", path: ["existingLoans", "emiAmount"] });
+    } else {
+        if (data.existingLoans.emiAmount === undefined || data.existingLoans.emiAmount < 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Valid EMI is required if existing loans is 'Yes'",
+            path: ["existingLoans", "emiAmount"],
+          });
+        }
+        if (!data.existingLoans.bankName || data.existingLoans.bankName.trim() === "") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Bank name is required if existing loans is 'Yes'",
+            path: ["existingLoans", "bankName"],
+          });
+        }
+    }
+  }
 });
 
 export type HomeLoanApplicationFormData = z.infer<typeof HomeLoanApplicationSchema>;
@@ -71,8 +132,8 @@ export type HomeLoanApplicationFormData = z.infer<typeof HomeLoanApplicationSche
 export const PersonalLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
-  employmentIncome: EmploymentIncomeSchema,
-  loanDetails: z.object({ 
+  employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true }), // Omit if not needed for PL
+  loanDetails: z.object({
     loanAmountRequired: z.preprocess(
       (val) => (val === "" ? undefined : Number(val)),
       z.number({ invalid_type_error: "Loan amount must be a number"}).min(1, "Loan amount is required")
@@ -142,7 +203,7 @@ const LoanDetailsForBusinessSchema = z.object({
     });
   }
   if (data.hasExistingLoans === "yes") {
-    if (data.existingLoanEMI === undefined || data.existingLoanEMI < 0) { 
+    if (data.existingLoanEMI === undefined || data.existingLoanEMI < 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Valid EMI is required if existing loans is 'Yes'",
@@ -184,7 +245,12 @@ export type BusinessLoanApplicationFormData = z.infer<typeof BusinessLoanApplica
 
 
 // Credit Card Schema
-export const CreditCardApplicationSchema = HomeLoanApplicationSchema.pick({ applicantDetails: true, residentialAddress: true, employmentIncome: true });
+// Note: Credit Card may not need 'yearsInCurrentJobOrBusiness' from EmploymentIncomeSchema
+export const CreditCardApplicationSchema = z.object({
+  applicantDetails: HomeLoanApplicantDetailsSchema,
+  residentialAddress: ResidentialAddressSchema,
+  employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true }),
+});
 export type CreditCardApplicationFormData = z.infer<typeof CreditCardApplicationSchema>;
 
 
@@ -197,3 +263,5 @@ export const ITRFilingSchema = z.object({
   assessmentYear: z.string().min(1, "Assessment year is required"),
 });
 export type ITRFilingFormData = z.infer<typeof ITRFilingSchema>;
+
+    
