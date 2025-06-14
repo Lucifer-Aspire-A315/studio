@@ -1,50 +1,61 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { PartnerSignUpSchema, type PartnerSignUpFormData } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, UserPlus } from 'lucide-react'; 
-import type { PageView, SetPageView } from '@/app/page';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ArrowLeft, LogIn, UserPlus, Mail } from 'lucide-react';
+import type { SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from '@/components/ui/separator';
 
 interface PartnerLoginOptionsPageProps {
   setCurrentPage: SetPageView;
 }
 
 const GmailIcon = () => (
-  <svg className="w-10 h-10 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
     <path d="M22 5.889V5c0-1.103-.897-2-2-2H4c-1.103 0-2 .897-2 2v.889l9.293 9.293.142.139L12 15.889l.565-.568.142-.139L22 5.889zM2 7.111V19c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V7.111l-9.435 9.435-.142.139L12 17.253l-.423-.422-.142-.139L2 7.111z"/>
   </svg>
 );
 
-const loginOptions = [
-  {
-    id: "signup",
-    title: "Sign Up",
-    icon: <UserPlus className="w-10 h-10 text-primary" />,
-    description: "Create a new partner account to get started.",
-    buttonText: "Sign Up"
-  },
-  {
-    id: "gmail_login",
-    title: "Login with Gmail",
-    icon: <GmailIcon />,
-    description: "Sign in quickly and securely using your Gmail account.",
-    buttonText: "Login with Gmail"
-  }
-];
 
 export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsPageProps) {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLoginTypeClick = (loginType: string, title: string) => {
+  const form = useForm<PartnerSignUpFormData>({
+    resolver: zodResolver(PartnerSignUpSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      mobileNumber: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  async function onSignUpSubmit(data: PartnerSignUpFormData) {
+    setIsSubmitting(true);
+    console.log("Partner Sign Up Data:", data);
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
     toast({
-      title: `${title} Feature Coming Soon`,
-      description: `The functionality for "${title}" will be available shortly.`,
+      title: "Sign Up Attempted",
+      description: "Manual sign-up functionality is being implemented. Your data has been logged.",
     });
-    // Later, this could navigate to a specific login/signup form:
-    // setCurrentPage(`${loginType}Form` as PageView); 
+    setIsSubmitting(false);
+    form.reset();
+  }
+
+  const handleGmailLogin = () => {
+    toast({
+      title: "Gmail Login Coming Soon",
+      description: "The functionality for Gmail login will be available shortly.",
+    });
   };
 
   return (
@@ -58,37 +69,118 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Home
         </Button>
-        <div className="max-w-xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-foreground">Partner Account Access</h2>
-            <p className="text-muted-foreground mt-2">
-              Sign up or log in to access partner features.
+        <div className="max-w-lg mx-auto bg-card p-6 md:p-10 rounded-2xl shadow-xl">
+          <div className="text-center mb-8">
+            <LogIn className="w-12 h-12 mx-auto text-primary mb-2" />
+            <h2 className="text-3xl font-bold text-card-foreground">Partner Account Access</h2>
+            <p className="text-muted-foreground mt-1">
+              Join our network or access your existing partner account.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8">
-            {loginOptions.map((option) => (
-              <Card key={option.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <CardHeader className="flex flex-col items-center text-center space-y-3 pb-4">
-                  {option.icon}
-                  <CardTitle className="text-xl">{option.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <CardDescription className="text-sm text-muted-foreground mb-6 h-10">{option.description}</CardDescription>
-                  <Button
-                    onClick={() => handleLoginTypeClick(option.id, option.title)}
-                    className="w-full cta-button"
-                  >
-                    {option.buttonText}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+          {/* Manual Sign-Up Form */}
+          <div className="mb-10">
+            <h3 className="text-xl font-semibold text-center mb-1 text-card-foreground flex items-center justify-center">
+              <UserPlus className="w-6 h-6 mr-2 text-primary"/> Partner Sign-Up Form (Manual)
+            </h3>
+            <p className="text-sm text-muted-foreground text-center mb-6">Create a new partner account.</p>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSignUpSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your Full Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email ID</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="your.email@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mobileNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mobile Number</FormLabel>
+                      <FormControl>
+                        <Input type="tel" placeholder="10-digit mobile number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Create Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Create a strong password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Confirm your password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full cta-button" disabled={isSubmitting}>
+                  {isSubmitting ? 'Signing Up...' : 'Sign Up Now'}
+                </Button>
+              </form>
+            </Form>
+            <p className="text-xs text-muted-foreground mt-4 text-center">
+              📝 You will receive a confirmation email/SMS after approval.
+            </p>
           </div>
 
-           <div className="mt-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              If you encounter any issues, please contact our support team.
+          <Separator className="my-8" />
+
+          {/* Gmail Login Section */}
+          <div>
+            <h3 className="text-xl font-semibold text-center mb-1 text-card-foreground flex items-center justify-center">
+              <Mail className="w-6 h-6 mr-2 text-primary"/> Option 2: Direct Gmail Login (OAuth)
+            </h3>
+            <p className="text-sm text-muted-foreground text-center mb-6">
+              Use this if you want users to log in quickly using their Google account.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={handleGmailLogin} 
+              className="w-full cta-button border-primary text-primary hover:bg-primary/10 hover:text-primary"
+            >
+              <GmailIcon />
+              Login with Gmail
+            </Button>
+            <p className="text-xs text-muted-foreground mt-3 text-center">
+              (Gmail Login Button Integration placeholder)
             </p>
           </div>
         </div>
@@ -96,3 +188,5 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
     </section>
   );
 }
+
+    
