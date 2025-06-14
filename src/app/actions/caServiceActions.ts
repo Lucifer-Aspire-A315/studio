@@ -74,7 +74,6 @@ export async function submitAccountingBookkeepingAction(
   };
 }
 
-// Placeholder for Company Incorporation
 export async function submitCompanyIncorporationAction(
   data: CompanyIncorporationFormData,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -82,7 +81,10 @@ export async function submitCompanyIncorporationAction(
 ): Promise<ServerActionResponse> {
   console.log(`Received Company Incorporation application on the server:`);
   console.log(JSON.stringify(data, null, 2));
+  
+  // Simulate processing
   await new Promise(resolve => setTimeout(resolve, 1000));
+  
   return {
     success: true,
     message: `Company Incorporation application received successfully by the server.`,
