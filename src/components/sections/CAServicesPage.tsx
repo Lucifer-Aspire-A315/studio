@@ -19,7 +19,7 @@ const caServicesList = [
     description: "Accurate accounting and bookkeeping services to keep your finances in order."
   },
   {
-    id: "gst-registration",
+    id: "gst-registration", // Added distinct ID for GST
     title: "GST Registration and Filing",
     description: "Complete GST solutions, from registration to timely return filing."
   },
