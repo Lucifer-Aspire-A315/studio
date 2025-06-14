@@ -1,60 +1,59 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { ArrowLeft, Info, ExternalLink } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Info, Banknote, Factory, Users, MoreHorizontal } from 'lucide-react';
 import type { SetPageView } from '@/app/page';
 
 interface GovernmentSchemesPageProps {
   setCurrentPage: SetPageView;
 }
 
-const schemes = [
+const schemeOptions = [
   {
     id: "pmmy",
-    title: "Pradhan Mantri Mudra Yojana (PMMY)",
-    description: "Provides loans up to ₹10 lakh to non-corporate, non-farm small/micro enterprises. Loans are categorized as Shishu, Kishore, and Tarun to signify the stage of growth/development and funding needs of the beneficiary micro unit/entrepreneur.",
-    eligibilityLink: "#", // Placeholder
-    applyLink: "#", // Placeholder
-  },
-  {
-    id: "standup",
-    title: "Stand-Up India Scheme",
-    description: "Facilitates bank loans between ₹10 lakh and ₹1 Crore to at least one Scheduled Caste (SC) or Scheduled Tribe (ST) borrower and at least one woman borrower per bank branch for setting up a greenfield enterprise.",
-    eligibilityLink: "#",
-    applyLink: "#",
-  },
-  {
-    id: "svanidhi",
-    title: "PM SVANidhi Scheme (PM Street Vendor's AtmaNirbhar Nidhi)",
-    description: "A special micro-credit facility for street vendors. It provides collateral-free working capital loans up to ₹10,000, with subsequent loans of ₹20,000 and ₹50,000 with good repayment history.",
-    eligibilityLink: "#",
-    applyLink: "#",
+    label: "PM Mudra Yojana",
+    icon: <Banknote className="w-5 h-5 mr-2 text-primary" />,
+    description: "Loans up to ₹10 lakh for non-corporate, non-farm small/micro enterprises."
   },
   {
     id: "pmegp",
-    title: "Prime Minister’s Employment Generation Programme (PMEGP)",
-    description: "A credit-linked subsidy programme for generating employment opportunities by setting up new self-employment ventures/projects/micro enterprises in the non-farm sector.",
-    eligibilityLink: "#",
-    applyLink: "#",
+    label: "PMEGP (Khadi Board)",
+    icon: <Factory className="w-5 h-5 mr-2 text-primary" />,
+    description: "Credit-linked subsidy for new self-employment ventures in the non-farm sector."
   },
   {
-    id: "cgtmse",
-    title: "Credit Guarantee Fund Trust for Micro and Small Enterprises (CGTMSE)",
-    description: "Provides credit guarantee to financial institutions for collateral-free loans extended to Micro and Small Enterprise (MSE) units. This scheme helps new and existing MSEs to get access to finance.",
-    eligibilityLink: "#",
-    applyLink: "#",
+    id: "standup",
+    label: "Stand-Up India",
+    icon: <Users className="w-5 h-5 mr-2 text-primary" />,
+    description: "Loans between ₹10 lakh and ₹1 Crore for SC/ST and women entrepreneurs."
+  },
+  {
+    id: "other",
+    label: "Other",
+    icon: <MoreHorizontal className="w-5 h-5 mr-2 text-primary" />,
+    description: "Specify other government loan scheme."
   }
 ];
 
 export function GovernmentSchemesPage({ setCurrentPage }: GovernmentSchemesPageProps) {
+  const [selectedScheme, setSelectedScheme] = useState<string | undefined>();
+  const [otherSchemeName, setOtherSchemeName] = useState<string>("");
+
+  const handleProceed = () => {
+    // Placeholder for future navigation or action
+    console.log("Selected Scheme:", selectedScheme);
+    if (selectedScheme === "other") {
+      console.log("Other Scheme Name:", otherSchemeName);
+    }
+    // For now, it could navigate back or to a generic next step
+    // setCurrentPage('someNextStep'); 
+  };
+
   return (
     <section className="bg-secondary py-12 md:py-20">
       <div className="container mx-auto px-4 sm:px-6">
@@ -66,39 +65,64 @@ export function GovernmentSchemesPage({ setCurrentPage }: GovernmentSchemesPageP
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Home
         </Button>
-        <div className="max-w-4xl mx-auto bg-card p-6 md:p-10 rounded-2xl shadow-xl">
+        <div className="max-w-2xl mx-auto bg-card p-6 md:p-10 rounded-2xl shadow-xl">
           <div className="text-center mb-8">
             <Info className="w-12 h-12 mx-auto text-primary mb-2" />
-            <h2 className="text-3xl font-bold text-card-foreground">Explore Government Loan Schemes</h2>
+            <h2 className="text-3xl font-bold text-card-foreground">Government Scheme Loan Application</h2>
             <p className="text-muted-foreground mt-1">
-              Discover various loan schemes offered by the government to support individuals and businesses.
+              Select the scheme you wish to apply for.
             </p>
           </div>
 
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            {schemes.map((scheme) => (
-              <AccordionItem value={scheme.id} key={scheme.id} className="bg-background/50 rounded-lg border border-border p-1">
-                <AccordionTrigger className="hover:no-underline px-4 py-3 text-lg font-semibold text-primary">
-                  {scheme.title}
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pt-2 pb-4 space-y-3">
-                  <p className="text-muted-foreground text-sm">{scheme.description}</p>
-                  <div className="flex space-x-3 mt-3">
-                    <Button variant="outline" size="sm" onClick={() => window.open(scheme.eligibilityLink, '_blank')} className="text-xs">
-                      Eligibility Criteria <ExternalLink className="ml-1.5 h-3 w-3" />
-                    </Button>
-                    <Button size="sm" onClick={() => window.open(scheme.applyLink, '_blank')} className="text-xs cta-button">
-                      Apply Now <ExternalLink className="ml-1.5 h-3 w-3" />
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <div className="space-y-6">
+            <Label className="text-lg font-semibold text-gray-900 dark:text-gray-100">Loan Scheme Applying For:</Label>
+            <RadioGroup 
+              value={selectedScheme} 
+              onValueChange={setSelectedScheme}
+              className="space-y-3"
+            >
+              {schemeOptions.map((scheme) => (
+                <div key={scheme.id} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-accent/50 transition-colors">
+                  <RadioGroupItem value={scheme.id} id={scheme.id} />
+                  <Label htmlFor={scheme.id} className="flex items-center cursor-pointer w-full">
+                    {scheme.icon}
+                    <div className="ml-2">
+                        <span className="font-medium">{scheme.label}</span>
+                        <p className="text-xs text-muted-foreground">{scheme.description}</p>
+                    </div>
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+
+            {selectedScheme === "other" && (
+              <div className="mt-4">
+                <Label htmlFor="otherSchemeName" className="font-medium">Specify Other Scheme Name</Label>
+                <Input 
+                  id="otherSchemeName" 
+                  value={otherSchemeName} 
+                  onChange={(e) => setOtherSchemeName(e.target.value)} 
+                  placeholder="Enter scheme name"
+                  className="mt-1"
+                />
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-10 pt-6 border-t border-border">
+            <Button 
+              onClick={handleProceed} 
+              className="w-full cta-button" 
+              size="lg"
+              disabled={!selectedScheme || (selectedScheme === "other" && !otherSchemeName.trim())}
+            >
+              Proceed
+            </Button>
+          </div>
 
            <div className="mt-10 text-center">
             <p className="text-sm text-muted-foreground">
-              For detailed information and to apply for these schemes, please visit the respective official government portals. 
+              For detailed information about these schemes, please visit the respective official government portals. 
               Eligibility criteria and application processes may vary.
             </p>
           </div>
