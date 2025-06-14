@@ -8,10 +8,11 @@ import { PartnerSignUpSchema, type PartnerSignUpFormData } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, LogIn, UserPlus, Mail } from 'lucide-react';
+import { ArrowLeft, LogIn, UserPlus, Mail, Loader2 } from 'lucide-react'; // Added Loader2
 import type { SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
+import { partnerSignUpAction } from '@/app/actions/authActions';
 
 interface PartnerLoginOptionsPageProps {
   setCurrentPage: SetPageView;
@@ -41,14 +42,42 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
 
   async function onSignUpSubmit(data: PartnerSignUpFormData) {
     setIsSubmitting(true);
-    console.log("Partner Sign Up Data:", data);
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-    toast({
-      title: "Sign Up Attempted",
-      description: "Manual sign-up functionality is being implemented. Your data has been logged.",
-    });
-    setIsSubmitting(false);
-    form.reset();
+    try {
+      const result = await partnerSignUpAction(data);
+      if (result.success) {
+        toast({
+          title: "Sign Up Successful",
+          description: result.message,
+        });
+        form.reset();
+        // Potentially navigate to a dashboard or confirmation page
+        // setCurrentPage('partnerDashboard'); 
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Sign Up Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+        // Handle field-specific errors if your server action returns them
+        if (result.errors) {
+           Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
+            form.setError(fieldName as keyof PartnerSignUpFormData, { // Cast fieldName
+              type: 'manual',
+              message: (errorMessages as string[]).join(', '),
+            });
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign Up Error",
+        description: "An unexpected error occurred during sign up.",
+      });
+      console.error("Partner sign up error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const handleGmailLogin = () => {
@@ -56,6 +85,8 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
       title: "Gmail Login Coming Soon",
       description: "The functionality for Gmail login will be available shortly.",
     });
+    // Later, this would initiate an OAuth flow
+    // e.g., window.location.href = '/api/auth/google';
   };
 
   return (
@@ -78,7 +109,6 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
             </p>
           </div>
 
-          {/* Manual Sign-Up Form */}
           <div className="mb-10">
             <h3 className="text-xl font-semibold text-center mb-1 text-card-foreground flex items-center justify-center">
               <UserPlus className="w-6 h-6 mr-2 text-primary"/> Partner Sign-Up Form (Manual)
@@ -152,7 +182,7 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
                   )}
                 />
                 <Button type="submit" className="w-full cta-button" disabled={isSubmitting}>
-                  {isSubmitting ? 'Signing Up...' : 'Sign Up Now'}
+                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing Up...</> : 'Sign Up Now'}
                 </Button>
               </form>
             </Form>
@@ -163,7 +193,6 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
 
           <Separator className="my-8" />
 
-          {/* Gmail Login Section */}
           <div>
             <h3 className="text-xl font-semibold text-center mb-1 text-card-foreground flex items-center justify-center">
               <Mail className="w-6 h-6 mr-2 text-primary"/> Option 2: Direct Gmail Login (OAuth)
@@ -188,5 +217,3 @@ export function PartnerLoginOptionsPage({ setCurrentPage }: PartnerLoginOptionsP
     </section>
   );
 }
-
-    

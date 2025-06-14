@@ -11,19 +11,20 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { validateIdentificationDetails, type ValidateIdentificationDetailsOutput } from '@/ai/flows/validate-identification-details';
+import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 import { ArrowLeft, Loader2, Info } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 
 interface FieldConfig {
   name: string;
-  label: React.ReactNode; // Changed from string to React.ReactNode
+  label: React.ReactNode; 
   type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio';
   placeholder?: string;
   options?: { value: string; label: string }[];
   isPAN?: boolean;
   isAadhaar?: boolean;
-  prefix?: string; // For currency etc.
+  prefix?: string; 
   colSpan?: 1 | 2;
 }
 
@@ -41,7 +42,7 @@ interface GenericLoanFormProps<T extends Record<string, any>> {
   schema: ZodType<T, ZodTypeDef, T>;
   defaultValues: T;
   sections: SectionConfig[];
-  loanType: string; // e.g., "Personal Loan", "Business Loan"
+  loanType: string; 
 }
 
 export function GenericLoanForm<T extends Record<string, any>>({ 
@@ -64,18 +65,47 @@ export function GenericLoanForm<T extends Record<string, any>>({
     defaultValues,
   });
 
-  const { control, handleSubmit, getValues, setError, clearErrors, trigger } = form;
+  const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset } = form;
 
   async function onSubmit(data: T) {
     setIsSubmitting(true);
-    console.log(`Submitting ${loanType} application:`, data);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({
-      title: `${loanType} Application Submitted!`,
-      description: `Your ${loanType.toLowerCase()} application has been successfully submitted. We will contact you shortly.`,
-    });
-    setIsSubmitting(false);
+    try {
+      const result = await submitLoanApplicationAction(data, loanType, schema);
+      if (result.success) {
+        toast({
+          title: `${loanType} Application Submitted!`,
+          description: result.message,
+        });
+        reset(); // Reset form on successful submission
+        // Optionally navigate away or clear form state further
+        // setCurrentPage('main'); // Example: navigate back home
+      } else {
+        toast({
+          variant: "destructive",
+          title: `${loanType} Application Failed`,
+          description: result.message || "An unknown error occurred.",
+        });
+        if (result.errors) {
+          // Handle field-specific errors if your server action returns them
+          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
+            setError(fieldName as any, {
+              type: 'manual',
+              // @ts-ignore
+              message: (errorMessages as string[]).join(', '),
+            });
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: `An error occurred while submitting the ${loanType.toLowerCase()} application.`,
+      });
+      console.error(`Error submitting ${loanType} application:`, error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
   
   const handleIDValidation = async (fieldName: string) => {
