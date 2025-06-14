@@ -62,20 +62,38 @@ const businessLoanSections = [
     ]
   },
   {
-    title: "4. Document Upload Details",
-    subtitle: "दस्तावेज़ अपलोड जानकारी (कृपया नीचे दिए गए दस्तावेज़ों के फ़ाइल नाम या स्थिति दर्ज करें)",
+    title: "4. KYC Documents",
+    subtitle: "केवाईसी दस्तावेज़ (फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
     fields: [
       { name: "documentUploadDetails.panCard", label: "PAN Card (PDF/JPG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
       { name: "documentUploadDetails.aadhaarCard", label: "Aadhaar Card (PDF/JPG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
       { name: "documentUploadDetails.applicantPhoto", label: "Applicant Photo (JPG/PNG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+    ]
+  },
+  {
+    title: "5. Business Proof",
+    subtitle: "व्यवसाय प्रमाण (फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
+    fields: [
       { name: "documentUploadDetails.gstCertificate", label: "GST Registration Certificate", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
       { name: "documentUploadDetails.udyamCertificate", label: "Udyam / Shop & Establishment Certificate", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
       { name: "documentUploadDetails.partnershipDeedOrMOA", label: "Partnership Deed / MOA & AOA (यदि लागू हो)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+    ]
+  },
+  {
+    title: "6. Financial Documents",
+    subtitle: "वित्तीय दस्तावेज़ (फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
+    fields: [
       { name: "documentUploadDetails.bankStatement", label: "Bank Statement (6–12 महीनों का PDF)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
       { name: "documentUploadDetails.itrLast2Years", label: "ITR Last 2 Years (PDF)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
       { name: "documentUploadDetails.balanceSheetAndPL", label: "Balance Sheet & Profit-Loss Statement", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.existingLoanStatement", label: "Existing Loan Statement (यदि लागू हो तो)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.machineryQuotation", label: "Machinery Quotation / Invoice (यदि लागू हो तो)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+    ]
+  },
+  {
+    title: "7. Other Documents (if applicable)",
+    subtitle: "अन्य दस्तावेज़ (यदि लागू हो तो, फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
+    fields: [
+      { name: "documentUploadDetails.existingLoanStatement", label: "Existing Loan Statement", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.machineryQuotation", label: "Machinery Quotation / Invoice", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
     ]
   }
 ];
@@ -102,7 +120,7 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
       existingLoanEMI: undefined,
       existingLoanBankName: '',
     },
-    documentUploadDetails: {
+    documentUploadDetails: { // These keys must match the 'name' attributes in the fields
         panCard: '',
         aadhaarCard: '',
         applicantPhoto: '',
@@ -130,3 +148,4 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
     />
   );
 }
+
