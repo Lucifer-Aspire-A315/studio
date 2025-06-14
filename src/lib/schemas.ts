@@ -10,48 +10,46 @@ export const HomeLoanApplicantDetailsSchema = z.object({
   aadhaar: z.string().regex(/^\d{12}$/, "Invalid Aadhaar format (must be 12 digits)"),
 });
 
+// Updated ResidentialAddressSchema to use a single field for the full address
 export const ResidentialAddressSchema = z.object({
   fullAddress: z.string().min(1, "Full address is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Invalid pincode (must be 6 digits)"),
 });
 
 export const EmploymentIncomeSchema = z.object({
-  employmentType: z.enum(["salaried", "self-employed"], { required_error: "Employment type is required" }),
-  occupation: z.string().min(1, "Occupation is required"),
-  companyName: z.string().min(1, "Company name is required"),
+  employmentType: z.enum(["salaried", "self-employed"], { required_error: "Occupation Type is required" }), // Updated error message
+  occupation: z.string().min(1, "Occupation is required"), // This field seems to be missing in the user's new layout but present in old. Keeping for now.
+  companyName: z.string().min(1, "Company / Business Name is required"),
   monthlyIncome: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
-    z.number({ invalid_type_error: "Monthly income must be a number"}).min(0, "Monthly income cannot be negative")
+    z.number({ invalid_type_error: "Monthly Income must be a number"}).min(0, "Monthly income cannot be negative")
   ),
   yearsInCurrentJobOrBusiness: z.preprocess(
     (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
-    z.number({ invalid_type_error: "Years in job/business must be a number" }).min(0, "Years cannot be negative").optional()
+    z.number({ invalid_type_error: "Years in job/business must be a number" }).min(0, "Years cannot be negative")
   ),
 });
 
 export const LoanPropertyDetailsSchema = z.object({
   loanAmountRequired: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
-    z.number({ invalid_type_error: "Loan amount must be a number"}).min(1, "Loan amount is required")
+    z.number({ invalid_type_error: "Loan amount must be a number"}).min(1, "Loan Amount Required is required")
   ),
   loanTenureRequired: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
-    z.number({ invalid_type_error: "Loan tenure must be a number"}).min(1, "Loan tenure is required (in years)")
+    z.number({ invalid_type_error: "Loan tenure must be a number"}).min(1, "Loan Tenure is required (in years)")
   ),
-  purposeOfLoan: z.enum(["purchase", "construction", "renovation", "transfer"], { required_error: "Purpose of loan is required" }),
-  propertyLocation: z.string().min(1, "Property location is required"),
-  estimatedPropertyValue: z.preprocess(
+  purposeOfLoan: z.enum(["purchase", "construction", "renovation", "transfer"], { required_error: "Purpose of Loan is required" }),
+  propertyLocation: z.string().min(1, "Property Location is required"),
+  estimatedPropertyValue: z.preprocess( // This field is not in the new user layout, but was in old. Keeping for schema completeness.
     (val) => (val === "" ? undefined : Number(val)),
     z.number({ invalid_type_error: "Property value must be a number"}).min(1, "Estimated property value is required")
   ),
-  propertyType: z.enum(["apartment", "independent_house", "plot_construction"], { required_error: "Property type is required" }),
+  propertyType: z.enum(["apartment", "independent_house", "plot_construction"], { required_error: "Property Type is required" }),
 });
 
 export const ExistingLoansSchema = z.object({
   bankName: z.string().optional(),
-  outstandingAmount: z.preprocess(
+  outstandingAmount: z.preprocess( // Not directly in new layout, but good for backend
     (val) => (val === "" ? undefined : (val === undefined ? undefined : Number(val))),
     z.number({ invalid_type_error: "Outstanding amount must be a number"}).min(0).optional()
   ),
@@ -76,7 +74,7 @@ export type HomeLoanDocumentUploadFormData = z.infer<typeof HomeLoanDocumentUplo
 
 export const HomeLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
-  residentialAddress: ResidentialAddressSchema, // This is CURRENT address
+  residentialAddress: ResidentialAddressSchema, // Current Address
   isPermanentAddressDifferent: z.boolean().optional().default(false),
   permanentAddress: ResidentialAddressSchema.optional(),
   employmentIncome: EmploymentIncomeSchema,
@@ -86,21 +84,12 @@ export const HomeLoanApplicationSchema = z.object({
   documentUploads: HomeLoanDocumentUploadSchema.optional(),
 }).superRefine((data, ctx) => {
   if (data.isPermanentAddressDifferent) {
-    if (!data.permanentAddress) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Permanent address details are required.", path: ["permanentAddress", "fullAddress"]});
-    } else {
-        if (!data.permanentAddress.fullAddress) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "fullAddress"], message: "Full address is required for permanent address."});
-        }
-        if (!data.permanentAddress.city) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "city"], message: "City is required for permanent address."});
-        }
-        if (!data.permanentAddress.state) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "state"], message: "State is required for permanent address."});
-        }
-        if (!data.permanentAddress.pincode || !/^\d{6}$/.test(data.permanentAddress.pincode) ) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["permanentAddress", "pincode"], message: "Valid Pincode is required for permanent address."});
-        }
+    if (!data.permanentAddress || !data.permanentAddress.fullAddress || data.permanentAddress.fullAddress.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Permanent Address is required.",
+        path: ["permanentAddress", "fullAddress"]
+      });
     }
   }
 
@@ -131,8 +120,8 @@ export type HomeLoanApplicationFormData = z.infer<typeof HomeLoanApplicationSche
 // Personal Loan Schema
 export const PersonalLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
-  residentialAddress: ResidentialAddressSchema,
-  employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true }), // Omit if not needed for PL
+  residentialAddress: ResidentialAddressSchema, // Uses updated single-field address
+  employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true }),
   loanDetails: z.object({
     loanAmountRequired: z.preprocess(
       (val) => (val === "" ? undefined : Number(val)),
@@ -158,7 +147,7 @@ const BusinessDetailsSchema = z.object({
     (val) => (val === "" ? undefined : Number(val)),
     z.number({invalid_type_error: "Start year must be a number"}).min(1900, "Invalid year").max(new Date().getFullYear(), "Invalid year")
   ),
-  businessAddress: z.string().min(1, "Business address is required"),
+  businessAddress: z.string().min(1, "Business address is required"), // This remains a single field for business
   annualTurnover: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
     z.number({invalid_type_error: "Annual turnover must be a number"}).min(0, "Annual turnover cannot be negative")
@@ -182,7 +171,7 @@ const LoanDetailsForBusinessSchema = z.object({
     (val) => (val === "" ? undefined : Number(val)),
     z.number({invalid_type_error: "Loan amount must be a number"}).min(1, "Loan amount is required")
   ),
-  loanTenureRequired: z.preprocess( // Tenure in months for Business Loan, but schema just takes number
+  loanTenureRequired: z.preprocess( 
     (val) => (val === "" ? undefined : Number(val)),
     z.number({invalid_type_error: "Loan tenure must be a number"}).min(1, "Loan tenure is required (in months)")
   ),
@@ -245,10 +234,9 @@ export type BusinessLoanApplicationFormData = z.infer<typeof BusinessLoanApplica
 
 
 // Credit Card Schema
-// Note: Credit Card may not need 'yearsInCurrentJobOrBusiness' from EmploymentIncomeSchema
 export const CreditCardApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
-  residentialAddress: ResidentialAddressSchema,
+  residentialAddress: ResidentialAddressSchema, // Uses updated single-field address
   employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true }),
 });
 export type CreditCardApplicationFormData = z.infer<typeof CreditCardApplicationSchema>;

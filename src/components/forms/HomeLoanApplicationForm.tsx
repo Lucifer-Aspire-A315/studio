@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { HomeLoanApplicationSchema, type HomeLoanApplicationFormData } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -41,22 +40,16 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
         pan: '',
         aadhaar: '',
       },
-      residentialAddress: { // Current Address
+      residentialAddress: { // Current Address with single field
         fullAddress: '',
-        city: '',
-        state: '',
-        pincode: '',
       },
       isPermanentAddressDifferent: false,
-      permanentAddress: {
+      permanentAddress: { // Permanent Address with single field
         fullAddress: '',
-        city: '',
-        state: '',
-        pincode: '',
       },
       employmentIncome: {
         employmentType: undefined, 
-        occupation: '',
+        occupation: '', // Kept from old schema, though not explicitly in new text form
         companyName: '',
         monthlyIncome: undefined,
         yearsInCurrentJobOrBusiness: undefined,
@@ -66,13 +59,13 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
         loanTenureRequired: undefined,
         purposeOfLoan: undefined,
         propertyLocation: '',
-        estimatedPropertyValue: undefined,
+        estimatedPropertyValue: undefined, // Kept from old schema
         propertyType: undefined,
       },
       hasExistingLoans: undefined,
       existingLoans: {
         bankName: '',
-        outstandingAmount: undefined,
+        outstandingAmount: undefined, // Kept from old schema
         emiAmount: undefined,
       },
       documentUploads: {
@@ -89,7 +82,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
     },
   });
 
-  const { control, handleSubmit, getValues, setError, clearErrors, watch, formState: { errors } } = form;
+  const { control, handleSubmit, getValues, setError, clearErrors, watch } = form;
 
   const isPermanentAddressDifferent = watch("isPermanentAddressDifferent");
   const hasExistingLoans = watch("hasExistingLoans");
@@ -97,7 +90,6 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
   async function onSubmit(data: HomeLoanApplicationFormData) {
     setIsSubmitting(true);
     console.log("Home Loan Data:", data);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     toast({
       title: "Application Submitted!",
@@ -181,12 +173,12 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
           <div className="text-center mb-8">
             <HomeIcon className="w-12 h-12 mx-auto text-primary mb-2" />
             <h2 className="text-3xl font-bold text-card-foreground">Home Loan Application Form</h2>
-            <p className="text-muted-foreground mt-1">Simple & Fast Home Loan Process • Transparent Terms, Minimum Documentation • 100% Digital & Safe</p>
+            <p className="text-muted-foreground mt-1">Simple & Fast Home Loan Process. Transparent Terms, Minimum Documentation. 100% Digital & Safe.</p>
           </div>
           
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-              <FormSection title="1. Applicant Information" subtitle="आवेदक की जानकारी">
+              <FormSection title="Applicant Information">
                 <FormField
                   control={control}
                   name="applicantDetails.name"
@@ -232,54 +224,18 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                   )}
                 />
                  <FormFieldWrapper className="md:col-span-2">
-                    <FormLabel>Current Residential Address</FormLabel>
-                 </FormFieldWrapper>
-                 <FormFieldWrapper className="md:col-span-2">
                     <FormField
                     control={control}
                     name="residentialAddress.fullAddress"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Full Address</FormLabel>
+                        <FormLabel>Current Residential Address</FormLabel>
                         <FormControl><Textarea placeholder="Enter your current full address" {...field} rows={3} /></FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                     />
                 </FormFieldWrapper>
-                <FormField
-                  control={control}
-                  name="residentialAddress.city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl><Input placeholder="City" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="residentialAddress.state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>State</FormLabel>
-                      <FormControl><Input placeholder="State" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="residentialAddress.pincode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pincode</FormLabel>
-                      <FormControl><Input placeholder="6-digit Pincode" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                  <FormFieldWrapper className="md:col-span-2">
                      <FormField
                         control={control}
@@ -301,57 +257,19 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                 </FormFieldWrapper>
 
                 {isPermanentAddressDifferent && (
-                    <>
-                        <FormFieldWrapper className="md:col-span-2">
-                            <FormLabel>Permanent Residential Address</FormLabel>
-                        </FormFieldWrapper>
-                        <FormFieldWrapper className="md:col-span-2">
-                            <FormField
-                            control={control}
-                            name="permanentAddress.fullAddress"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Full Address (Permanent)</FormLabel>
-                                <FormControl><Textarea placeholder="Enter your permanent full address" {...field} rows={3} /></FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                            />
-                        </FormFieldWrapper>
+                    <FormFieldWrapper className="md:col-span-2">
                         <FormField
                         control={control}
-                        name="permanentAddress.city"
+                        name="permanentAddress.fullAddress"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>City (Permanent)</FormLabel>
-                            <FormControl><Input placeholder="Permanent City" {...field} /></FormControl>
+                            <FormLabel>Permanent Address</FormLabel>
+                            <FormControl><Textarea placeholder="Enter your permanent full address" {...field} rows={3} /></FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
                         />
-                        <FormField
-                        control={control}
-                        name="permanentAddress.state"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>State (Permanent)</FormLabel>
-                            <FormControl><Input placeholder="Permanent State" {...field} /></FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                        <FormField
-                        control={control}
-                        name="permanentAddress.pincode"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Pincode (Permanent)</FormLabel>
-                            <FormControl><Input placeholder="6-digit Permanent Pincode" {...field} /></FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    </>
+                    </FormFieldWrapper>
                 )}
 
                 <FormField
@@ -384,7 +302,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                 />
               </FormSection>
 
-              <FormSection title="2. Loan Details" subtitle="ऋण की जानकारी">
+              <FormSection title="Loan Details">
                 <FormField
                     control={control}
                     name="loanPropertyDetails.loanAmountRequired"
@@ -396,19 +314,6 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">₹</span>
                             <Input type="number" placeholder="e.g., 2500000" className="pl-7" {...field} />
                             </div>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={control}
-                    name="loanPropertyDetails.loanTenureRequired"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Loan Tenure (in Years)</FormLabel>
-                        <FormControl>
-                           <Input type="number" placeholder="e.g., 20" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -482,17 +387,14 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                     </FormItem>
                   )}
                 />
-                <FormField
+                 <FormField
                     control={control}
-                    name="loanPropertyDetails.estimatedPropertyValue"
+                    name="loanPropertyDetails.loanTenureRequired"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Estimated Property Value (₹)</FormLabel>
+                        <FormLabel>Loan Tenure (in Years)</FormLabel>
                         <FormControl>
-                            <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">₹</span>
-                            <Input type="number" placeholder="e.g., 5000000" className="pl-7" {...field} />
-                            </div>
+                           <Input type="number" placeholder="e.g., 20" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -531,7 +433,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                             name="existingLoans.emiAmount"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>If Yes, EMI (₹)</FormLabel>
+                                <FormLabel>EMI (₹)</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">₹</span>
@@ -547,7 +449,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                         name="existingLoans.bankName"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>If Yes, Bank Name</FormLabel>
+                            <FormLabel>Bank Name</FormLabel>
                             <FormControl><Input placeholder="Bank Name" {...field} /></FormControl>
                             <FormMessage />
                             </FormItem>
@@ -555,9 +457,27 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                         />
                     </>
                 )}
+                 {/* Estimated Property Value - not in new text form, but existed in old schema. Hidden for now unless required.
+                 <FormField
+                    control={control}
+                    name="loanPropertyDetails.estimatedPropertyValue"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Estimated Property Value (₹)</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">₹</span>
+                            <Input type="number" placeholder="e.g., 5000000" className="pl-7" {...field} />
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                */}
               </FormSection>
 
-              <FormSection title="3. Employment / Income Details" subtitle="रोजगार और आय की जानकारी">
+              <FormSection title="Employment / Income Details">
                 <FormField
                   control={control}
                   name="employmentIncome.employmentType"
@@ -572,11 +492,11 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                         >
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl><RadioGroupItem value="salaried" /></FormControl>
-                            <FormLabel className="font-normal">Salaried (वेतनभोगी)</FormLabel>
+                            <FormLabel className="font-normal">Salaried</FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-3 space-y-0">
                             <FormControl><RadioGroupItem value="self-employed" /></FormControl>
-                            <FormLabel className="font-normal">Self-Employed / Business (स्व-नियोजित)</FormLabel>
+                            <FormLabel className="font-normal">Self-Employed / Business</FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -584,6 +504,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                     </FormItem>
                   )}
                 />
+                {/* Occupation field not in new text form. Hiding for now.
                 <FormField
                   control={control}
                   name="employmentIncome.occupation"
@@ -595,6 +516,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                     </FormItem>
                   )}
                 />
+                */}
                 <FormField
                   control={control}
                   name="employmentIncome.companyName"
@@ -635,7 +557,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                 />
               </FormSection>
               
-              <FormSection title="4. Upload Required Documents" subtitle="Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.">
+              <FormSection title="Upload Required Documents" subtitle="Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.">
                 {documentFields.map(docField => (
                   <FormFieldWrapper key={docField.name} className="md:col-span-2">
                     <FormField
@@ -664,7 +586,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                 ))}
               </FormSection>
               
-              <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="mt-10 pt-6 border-t border-border dark:border-gray-700">
                 <Button type="submit" className="w-full cta-button" size="lg" disabled={isSubmitting}>
                   {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : 'Submit Application'}
                 </Button>
@@ -676,6 +598,5 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
     </section>
   );
 }
-
 
     
