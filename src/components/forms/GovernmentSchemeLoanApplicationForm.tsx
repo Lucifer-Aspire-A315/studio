@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, FileText, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
+import { submitGovernmentSchemeLoanApplicationAction } from '@/app/actions/governmentSchemeActions';
 
 interface GovernmentSchemeLoanApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -82,20 +83,45 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
     defaultValues,
   });
 
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, reset, setError } = form;
 
   const businessType = watch("businessInformationGov.businessType");
 
   async function onSubmit(data: GovernmentSchemeLoanApplicationFormData) {
     setIsSubmitting(true);
-    console.log("Government Scheme Loan Data:", data);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({
-      title: "Application Submitted!",
-      description: "Your Government Scheme Loan application has been successfully submitted. We will contact you shortly.",
-    });
-    setIsSubmitting(false);
+    try {
+      const result = await submitGovernmentSchemeLoanApplicationAction(data, GovernmentSchemeLoanApplicationSchema);
+      if (result.success) {
+        toast({
+          title: "Application Submitted!",
+          description: result.message,
+        });
+        reset(); // Reset form on successful submission
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Application Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
+            setError(fieldName as any, { // Use `any` or more specific type if possible
+              type: 'manual',
+              message: (errorMessages as string[]).join(', '),
+            });
+          });
+        }
+      }
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: "An error occurred while submitting the application.",
+      });
+      console.error("Error submitting Government Scheme Loan application:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const documentFields = [
@@ -292,3 +318,4 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
     </section>
   );
 }
+
