@@ -11,24 +11,29 @@ import { HomeLoanApplicationForm } from '@/components/forms/HomeLoanApplicationF
 import { PersonalLoanApplicationForm } from '@/components/forms/PersonalLoanApplicationForm';
 import { BusinessLoanApplicationForm } from '@/components/forms/BusinessLoanApplicationForm';
 import { CreditCardApplicationForm } from '@/components/forms/CreditCardApplicationForm';
-import { GovernmentSchemesPage } from '@/components/sections/GovernmentSchemesPage'; // New import
-import { Skeleton } from '@/components/ui/skeleton'; // For loading state
+import { GovernmentSchemesPage } from '@/components/sections/GovernmentSchemesPage';
+import { GovernmentSchemeLoanApplicationForm } from '@/components/forms/GovernmentSchemeLoanApplicationForm'; // New import
+import { Skeleton } from '@/components/ui/skeleton'; 
 
-export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes'; // Added 'governmentSchemes'
+export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication'; // Added 'governmentSchemeApplication'
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
+export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
+export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
+
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<PageView>('main');
   const [isClient, setIsClient] = useState(false);
+  const [selectedGovernmentScheme, setSelectedGovernmentScheme] = useState<string | undefined>();
+  const [otherGovernmentSchemeName, setOtherGovernmentSchemeName] = useState<string | undefined>();
+
 
   useEffect(() => {
     setIsClient(true);
-    // Handle hash changes for navigation (e.g. if user uses back/forward browser buttons after hash nav)
     const handleHashChange = () => {
       const hash = window.location.hash;
       if (hash === '#home' || hash === '#services' || hash === '#calculator' || hash === '#about') {
         if(currentPage !== 'main') setCurrentPage('main');
-        // Smooth scroll if on main page
         setTimeout(() => {
           const element = document.getElementById(hash.substring(1));
           if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -37,10 +42,8 @@ export default function Home() {
     };
 
     window.addEventListener('hashchange', handleHashChange, false);
-    // Initial check
     if (window.location.hash && (window.location.hash === '#home' || window.location.hash === '#services' || window.location.hash === '#calculator' || window.location.hash === '#about')) {
        setCurrentPage('main');
-       // Ensure scrolling happens after main page is set and rendered
        setTimeout(() => {
         const element = document.getElementById(window.location.hash.substring(1));
         if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -63,13 +66,13 @@ export default function Home() {
   if (!isClient) {
     return (
       <div className="flex flex-col min-h-screen">
-        <Skeleton className="h-16 w-full" /> {/* Header placeholder */}
+        <Skeleton className="h-16 w-full" />
         <main className="flex-grow container mx-auto px-6 py-8 space-y-8">
-          <Skeleton className="h-64 w-full" /> {/* Hero placeholder */}
-          <Skeleton className="h-48 w-full" /> {/* Services placeholder */}
-          <Skeleton className="h-48 w-full" /> {/* EMI Calc placeholder */}
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
         </main>
-        <Skeleton className="h-32 w-full" /> {/* Footer placeholder */}
+        <Skeleton className="h-32 w-full" />
       </div>
     );
   }
@@ -82,8 +85,7 @@ export default function Home() {
             <HeroSection setCurrentPage={setCurrentPage} />
             <ServicesSection setCurrentPage={setCurrentPage} />
             <EMICalculatorSection />
-            {/* Placeholder for About Us if it becomes a distinct section */}
-            <section id="about" className="py-16 md:py-20 bg-background hidden"> {/* Hidden for now, can be fleshed out */}
+            <section id="about" className="py-16 md:py-20 bg-background hidden">
               <div className="container mx-auto px-6 text-center">
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">About Us</h2>
                 <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
@@ -93,7 +95,7 @@ export default function Home() {
                 </p>
               </div>
             </section>
-             <section id="contact" className="py-16 md:py-20 bg-secondary hidden"> {/* Hidden for now */}
+             <section id="contact" className="py-16 md:py-20 bg-secondary hidden">
               <div className="container mx-auto px-6 text-center">
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Contact Us</h2>
                 <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
@@ -113,8 +115,22 @@ export default function Home() {
         return <BusinessLoanApplicationForm setCurrentPage={setCurrentPage} />;
       case 'creditCard':
         return <CreditCardApplicationForm setCurrentPage={setCurrentPage} />;
-      case 'governmentSchemes': // New case
-        return <GovernmentSchemesPage setCurrentPage={setCurrentPage} />;
+      case 'governmentSchemes':
+        return <GovernmentSchemesPage 
+                  setCurrentPage={setCurrentPage} 
+                  setSelectedGovernmentScheme={setSelectedGovernmentScheme}
+                  setOtherGovernmentSchemeName={setOtherGovernmentSchemeName}
+                />;
+      case 'governmentSchemeApplication':
+        if (!selectedGovernmentScheme) {
+          setCurrentPage('governmentSchemes'); // Fallback if scheme not selected
+          return <p>Please select a scheme first.</p>;
+        }
+        return <GovernmentSchemeLoanApplicationForm 
+                  setCurrentPage={setCurrentPage} 
+                  selectedScheme={selectedGovernmentScheme}
+                  otherSchemeName={otherGovernmentSchemeName}
+                />;
       default:
         return <p>Page not found.</p>;
     }

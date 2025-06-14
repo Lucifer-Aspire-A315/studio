@@ -16,7 +16,7 @@ export const ResidentialAddressSchema = z.object({
 
 export const EmploymentIncomeSchema = z.object({
   employmentType: z.enum(["salaried", "self-employed"], { required_error: "Occupation Type is required" }),
-  occupation: z.string().min(1, "Occupation is required").optional(), 
+  occupation: z.string().min(1, "Occupation is required").optional(),
   companyName: z.string().min(1, "Company / Business Name is required"),
   monthlyIncome: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
@@ -24,7 +24,7 @@ export const EmploymentIncomeSchema = z.object({
   ),
   yearsInCurrentJobOrBusiness: z.preprocess(
     (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
-    z.number({ invalid_type_error: "Years in job/business must be a number" }).min(0, "Years cannot be negative").optional() // Make optional for flexibility if not always required
+    z.number({ invalid_type_error: "Years in job/business must be a number" }).min(0, "Years cannot be negative").optional()
   ),
 });
 
@@ -48,7 +48,7 @@ export const LoanPropertyDetailsSchema = z.object({
 
 export const ExistingLoansSchema = z.object({
   bankName: z.string().optional(),
-  outstandingAmount: z.preprocess( 
+  outstandingAmount: z.preprocess(
     (val) => (val === "" ? undefined : (val === undefined ? undefined : Number(val))),
     z.number({ invalid_type_error: "Outstanding amount must be a number"}).min(0).optional()
   ),
@@ -76,7 +76,7 @@ export const HomeLoanApplicationSchema = z.object({
   residentialAddress: ResidentialAddressSchema,
   isPermanentAddressDifferent: z.boolean().optional().default(false),
   permanentAddress: ResidentialAddressSchema.optional(),
-  employmentIncome: EmploymentIncomeSchema, 
+  employmentIncome: EmploymentIncomeSchema,
   loanPropertyDetails: LoanPropertyDetailsSchema,
   hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
   existingLoans: ExistingLoansSchema.optional(),
@@ -132,7 +132,7 @@ export type PersonalLoanDocumentUploadFormData = z.infer<typeof PersonalLoanDocu
 export const PersonalLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
-  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }), 
+  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }),
   loanDetails: z.object({
     loanAmountRequired: z.preprocess(
       (val) => (val === "" ? undefined : Number(val)),
@@ -214,7 +214,7 @@ const LoanDetailsForBusinessSchema = z.object({
     (val) => (val === "" ? undefined : Number(val)),
     z.number({invalid_type_error: "Loan amount must be a number"}).min(1, "Loan amount is required")
   ),
-  loanTenureRequired: z.preprocess( 
+  loanTenureRequired: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
     z.number({invalid_type_error: "Loan tenure must be a number"}).min(1, "Loan tenure is required (in months)")
   ),
@@ -324,14 +324,92 @@ const CreditCardDocumentUploadSchema = z.object({
 export type CreditCardDocumentUploadFormData = z.infer<typeof CreditCardDocumentUploadSchema>;
 
 export const CreditCardApplicationSchema = z.object({
-  applicantDetails: HomeLoanApplicantDetailsSchema, 
+  applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: z.object({
     fullAddress: z.string().min(1, "Full address is required"),
     city: z.string().min(1, "City is required"),
     pincode: z.string().regex(/^\d{6}$/, "Invalid Pincode (must be 6 digits)"),
   }),
-  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }), 
+  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }),
   creditCardPreferences: CreditCardPreferencesSchema,
   documentUploads: CreditCardDocumentUploadSchema.optional(),
 });
 export type CreditCardApplicationFormData = z.infer<typeof CreditCardApplicationSchema>;
+
+
+// Government Scheme Loan Schemas
+export const GovernmentSchemeApplicantDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  fatherSpouseName: z.string().min(1, "Father's / Spouse's Name is required"),
+  dob: z.string().min(1, "Date of Birth is required"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number"),
+  emailId: z.string().email("Invalid email address"),
+  gender: z.enum(["male", "female", "other"], { required_error: "Gender is required" }),
+  category: z.enum(["general", "sc", "st", "obc"], { required_error: "Category is required" }),
+  maritalStatus: z.enum(["single", "married"], { required_error: "Marital Status is required" }),
+});
+
+export const GovernmentSchemeAddressSchema = z.object({
+  residentialAddress: z.string().min(1, "Residential Address is required"),
+  state: z.string().min(1, "State is required"),
+  district: z.string().min(1, "District is required"),
+  pincode: z.string().regex(/^\d{6}$/, "Invalid Pincode"),
+});
+
+export const GovernmentSchemeBusinessInfoSchema = z.object({
+  businessName: z.string().optional(),
+  businessType: z.enum(["proprietorship", "partnership", "other"], { required_error: "Type of Business is required" }),
+  otherBusinessType: z.string().optional(),
+  businessLocation: z.string().min(1, "Business Location is required"),
+  yearsInBusiness: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Years in business must be a number" }).min(0, "Years in business cannot be negative")
+  ),
+  sector: z.enum(["manufacturing", "service", "trading"], { required_error: "Sector is required" }),
+  loanPurpose: z.enum(["new_setup", "expansion", "working_capital"], { required_error: "Loan Purpose is required" }),
+}).superRefine((data, ctx) => {
+  if (data.businessType === "other" && (!data.otherBusinessType || data.otherBusinessType.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other business type",
+      path: ["otherBusinessType"],
+    });
+  }
+});
+
+export const GovernmentSchemeLoanDetailsSchema = z.object({
+  selectedScheme: z.string().min(1, "Loan scheme is required"), // This will be pre-filled
+  otherSchemeName: z.string().optional(), // This will be pre-filled if "other" was chosen
+  loanAmountRequired: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Loan amount must be a number" }).min(1, "Loan Amount Required is required")
+  ),
+  loanTenure: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Loan tenure must be a number" }).min(1, "Loan Tenure is required (in years)")
+  ),
+});
+
+export const GovernmentSchemeDocumentUploadSchema = z.object({
+  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
+  panCard: z.string().optional().describe("PAN Card"),
+  passportSizePhoto: z.string().optional().describe("Passport Size Photo"),
+  businessProof: z.string().optional().describe("Business Proof (Udyam / Registration)"),
+  bankStatement: z.string().optional().describe("Bank Statement (Last 6 Months)"),
+  casteCertificate: z.string().optional().describe("Caste Certificate (if applicable)"),
+  incomeCertificate: z.string().optional().describe("Income Certificate"),
+  projectReport: z.string().optional().describe("Project Report / Business Plan"),
+  existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if any)"),
+});
+export type GovernmentSchemeDocumentUploadFormData = z.infer<typeof GovernmentSchemeDocumentUploadSchema>;
+
+
+export const GovernmentSchemeLoanApplicationSchema = z.object({
+  applicantDetailsGov: GovernmentSchemeApplicantDetailsSchema,
+  addressInformationGov: GovernmentSchemeAddressSchema,
+  businessInformationGov: GovernmentSchemeBusinessInfoSchema,
+  loanDetailsGov: GovernmentSchemeLoanDetailsSchema,
+  documentUploadsGov: GovernmentSchemeDocumentUploadSchema.optional(),
+});
+
+export type GovernmentSchemeLoanApplicationFormData = z.infer<typeof GovernmentSchemeLoanApplicationSchema>;

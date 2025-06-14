@@ -7,10 +7,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Info, Banknote, Factory, Users, MoreHorizontal } from 'lucide-react';
-import type { SetPageView } from '@/app/page';
+import type { PageView, SetPageView, SetSelectedGovernmentScheme, SetOtherGovernmentSchemeName } from '@/app/page';
 
 interface GovernmentSchemesPageProps {
   setCurrentPage: SetPageView;
+  setSelectedGovernmentScheme: SetSelectedGovernmentScheme;
+  setOtherGovernmentSchemeName: SetOtherGovernmentSchemeName;
 }
 
 const schemeOptions = [
@@ -40,26 +42,32 @@ const schemeOptions = [
   }
 ];
 
-export function GovernmentSchemesPage({ setCurrentPage }: GovernmentSchemesPageProps) {
-  const [selectedScheme, setSelectedScheme] = useState<string | undefined>();
-  const [otherSchemeName, setOtherSchemeName] = useState<string>("");
+export function GovernmentSchemesPage({ 
+  setCurrentPage, 
+  setSelectedGovernmentScheme: setGlobalSelectedScheme, // Renamed for clarity
+  setOtherGovernmentSchemeName: setGlobalOtherSchemeName // Renamed for clarity
+}: GovernmentSchemesPageProps) {
+  const [localSelectedScheme, setLocalSelectedScheme] = useState<string | undefined>();
+  const [localOtherSchemeName, setLocalOtherSchemeName] = useState<string>("");
 
   const handleProceed = () => {
-    // Placeholder for future navigation or action
-    console.log("Selected Scheme:", selectedScheme);
-    if (selectedScheme === "other") {
-      console.log("Other Scheme Name:", otherSchemeName);
+    if (localSelectedScheme) {
+      setGlobalSelectedScheme(localSelectedScheme);
+      if (localSelectedScheme === "other") {
+        setGlobalOtherSchemeName(localOtherSchemeName);
+      } else {
+        setGlobalOtherSchemeName(undefined); // Clear if not 'other'
+      }
+      setCurrentPage('governmentSchemeApplication');
     }
-    // For now, it could navigate back or to a generic next step
-    // setCurrentPage('someNextStep'); 
   };
 
   return (
     <section className="bg-secondary py-12 md:py-20">
       <div className="container mx-auto px-4 sm:px-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => setCurrentPage('main')} 
+        <Button
+          variant="ghost"
+          onClick={() => setCurrentPage('main')}
           className="inline-flex items-center mb-8 text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
@@ -76,9 +84,9 @@ export function GovernmentSchemesPage({ setCurrentPage }: GovernmentSchemesPageP
 
           <div className="space-y-6">
             <Label className="text-lg font-semibold text-gray-900 dark:text-gray-100">Loan Scheme Applying For:</Label>
-            <RadioGroup 
-              value={selectedScheme} 
-              onValueChange={setSelectedScheme}
+            <RadioGroup
+              value={localSelectedScheme}
+              onValueChange={setLocalSelectedScheme}
               className="space-y-3"
             >
               {schemeOptions.map((scheme) => (
@@ -95,26 +103,26 @@ export function GovernmentSchemesPage({ setCurrentPage }: GovernmentSchemesPageP
               ))}
             </RadioGroup>
 
-            {selectedScheme === "other" && (
+            {localSelectedScheme === "other" && (
               <div className="mt-4">
                 <Label htmlFor="otherSchemeName" className="font-medium">Specify Other Scheme Name</Label>
-                <Input 
-                  id="otherSchemeName" 
-                  value={otherSchemeName} 
-                  onChange={(e) => setOtherSchemeName(e.target.value)} 
+                <Input
+                  id="otherSchemeName"
+                  value={localOtherSchemeName}
+                  onChange={(e) => setLocalOtherSchemeName(e.target.value)}
                   placeholder="Enter scheme name"
                   className="mt-1"
                 />
               </div>
             )}
           </div>
-          
+
           <div className="mt-10 pt-6 border-t border-border">
-            <Button 
-              onClick={handleProceed} 
-              className="w-full cta-button" 
+            <Button
+              onClick={handleProceed}
+              className="w-full cta-button"
               size="lg"
-              disabled={!selectedScheme || (selectedScheme === "other" && !otherSchemeName.trim())}
+              disabled={!localSelectedScheme || (localSelectedScheme === "other" && !localOtherSchemeName.trim())}
             >
               Proceed
             </Button>
@@ -122,7 +130,7 @@ export function GovernmentSchemesPage({ setCurrentPage }: GovernmentSchemesPageP
 
            <div className="mt-10 text-center">
             <p className="text-sm text-muted-foreground">
-              For detailed information about these schemes, please visit the respective official government portals. 
+              For detailed information about these schemes, please visit the respective official government portals.
               Eligibility criteria and application processes may vary.
             </p>
           </div>
