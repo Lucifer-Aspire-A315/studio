@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, PiggyBank, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
+import { submitFinancialAdvisoryAction } from '@/app/actions/caServiceActions';
 
 interface FinancialAdvisoryFormProps {
   setCurrentPage: SetPageView;
@@ -115,20 +116,46 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
     defaultValues,
   });
 
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, reset, setError: setFormError } = form;
 
   const watchOccupation = watch("applicantDetails.occupation");
   const watchOtherAdvisoryService = watch("advisoryServicesRequired.otherAdvisoryService");
 
   async function onSubmit(data: FinancialAdvisoryFormData) {
     setIsSubmitting(true);
-    console.log("Financial Advisory Service Application Data:", data);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({
-      title: "Service Application Submitted!",
-      description: "Your application for Financial Advisory services has been successfully submitted. We will contact you shortly.",
-    });
-    setIsSubmitting(false);
+    try {
+      const result = await submitFinancialAdvisoryAction(data, FinancialAdvisoryFormSchema);
+      if (result.success) {
+        toast({
+          title: "Service Application Submitted!",
+          description: result.message,
+        });
+        reset(); 
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Application Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
+            setFormError(fieldName as any, {
+              type: 'manual',
+              message: (errorMessages as string[]).join(', '),
+            });
+          });
+        }
+      }
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: "An error occurred while submitting the Financial Advisory application.",
+      });
+      console.error("Error submitting Financial Advisory application:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

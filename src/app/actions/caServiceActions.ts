@@ -91,7 +91,6 @@ export async function submitCompanyIncorporationAction(
   };
 }
 
-// Placeholder for Financial Advisory
 export async function submitFinancialAdvisoryAction(
   data: FinancialAdvisoryFormData,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -99,7 +98,10 @@ export async function submitFinancialAdvisoryAction(
 ): Promise<ServerActionResponse> {
   console.log(`Received Financial Advisory application on the server:`);
   console.log(JSON.stringify(data, null, 2));
+  
+  // Simulate processing
   await new Promise(resolve => setTimeout(resolve, 1000));
+  
   return {
     success: true,
     message: `Financial Advisory application received successfully by the server.`,
