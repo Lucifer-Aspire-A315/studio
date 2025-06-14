@@ -40,7 +40,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             onClick={scrollToServices}
             aria-label="Learn more about our services"
           >
-            Government Scheme Loan
+            GOVERNMENT SCHEME LOAN
           </Button>
         </div>
       </div>
