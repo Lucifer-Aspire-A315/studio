@@ -1,4 +1,3 @@
-
 'use server';
 
 import type { ZodType, ZodTypeDef } from 'zod';
@@ -40,7 +39,6 @@ export async function submitGstServiceApplicationAction(
   };
 }
 
-// Placeholder for ITR Filing Consultation
 export async function submitItrFilingConsultationAction(
   data: ItrFilingConsultationFormData,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -48,7 +46,10 @@ export async function submitItrFilingConsultationAction(
 ): Promise<ServerActionResponse> {
   console.log(`Received ITR Filing Consultation application on the server:`);
   console.log(JSON.stringify(data, null, 2));
+  
+  // Simulate processing
   await new Promise(resolve => setTimeout(resolve, 1000));
+  
   return {
     success: true,
     message: `ITR Filing Consultation application received successfully by the server.`,
@@ -99,3 +100,4 @@ export async function submitFinancialAdvisoryAction(
     message: `Financial Advisory application received successfully by the server.`,
   };
 }
+

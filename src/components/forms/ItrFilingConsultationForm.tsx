@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -14,6 +13,7 @@ import { ArrowLeft, FileSpreadsheet, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { Textarea } from '@/components/ui/textarea';
+import { submitItrFilingConsultationAction } from '@/app/actions/caServiceActions';
 
 interface ItrFilingConsultationFormProps {
   setCurrentPage: SetPageView;
@@ -83,20 +83,45 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
     defaultValues,
   });
 
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, reset, setError: setFormError } = form;
 
   const watchOtherIncomeSource = watch("incomeSourceType.otherIncomeSource");
 
   async function onSubmit(data: ItrFilingConsultationFormData) {
     setIsSubmitting(true);
-    console.log("ITR Filing & Consultation Application Data:", data);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({
-      title: "ITR Service Application Submitted!",
-      description: "Your application for ITR Filing & Consultation has been successfully submitted. We will contact you shortly.",
-    });
-    setIsSubmitting(false);
+    try {
+      const result = await submitItrFilingConsultationAction(data, ItrFilingConsultationFormSchema);
+      if (result.success) {
+        toast({
+          title: "ITR Service Application Submitted!",
+          description: result.message,
+        });
+        reset(); 
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Application Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
+            setFormError(fieldName as any, {
+              type: 'manual',
+              message: (errorMessages as string[]).join(', '),
+            });
+          });
+        }
+      }
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: "An error occurred while submitting the ITR Filing & Consultation application.",
+      });
+      console.error("Error submitting ITR Filing & Consultation application:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -109,7 +134,7 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
         <div className="max-w-4xl mx-auto bg-card p-6 md:p-10 rounded-2xl shadow-xl">
           <div className="text-center mb-8">
             <FileSpreadsheet className="w-12 h-12 mx-auto text-primary mb-2" />
-            <h2 className="text-3xl font-bold text-card-foreground">Income Tax Filing & Consultation Application</h2>
+            <h2 className="text-3xl font-bold text-card-foreground">Income Tax Filing &amp; Consultation Application</h2>
             <p className="text-muted-foreground mt-1">Please provide the following details for ITR filing and consultation services.</p>
           </div>
           
@@ -211,3 +236,4 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
     </section>
   );
 }
+
