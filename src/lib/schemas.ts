@@ -542,3 +542,73 @@ export const ItrFilingConsultationFormSchema = z.object({
   documentUploads: ItrDocumentUploadSchema.optional(),
 });
 export type ItrFilingConsultationFormData = z.infer<typeof ItrFilingConsultationFormSchema>;
+
+
+// Accounting & Bookkeeping Service Schemas
+export const AccountingApplicantDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
+  emailId: z.string().email("Invalid email address"),
+  businessName: z.string().min(1, "Business Name is required"),
+  businessType: z.enum(["proprietorship", "partnership", "pvt_ltd", "llp", "other"], { required_error: "Business type is required" }),
+  otherBusinessTypeDetail: z.string().optional(),
+  natureOfBusiness: z.string().min(1, "Nature of Business is required"),
+  cityAndState: z.string().min(1, "City & State are required"),
+}).superRefine((data, ctx) => {
+  if (data.businessType === "other" && (!data.otherBusinessTypeDetail || data.otherBusinessTypeDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other business type",
+      path: ["otherBusinessTypeDetail"],
+    });
+  }
+});
+export type AccountingApplicantDetailsFormData = z.infer<typeof AccountingApplicantDetailsSchema>;
+
+export const AccountingServicesRequiredSchema = z.object({
+  bookkeeping: z.boolean().optional().default(false),
+  ledgerMaintenance: z.boolean().optional().default(false),
+  financialStatementPreparation: z.boolean().optional().default(false),
+  tdsFiling: z.boolean().optional().default(false),
+  gstReconciliationFiling: z.boolean().optional().default(false),
+  payrollServices: z.boolean().optional().default(false),
+  otherAccountingService: z.boolean().optional().default(false),
+  otherAccountingServiceDetail: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.otherAccountingService && (!data.otherAccountingServiceDetail || data.otherAccountingServiceDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other service details.",
+      path: ["otherAccountingServiceDetail"],
+    });
+  }
+  const { otherAccountingServiceDetail, ...services } = data;
+  const oneSelected = Object.values(services).some(val => val === true);
+  if (!oneSelected) {
+    ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one service must be selected.",
+        path: ["bookkeeping"], 
+    });
+  }
+});
+export type AccountingServicesRequiredFormData = z.infer<typeof AccountingServicesRequiredSchema>;
+
+export const AccountingDocumentUploadSchema = z.object({
+  panCardBusinessOwner: z.string().optional().describe("PAN Card of Business/Owner"),
+  gstCertificate: z.string().optional().describe("GST Certificate (if available)"),
+  previousYearFinancials: z.string().optional().describe("Previous Year Financial Statements"),
+  bankStatement: z.string().optional().describe("Bank Statement (Last 6–12 Months)"),
+  invoices: z.string().optional().describe("Invoices (Sales & Purchase - PDF/Excel)"),
+  payrollData: z.string().optional().describe("Payroll Data (if applicable)"),
+  tdsTaxDetails: z.string().optional().describe("TDS & Tax Details (if any)"),
+  otherSupportingDocuments: z.string().optional().describe("Any Other Supporting Documents"),
+});
+export type AccountingDocumentUploadFormData = z.infer<typeof AccountingDocumentUploadSchema>;
+
+export const AccountingBookkeepingFormSchema = z.object({
+  applicantDetails: AccountingApplicantDetailsSchema,
+  servicesRequired: AccountingServicesRequiredSchema,
+  documentUploads: AccountingDocumentUploadSchema.optional(),
+});
+export type AccountingBookkeepingFormData = z.infer<typeof AccountingBookkeepingFormSchema>;

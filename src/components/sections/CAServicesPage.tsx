@@ -53,7 +53,10 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
       setCurrentPage('gstServiceForm');
     } else if (serviceId === 'itr') {
       setCurrentPage('itrFilingConsultationForm');
-    } else {
+    } else if (serviceId === 'accounting') {
+      setCurrentPage('accountingBookkeepingForm');
+    }
+     else {
       toast({
         title: "Application Coming Soon",
         description: `The application form for "${serviceTitle}" will be available shortly.`,
