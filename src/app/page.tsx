@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -10,9 +11,10 @@ import { HomeLoanApplicationForm } from '@/components/forms/HomeLoanApplicationF
 import { PersonalLoanApplicationForm } from '@/components/forms/PersonalLoanApplicationForm';
 import { BusinessLoanApplicationForm } from '@/components/forms/BusinessLoanApplicationForm';
 import { CreditCardApplicationForm } from '@/components/forms/CreditCardApplicationForm';
+import { GovernmentSchemesPage } from '@/components/sections/GovernmentSchemesPage'; // New import
 import { Skeleton } from '@/components/ui/skeleton'; // For loading state
 
-export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard';
+export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes'; // Added 'governmentSchemes'
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 
 export default function Home() {
@@ -111,6 +113,8 @@ export default function Home() {
         return <BusinessLoanApplicationForm setCurrentPage={setCurrentPage} />;
       case 'creditCard':
         return <CreditCardApplicationForm setCurrentPage={setCurrentPage} />;
+      case 'governmentSchemes': // New case
+        return <GovernmentSchemesPage setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }

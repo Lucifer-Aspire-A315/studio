@@ -28,8 +28,8 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <Button 
             size="lg" 
             className="cta-button bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 w-full sm:w-auto"
-            onClick={scrollToServices} // Or navigate to a general apply page if preferred
-            aria-label="Explore Our Loan Services"
+            onClick={scrollToServices} 
+            aria-label="ITR Filing"
           >
             ITR FILING
           </Button>
@@ -37,8 +37,8 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             variant="outline" 
             size="lg" 
             className="cta-button bg-background hover:bg-secondary text-primary font-bold py-3 px-8 border-primary/30 w-full sm:w-auto"
-            onClick={scrollToServices}
-            aria-label="Learn more about our services"
+            onClick={() => setCurrentPage('governmentSchemes')} // Updated onClick
+            aria-label="Learn more about Government Scheme Loans"
           >
             GOVERNMENT SCHEME LOAN
           </Button>
@@ -47,4 +47,3 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
     </section>
   );
 }
-
