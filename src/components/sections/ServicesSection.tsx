@@ -1,5 +1,6 @@
+
 import { ServiceCard } from '@/components/shared/ServiceCard';
-import { Home, User, Briefcase, CreditCardIcon } from 'lucide-react';
+import { Home, User, Briefcase, CreditCardIcon, FileText } from 'lucide-react'; // Added FileText
 import type { SetPageView } from '@/app/page';
 
 interface ServicesSectionProps {
@@ -39,6 +40,14 @@ const services = [
     textColorClass: 'text-orange-700 dark:text-orange-300',
     targetPage: 'creditCard' as const,
   },
+  {
+    icon: <FileText className="w-8 h-8" />,
+    title: 'ITR Filing',
+    description: 'Aasani se apna Income Tax Return file karein hamare experts ke saath.',
+    bgColorClass: 'bg-green-100 dark:bg-green-900',
+    textColorClass: 'text-green-700 dark:text-green-300',
+    targetPage: 'itrFiling' as const,
+  },
 ];
 
 export function ServicesSection({ setCurrentPage }: ServicesSectionProps) {
@@ -47,7 +56,7 @@ export function ServicesSection({ setCurrentPage }: ServicesSectionProps) {
       <div className="container mx-auto px-6 text-center">
         <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Our Products & Services</h2>
         <p className="mt-2 text-muted-foreground">Aapki har zaroorat ke liye hamari suvidhayein.</p>
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"> {/* Consider changing to lg:grid-cols-5 or adjust layout for 5 items */}
           {services.map((service) => (
             <ServiceCard 
               key={service.title}
