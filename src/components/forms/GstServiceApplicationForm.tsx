@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ReceiptText, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
+import { submitGstServiceApplicationAction } from '@/app/actions/caServiceActions';
 
 interface GstServiceApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -86,21 +87,46 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
     defaultValues,
   });
 
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, reset, setError: setFormError } = form;
 
   const watchBusinessType = watch("applicantDetails.businessType");
   const watchOtherGstService = watch("gstServiceRequired.otherGstService");
 
   async function onSubmit(data: GstServiceApplicationFormData) {
     setIsSubmitting(true);
-    console.log("GST Service Application Data:", data);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({
-      title: "GST Service Application Submitted!",
-      description: "Your application has been successfully submitted. We will contact you shortly.",
-    });
-    setIsSubmitting(false);
+    try {
+      const result = await submitGstServiceApplicationAction(data, GstServiceApplicationSchema);
+      if (result.success) {
+        toast({
+          title: "GST Service Application Submitted!",
+          description: result.message,
+        });
+        reset(); 
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Application Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
+            setFormError(fieldName as any, {
+              type: 'manual',
+              message: (errorMessages as string[]).join(', '),
+            });
+          });
+        }
+      }
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: "An error occurred while submitting the GST Service application.",
+      });
+      console.error("Error submitting GST Service application:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
