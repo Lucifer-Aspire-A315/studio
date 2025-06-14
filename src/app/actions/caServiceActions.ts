@@ -1,3 +1,4 @@
+
 'use server';
 
 import type { ZodType, ZodTypeDef } from 'zod';
@@ -56,7 +57,6 @@ export async function submitItrFilingConsultationAction(
   };
 }
 
-// Placeholder for Accounting & Bookkeeping
 export async function submitAccountingBookkeepingAction(
   data: AccountingBookkeepingFormData,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,7 +64,10 @@ export async function submitAccountingBookkeepingAction(
 ): Promise<ServerActionResponse> {
   console.log(`Received Accounting & Bookkeeping application on the server:`);
   console.log(JSON.stringify(data, null, 2));
+  
+  // Simulate processing
   await new Promise(resolve => setTimeout(resolve, 1000));
+  
   return {
     success: true,
     message: `Accounting & Bookkeeping application received successfully by the server.`,
