@@ -19,9 +19,10 @@ import { ItrFilingConsultationForm } from '@/components/forms/ItrFilingConsultat
 import { AccountingBookkeepingForm } from '@/components/forms/AccountingBookkeepingForm';
 import { CompanyIncorporationForm } from '@/components/forms/CompanyIncorporationForm';
 import { FinancialAdvisoryForm } from '@/components/forms/FinancialAdvisoryForm';
+import { PartnerLoginOptionsPage } from '@/components/sections/PartnerLoginOptionsPage';
 import { Skeleton } from '@/components/ui/skeleton'; 
 
-export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication' | 'caServices' | 'gstServiceForm' | 'itrFilingConsultationForm' | 'accountingBookkeepingForm' | 'companyIncorporationForm' | 'financialAdvisoryForm';
+export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication' | 'caServices' | 'gstServiceForm' | 'itrFilingConsultationForm' | 'accountingBookkeepingForm' | 'companyIncorporationForm' | 'financialAdvisoryForm' | 'partnerLoginOptions';
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
 export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -149,6 +150,8 @@ export default function Home() {
         return <CompanyIncorporationForm setCurrentPage={setCurrentPage} />;
       case 'financialAdvisoryForm':
         return <FinancialAdvisoryForm setCurrentPage={setCurrentPage} />;
+      case 'partnerLoginOptions':
+        return <PartnerLoginOptionsPage setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }

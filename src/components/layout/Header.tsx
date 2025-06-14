@@ -1,11 +1,12 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { Menu, Home, Briefcase, Landmark, CreditCard, FileText, UserCircle } from 'lucide-react';
-import type { PageView, SetPageView } from '@/app/page'; // Assuming type definition in page.tsx
+import { Menu } from 'lucide-react';
+import type { PageView, SetPageView } from '@/app/page'; 
 
 interface HeaderProps {
   setCurrentPage: SetPageView;
@@ -38,9 +39,16 @@ export function Header({ setCurrentPage }: HeaderProps) {
     if (action) action();
     setMobileMenuOpen(false);
     if (href.startsWith('#')) {
-      const element = document.getElementById(href.substring(1));
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+      // Ensure 'main' page is active for hash links to work correctly from other pages
+      if (href === '#home' || href === '#services' || href === '#calculator' || href === '#about') {
+        setCurrentPage('main');
+        // Delay scrolling to allow page context to switch if necessary
+        setTimeout(() => {
+          const element = document.getElementById(href.substring(1));
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 0);
       }
     }
   };
@@ -62,10 +70,17 @@ export function Header({ setCurrentPage }: HeaderProps) {
           ))}
         </div>
         <div className="flex items-center flex-shrink-0 space-x-2">
-          <Button variant="outline" className="hidden md:inline-flex cta-button border-primary text-primary hover:bg-primary/10 hover:text-primary">
+          <Button 
+            variant="outline" 
+            className="hidden md:inline-flex cta-button border-primary text-primary hover:bg-primary/10 hover:text-primary"
+            onClick={() => setCurrentPage('partnerLoginOptions')}
+          >
             PARTNER LOGIN
           </Button>
-          <Button className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button 
+            className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground"
+            onClick={() => { /* Placeholder for main login, can be updated later */ setCurrentPage('main'); }}
+          >
             LOGIN
           </Button>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -83,19 +98,26 @@ export function Header({ setCurrentPage }: HeaderProps) {
               <nav className="flex flex-col py-2">
                 {navLinks.map(link => (
                    <SheetClose asChild key={link.label}>
-                    <button onClick={() => handleNavClick(link.href, link.action)} className={`${commonLinkClasses} ${mobileLinkClasses} text-left`}>
+                    <button onClick={() => handleNavClick(link.href, link.action)} className={`${commonLinkClasses} ${mobileLinkClasses} text-left w-full`}>
                       {link.label}
                     </button>
                   </SheetClose>
                 ))}
                 <div className="border-t my-2 mx-6"></div>
                  <SheetClose asChild>
-                  <Button variant="outline" onClick={() => {}} className={`${mobileLinkClasses} text-primary font-semibold text-left justify-start border-primary`}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {setCurrentPage('partnerLoginOptions'); setMobileMenuOpen(false);}} 
+                    className={`${mobileLinkClasses} text-primary font-semibold text-left justify-start border-primary w-full`}
+                  >
                     PARTNER LOGIN
                   </Button>
                 </SheetClose>
                 <SheetClose asChild>
-                  <Button onClick={() => {}} className={`${mobileLinkClasses} bg-primary text-primary-foreground font-semibold text-left justify-start`}>
+                  <Button 
+                    onClick={() => { /* Placeholder */ setMobileMenuOpen(false); setCurrentPage('main'); }} 
+                    className={`${mobileLinkClasses} bg-primary text-primary-foreground font-semibold text-left justify-start w-full`}
+                  >
                     LOGIN
                   </Button>
                 </SheetClose>
