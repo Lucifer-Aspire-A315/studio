@@ -61,6 +61,23 @@ const businessLoanSections = [
       { name: "applicantDetails.aadhaar", label: "Aadhaar Number (आधार नंबर)", type: "text", placeholder: "123456789012", isAadhaar: true },
     ]
   },
+  {
+    title: "4. Document Upload Details",
+    subtitle: "दस्तावेज़ अपलोड जानकारी (कृपया नीचे दिए गए दस्तावेज़ों के फ़ाइल नाम या स्थिति दर्ज करें)",
+    fields: [
+      { name: "documentUploadDetails.panCard", label: "PAN Card (PDF/JPG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.aadhaarCard", label: "Aadhaar Card (PDF/JPG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.applicantPhoto", label: "Applicant Photo (JPG/PNG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.gstCertificate", label: "GST Registration Certificate", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.udyamCertificate", label: "Udyam / Shop & Establishment Certificate", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.partnershipDeedOrMOA", label: "Partnership Deed / MOA & AOA (यदि लागू हो)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.bankStatement", label: "Bank Statement (6–12 महीनों का PDF)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.itrLast2Years", label: "ITR Last 2 Years (PDF)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.balanceSheetAndPL", label: "Balance Sheet & Profit-Loss Statement", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.existingLoanStatement", label: "Existing Loan Statement (यदि लागू हो तो)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.machineryQuotation", label: "Machinery Quotation / Invoice (यदि लागू हो तो)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+    ]
+  }
 ];
 
 export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanApplicationFormProps) {
@@ -68,7 +85,7 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '' },
     businessDetails: {
       businessName: '',
-      businessType: undefined, // Let zod default or user select
+      businessType: undefined, 
       otherBusinessType: '',
       natureOfBusiness: '',
       businessStartYear: undefined,
@@ -79,12 +96,25 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
     loanDetails: {
       loanAmountRequired: undefined,
       loanTenureRequired: undefined,
-      purposeOfLoan: undefined, // Let zod default or user select
+      purposeOfLoan: undefined, 
       otherPurposeOfLoan: '',
-      hasExistingLoans: undefined, // Let zod default or user select
+      hasExistingLoans: undefined, 
       existingLoanEMI: undefined,
       existingLoanBankName: '',
     },
+    documentUploadDetails: {
+        panCard: '',
+        aadhaarCard: '',
+        applicantPhoto: '',
+        gstCertificate: '',
+        udyamCertificate: '',
+        partnershipDeedOrMOA: '',
+        bankStatement: '',
+        itrLast2Years: '',
+        balanceSheetAndPL: '',
+        existingLoanStatement: '',
+        machineryQuotation: '',
+    }
   };
 
   return (

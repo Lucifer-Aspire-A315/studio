@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const HomeLoanApplicantDetailsSchema = z.object({
@@ -141,7 +142,7 @@ const LoanDetailsForBusinessSchema = z.object({
     });
   }
   if (data.hasExistingLoans === "yes") {
-    if (data.existingLoanEMI === undefined || data.existingLoanEMI < 0) { // Check for undefined or negative
+    if (data.existingLoanEMI === undefined || data.existingLoanEMI < 0) { 
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Valid EMI is required if existing loans is 'Yes'",
@@ -158,10 +159,27 @@ const LoanDetailsForBusinessSchema = z.object({
   }
 });
 
+export const DocumentUploadDetailsSchema = z.object({
+  panCard: z.string().optional().describe("PAN Card (PDF/JPG)"),
+  aadhaarCard: z.string().optional().describe("Aadhaar Card (PDF/JPG)"),
+  applicantPhoto: z.string().optional().describe("Applicant Photo (JPG/PNG)"),
+  gstCertificate: z.string().optional().describe("GST Registration Certificate"),
+  udyamCertificate: z.string().optional().describe("Udyam / Shop & Establishment Certificate"),
+  partnershipDeedOrMOA: z.string().optional().describe("Partnership Deed / MOA & AOA (if applicable)"),
+  bankStatement: z.string().optional().describe("Bank Statement (6-12 months PDF)"),
+  itrLast2Years: z.string().optional().describe("ITR Last 2 Years (PDF)"),
+  balanceSheetAndPL: z.string().optional().describe("Balance Sheet & Profit-Loss Statement"),
+  existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if applicable)"),
+  machineryQuotation: z.string().optional().describe("Machinery Quotation / Invoice (if applicable)"),
+});
+export type DocumentUploadDetailsFormData = z.infer<typeof DocumentUploadDetailsSchema>;
+
+
 export const BusinessLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   businessDetails: BusinessDetailsSchema,
   loanDetails: LoanDetailsForBusinessSchema,
+  documentUploadDetails: DocumentUploadDetailsSchema.optional(),
 });
 export type BusinessLoanApplicationFormData = z.infer<typeof BusinessLoanApplicationSchema>;
 
