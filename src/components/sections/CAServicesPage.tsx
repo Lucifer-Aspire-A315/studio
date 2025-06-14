@@ -14,9 +14,9 @@ interface CAServicesPageProps {
 
 const caServicesList = [
   {
-    id: "gst",
-    title: "GST Registration and Filing",
-    description: "Complete GST solutions, from registration to timely return filing."
+    id: "accounting",
+    title: "Accounting & Bookkeeping",
+    description: "Accurate accounting and bookkeeping services to keep your finances in order."
   },
   {
     id: "incorporation",
@@ -99,3 +99,4 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
     </section>
   );
 }
+
