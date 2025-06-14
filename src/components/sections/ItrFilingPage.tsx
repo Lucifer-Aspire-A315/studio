@@ -5,21 +5,17 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import type { PageView, SetPageView } from '@/app/page';
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast"; // No longer needed for this button
 
 interface ItrFilingPageProps {
   setCurrentPage: SetPageView;
 }
 
 export function ItrFilingPage({ setCurrentPage }: ItrFilingPageProps) {
-  const { toast } = useToast();
+  // const { toast } = useToast(); // No longer needed for this button
 
   const handleApplyItr = () => {
-    toast({
-      title: "Coming Soon!",
-      description: "The ITR Filing application form will be available shortly.",
-    });
-    // Later, this will navigate to the ITR form: setCurrentPage('itrFilingForm');
+    setCurrentPage('itrServiceOptions'); // Navigate to the new service options page
   };
 
   return (
@@ -48,13 +44,13 @@ export function ItrFilingPage({ setCurrentPage }: ItrFilingPageProps) {
               className="w-full cta-button"
               size="lg"
             >
-              Apply for ITR Filing
+              Explore ITR Filing Services
             </Button>
           </div>
 
            <div className="mt-10 text-center">
             <p className="text-sm text-muted-foreground">
-              Ensure timely and compliant ITR filing. Contact us for more details.
+              Ensure timely and compliant ITR filing. Click above to see our range of ITR services.
             </p>
           </div>
         </div>
