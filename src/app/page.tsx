@@ -12,10 +12,11 @@ import { PersonalLoanApplicationForm } from '@/components/forms/PersonalLoanAppl
 import { BusinessLoanApplicationForm } from '@/components/forms/BusinessLoanApplicationForm';
 import { CreditCardApplicationForm } from '@/components/forms/CreditCardApplicationForm';
 import { GovernmentSchemesPage } from '@/components/sections/GovernmentSchemesPage';
-import { GovernmentSchemeLoanApplicationForm } from '@/components/forms/GovernmentSchemeLoanApplicationForm'; // New import
+import { GovernmentSchemeLoanApplicationForm } from '@/components/forms/GovernmentSchemeLoanApplicationForm';
+import { ItrFilingPage } from '@/components/sections/ItrFilingPage'; // New import
 import { Skeleton } from '@/components/ui/skeleton'; 
 
-export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication'; // Added 'governmentSchemeApplication'
+export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication' | 'itrFiling'; // Added 'itrFiling'
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
 export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -131,6 +132,8 @@ export default function Home() {
                   selectedScheme={selectedGovernmentScheme}
                   otherSchemeName={otherGovernmentSchemeName}
                 />;
+      case 'itrFiling': // New case
+        return <ItrFilingPage setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }
