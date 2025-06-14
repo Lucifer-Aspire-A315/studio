@@ -4,7 +4,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, FileText, Calculator, MailWarning, ClipboardList } from 'lucide-react'; // Added ClipboardList
+import { ArrowLeft, FileText, Calculator, MailWarning } from 'lucide-react'; 
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,12 +30,6 @@ const itrServices = [
     title: "Handling Income Tax Notices",
     icon: <MailWarning className="w-8 h-8 text-primary" />,
     description: "Assistance with responding to and managing income tax notices and assessments."
-  },
-  {
-    id: "tds",
-    title: "TDS Computation and Return Filing",
-    icon: <ClipboardList className="w-8 h-8 text-primary" />,
-    description: "Accurate TDS calculation and timely return filing services."
   }
 ];
 
@@ -99,4 +93,3 @@ export function ItrServiceOptionsPage({ setCurrentPage }: ItrServiceOptionsPageP
     </section>
   );
 }
-
