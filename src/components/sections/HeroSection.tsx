@@ -8,13 +8,6 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ setCurrentPage }: HeroSectionProps) {
-  const scrollToServices = () => {
-    const servicesSection = document.getElementById('services');
-    if (servicesSection) {
-      servicesSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <section id="home" className="hero-bg py-20 lg:py-32">
       <div className="container mx-auto px-6 text-center">
@@ -28,17 +21,17 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <Button 
             size="lg" 
             className="cta-button bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 w-full sm:w-auto"
-            onClick={scrollToServices} 
-            aria-label="Apply for Loan"
+            onClick={() => setCurrentPage('caServices')} 
+            aria-label="Services Offered by a Chartered Accountant (CA)"
           >
-            Apply for Loan
+            📋 Services Offered by a Chartered Accountant (CA)
           </Button>
           <Button 
             variant="outline" 
             size="lg" 
             className="cta-button bg-background hover:bg-secondary text-primary font-bold py-3 px-8 border-primary/30 w-full sm:w-auto"
             onClick={() => setCurrentPage('governmentSchemes')} 
-            aria-label="Learn more about Government Scheme Loans"
+            aria-label="Explore Government Scheme Loans"
           >
             GOVERNMENT SCHEME LOAN
           </Button>

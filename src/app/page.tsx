@@ -13,9 +13,10 @@ import { BusinessLoanApplicationForm } from '@/components/forms/BusinessLoanAppl
 import { CreditCardApplicationForm } from '@/components/forms/CreditCardApplicationForm';
 import { GovernmentSchemesPage } from '@/components/sections/GovernmentSchemesPage';
 import { GovernmentSchemeLoanApplicationForm } from '@/components/forms/GovernmentSchemeLoanApplicationForm';
+import { CAServicesPage } from '@/components/sections/CAServicesPage';
 import { Skeleton } from '@/components/ui/skeleton'; 
 
-export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication';
+export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication' | 'caServices';
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
 export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -131,6 +132,8 @@ export default function Home() {
                   selectedScheme={selectedGovernmentScheme}
                   otherSchemeName={otherGovernmentSchemeName}
                 />;
+      case 'caServices':
+        return <CAServicesPage setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }
