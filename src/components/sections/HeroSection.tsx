@@ -28,10 +28,10 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <Button 
             size="lg" 
             className="cta-button bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 w-full sm:w-auto"
-            onClick={() => setCurrentPage('itrFiling')} 
-            aria-label="ITR Filing"
+            onClick={scrollToServices} 
+            aria-label="Apply for Loan"
           >
-            ITR FILING
+            Apply for Loan
           </Button>
           <Button 
             variant="outline" 
