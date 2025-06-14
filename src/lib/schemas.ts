@@ -689,3 +689,107 @@ export const CompanyIncorporationFormSchema = z.object({
   }),
 });
 export type CompanyIncorporationFormData = z.infer<typeof CompanyIncorporationFormSchema>;
+
+
+// Financial Advisory Form Schemas
+export const FinancialAdvisoryApplicantDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
+  emailId: z.string().email("Invalid email address"),
+  dob: z.string().min(1, "Date of Birth is required"),
+  occupation: z.enum(["salaried", "business", "professional", "retired", "other"], { required_error: "Occupation is required" }),
+  otherOccupationDetail: z.string().optional(),
+  cityAndState: z.string().min(1, "City & State are required"),
+  maritalStatus: z.enum(["single", "married"], { required_error: "Marital Status is required" }),
+  dependentMembersAdults: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Must be a number" }).min(0).optional()
+  ),
+  dependentMembersChildren: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Must be a number" }).min(0).optional()
+  ),
+}).superRefine((data, ctx) => {
+  if (data.occupation === "other" && (!data.otherOccupationDetail || data.otherOccupationDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other occupation",
+      path: ["otherOccupationDetail"],
+    });
+  }
+});
+export type FinancialAdvisoryApplicantDetailsFormData = z.infer<typeof FinancialAdvisoryApplicantDetailsSchema>;
+
+export const FinancialAdvisoryServicesRequiredSchema = z.object({
+  taxSavingPlan: z.boolean().optional().default(false),
+  investmentPlanning: z.boolean().optional().default(false),
+  retirementPlanning: z.boolean().optional().default(false),
+  insuranceAdvisory: z.boolean().optional().default(false),
+  wealthManagement: z.boolean().optional().default(false),
+  childEducationPlanning: z.boolean().optional().default(false),
+  nriFinancialAdvisory: z.boolean().optional().default(false),
+  otherAdvisoryService: z.boolean().optional().default(false),
+  otherAdvisoryServiceDetail: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.otherAdvisoryService && (!data.otherAdvisoryServiceDetail || data.otherAdvisoryServiceDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other advisory service details.",
+      path: ["otherAdvisoryServiceDetail"],
+    });
+  }
+  const { otherAdvisoryServiceDetail, ...services } = data;
+  const oneSelected = Object.values(services).some(val => val === true);
+  if (!oneSelected) {
+    ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one advisory service must be selected.",
+        path: ["taxSavingPlan"], 
+    });
+  }
+});
+export type FinancialAdvisoryServicesRequiredFormData = z.infer<typeof FinancialAdvisoryServicesRequiredSchema>;
+
+export const FinancialAdvisoryCurrentFinancialOverviewSchema = z.object({
+  annualIncome: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Annual income must be a number" }).min(0).optional()
+  ),
+  monthlySavings: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Monthly savings must be a number" }).min(0).optional()
+  ),
+  currentInvestmentsAmount: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Current investments amount must be a number" }).min(0).optional()
+  ),
+  currentInvestmentsTypes: z.object({
+    licInsurance: z.boolean().optional().default(false),
+    ppfEpf: z.boolean().optional().default(false),
+    mutualFunds: z.boolean().optional().default(false),
+    fdRd: z.boolean().optional().default(false),
+    realEstate: z.boolean().optional().default(false),
+    none: z.boolean().optional().default(false),
+  }).optional(),
+});
+export type FinancialAdvisoryCurrentFinancialOverviewFormData = z.infer<typeof FinancialAdvisoryCurrentFinancialOverviewSchema>;
+
+export const FinancialAdvisoryDocumentUploadSchema = z.object({
+  panCard: z.string().optional().describe("PAN Card"),
+  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
+  salarySlipsIncomeProof: z.string().optional().describe("Salary Slips / Income Proof"),
+  lastYearItrForm16: z.string().optional().describe("Last Year’s ITR or Form 16"),
+  bankStatement: z.string().optional().describe("Bank Statement (3–6 Months)"),
+  investmentProofs: z.string().optional().describe("Investment Proofs (Mutual Funds, LIC, etc.)"),
+  existingLoanEmiDetails: z.string().optional().describe("Existing Loan / EMI Details (if any)"),
+});
+export type FinancialAdvisoryDocumentUploadFormData = z.infer<typeof FinancialAdvisoryDocumentUploadSchema>;
+
+export const FinancialAdvisoryFormSchema = z.object({
+  applicantDetails: FinancialAdvisoryApplicantDetailsSchema,
+  advisoryServicesRequired: FinancialAdvisoryServicesRequiredSchema,
+  currentFinancialOverview: FinancialAdvisoryCurrentFinancialOverviewSchema,
+  documentUploads: FinancialAdvisoryDocumentUploadSchema.optional(),
+});
+export type FinancialAdvisoryFormData = z.infer<typeof FinancialAdvisoryFormSchema>;
+
