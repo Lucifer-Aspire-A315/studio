@@ -188,6 +188,7 @@ export function GenericLoanForm<T extends Record<string, any>>({
                               {fieldConfig.type === 'radio' ? (
                                 <RadioGroup
                                   onValueChange={field.onChange}
+                                  // Pass field.value directly for RadioGroup as it handles undefined fine for defaultValue
                                   defaultValue={field.value}
                                   className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
                                 >
@@ -205,6 +206,7 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                     type={fieldConfig.type} 
                                     placeholder={fieldConfig.placeholder} 
                                     {...field}
+                                    value={field.value ?? ''} // Ensure value is always defined
                                     onBlur={() => {
                                       field.onBlur(); 
                                       if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
@@ -217,6 +219,7 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                   type={fieldConfig.type} 
                                   placeholder={fieldConfig.placeholder} 
                                   {...field} 
+                                  value={field.value ?? ''} // Ensure value is always defined
                                   onBlur={() => {
                                     field.onBlur(); 
                                     if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
@@ -252,3 +255,4 @@ export function GenericLoanForm<T extends Record<string, any>>({
     </section>
   );
 }
+
