@@ -16,7 +16,7 @@ export const ResidentialAddressSchema = z.object({
 
 export const EmploymentIncomeSchema = z.object({
   employmentType: z.enum(["salaried", "self-employed"], { required_error: "Occupation Type is required" }),
-  occupation: z.string().min(1, "Occupation is required").optional(), // Made optional here to avoid breaking other forms if they might use it. A more specific fix is below.
+  occupation: z.string().min(1, "Occupation is required").optional(), 
   companyName: z.string().min(1, "Company / Business Name is required"),
   monthlyIncome: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
@@ -24,7 +24,7 @@ export const EmploymentIncomeSchema = z.object({
   ),
   yearsInCurrentJobOrBusiness: z.preprocess(
     (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
-    z.number({ invalid_type_error: "Years in job/business must be a number" }).min(0, "Years cannot be negative")
+    z.number({ invalid_type_error: "Years in job/business must be a number" }).min(0, "Years cannot be negative").optional() // Make optional for flexibility if not always required
   ),
 });
 
@@ -76,7 +76,7 @@ export const HomeLoanApplicationSchema = z.object({
   residentialAddress: ResidentialAddressSchema,
   isPermanentAddressDifferent: z.boolean().optional().default(false),
   permanentAddress: ResidentialAddressSchema.optional(),
-  employmentIncome: EmploymentIncomeSchema, // occupation is optional in base schema
+  employmentIncome: EmploymentIncomeSchema, 
   loanPropertyDetails: LoanPropertyDetailsSchema,
   hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
   existingLoans: ExistingLoansSchema.optional(),
@@ -132,7 +132,7 @@ export type PersonalLoanDocumentUploadFormData = z.infer<typeof PersonalLoanDocu
 export const PersonalLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
-  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }), // Omit occupation as it's not in the new form
+  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }), 
   loanDetails: z.object({
     loanAmountRequired: z.preprocess(
       (val) => (val === "" ? undefined : Number(val)),
@@ -277,10 +277,62 @@ export type BusinessLoanApplicationFormData = z.infer<typeof BusinessLoanApplica
 
 
 // Credit Card Schema
+const CreditCardPreferencesSchema = z.object({
+  preferredCardType: z.enum(["basic", "rewards", "travel", "business", "other"], { required_error: "Preferred card type is required" }),
+  otherPreferredCardType: z.string().optional(),
+  hasExistingCreditCard: z.enum(["yes", "no"], { required_error: "Specify if you have existing credit cards" }),
+  existingCreditCardIssuer: z.string().optional(),
+  existingCreditCardLimit: z.preprocess(
+    (val) => (val === "" || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Credit limit must be a number" }).min(0).optional()
+  ),
+}).superRefine((data, ctx) => {
+  if (data.preferredCardType === "other" && (!data.otherPreferredCardType || data.otherPreferredCardType.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other card type",
+      path: ["otherPreferredCardType"],
+    });
+  }
+  if (data.hasExistingCreditCard === "yes") {
+    if (!data.existingCreditCardIssuer || data.existingCreditCardIssuer.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Issuer name is required if you have an existing card",
+        path: ["existingCreditCardIssuer"],
+      });
+    }
+    if (data.existingCreditCardLimit === undefined || data.existingCreditCardLimit < 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Valid credit limit is required if you have an existing card",
+        path: ["existingCreditCardLimit"],
+      });
+    }
+  }
+});
+
+const CreditCardDocumentUploadSchema = z.object({
+  panCard: z.string().optional().describe("PAN Card"),
+  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
+  photograph: z.string().optional().describe("Passport Size Photo"),
+  incomeProof: z.string().optional().describe("Income Proof (Salary Slip / ITR)"),
+  bankStatement: z.string().optional().describe("Bank Statement (Last 3–6 Months)"),
+  employmentProof: z.string().optional().describe("Employment/Business Proof"),
+  existingCreditCardStatement: z.string().optional().describe("Existing Credit Card Statement (if any)"),
+});
+export type CreditCardDocumentUploadFormData = z.infer<typeof CreditCardDocumentUploadSchema>;
+
 export const CreditCardApplicationSchema = z.object({
-  applicantDetails: HomeLoanApplicantDetailsSchema,
-  residentialAddress: ResidentialAddressSchema,
-  employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true, occupation: true }), // Also omit occupation here
+  applicantDetails: HomeLoanApplicantDetailsSchema, 
+  residentialAddress: z.object({
+    fullAddress: z.string().min(1, "Full address is required"),
+    city: z.string().min(1, "City is required"),
+    pincode: z.string().regex(/^\d{6}$/, "Invalid Pincode (must be 6 digits)"),
+  }),
+  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }), 
+  creditCardPreferences: CreditCardPreferencesSchema,
+  documentUploads: CreditCardDocumentUploadSchema.optional(),
 });
 export type CreditCardApplicationFormData = z.infer<typeof CreditCardApplicationSchema>;
 
