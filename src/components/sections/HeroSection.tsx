@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { NewsTicker } from '@/components/shared/NewsTicker';
 import type { SetPageView } from '@/app/page';
@@ -39,7 +40,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             onClick={scrollToServices}
             aria-label="Learn more about our services"
           >
-            Learn More
+            GOVERNMENT SME LOAN
           </Button>
         </div>
       </div>
