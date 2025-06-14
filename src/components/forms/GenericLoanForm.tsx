@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -81,7 +82,6 @@ export function GenericLoanForm<T extends Record<string, any>>({
     const fieldConfig = sections.flatMap(s => s.fields).find(f => f.name === fieldName);
     if (!fieldConfig || (!fieldConfig.isPAN && !fieldConfig.isAadhaar)) return;
   
-    // Trigger validation for current field to ensure format is correct before AI call
     const isValidFormat = await trigger(fieldName as any);
     if (!isValidFormat) return;
 
@@ -96,8 +96,7 @@ export function GenericLoanForm<T extends Record<string, any>>({
 
     try {
       if (!panNumber || !aadhaarNumber || !panNumber.match(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/) || !aadhaarNumber.match(/^\d{12}$/)) {
-        // Don't call AI if either format is wrong or one is missing
-        if (panField) clearErrors(panField.name as any); // Clear previous AI errors if any
+        if (panField) clearErrors(panField.name as any); 
         if (aadhaarField) clearErrors(aadhaarField.name as any);
         return;
       }
@@ -136,7 +135,7 @@ export function GenericLoanForm<T extends Record<string, any>>({
           <div className="text-center mb-8">
             {formIcon || <Info className="w-12 h-12 mx-auto text-primary mb-2" />}
             <h2 className="text-3xl font-bold text-card-foreground">{formTitle}</h2>
-            {formSubtitle && <p className="text-muted-foreground">{formSubtitle}</p>}
+            {formSubtitle && <p className="text-muted-foreground mt-1">{formSubtitle}</p>}
           </div>
           
           <Form {...form}>
@@ -177,7 +176,7 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                     placeholder={fieldConfig.placeholder} 
                                     {...field}
                                     onBlur={() => {
-                                      field.onBlur(); // RHF's onBlur
+                                      field.onBlur(); 
                                       if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
                                     }}
                                     className="pl-7"
@@ -189,7 +188,7 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                   placeholder={fieldConfig.placeholder} 
                                   {...field} 
                                   onBlur={() => {
-                                    field.onBlur(); // RHF's onBlur
+                                    field.onBlur(); 
                                     if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
                                   }}
                                 />
@@ -204,7 +203,14 @@ export function GenericLoanForm<T extends Record<string, any>>({
                 </FormSection>
               ))}
               
-              <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-xs text-muted-foreground mt-6 px-1">
+                🔐 All information and documents submitted will remain confidential and will be used solely for loan processing purposes.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2 mb-4 px-1">
+                📝 I hereby declare that all the information and documents provided above are true and correct to the best of my knowledge.
+              </p>
+
+              <div className="mt-8 pt-6 border-t border-border">
                 <Button type="submit" className="w-full cta-button" size="lg" disabled={isSubmitting}>
                   {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : `Submit ${loanType} Application`}
                 </Button>

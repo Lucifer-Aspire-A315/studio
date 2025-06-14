@@ -16,32 +16,44 @@ const businessLoanSections = [
     title: "1. Business Details",
     subtitle: "व्यवसाय की जानकारी",
     fields: [
-      { name: "businessDetails.businessName", label: "Business Name (बिज़नेस का नाम)", type: "text", placeholder: "Your Company Name" },
-      { name: "businessDetails.businessType", label: "Type of Business (बिज़नेस का प्रकार)", type: "radio", options: [
-          {value: "proprietorship", label: "Proprietorship (स्वामित्व)"},
-          {value: "partnership", label: "Partnership (साझेदारी)"},
-          {value: "pvt_ltd", label: "Pvt. Ltd. Company (प्रा. लि. कंपनी)"},
-          {value: "other", label: "Others (अन्य)"}
+      { name: "businessDetails.businessName", label: "Business Name", type: "text", placeholder: "Your Company Name" },
+      { name: "businessDetails.businessType", label: "Type of Business", type: "radio", options: [
+          {value: "proprietorship", label: "Proprietorship"},
+          {value: "partnership", label: "Partnership"},
+          {value: "pvt_ltd", label: "Pvt. Ltd. Company"},
+          {value: "other", label: "Other"}
         ], colSpan: 2 },
       { name: "businessDetails.otherBusinessType", label: "If Other, specify type (अन्य प्रकार निर्दिष्ट करें)", type: "text", placeholder: "Specify other type" },
       { name: "businessDetails.natureOfBusiness", label: "Nature of Business (कारोबार का प्रकार)", type: "text", placeholder: "e.g., Manufacturing, Retail" },
       { name: "businessDetails.businessStartYear", label: "Business Start Year (व्यवसाय शुरू होने का वर्ष)", type: "number", placeholder: "YYYY" },
-      { name: "businessDetails.businessAddress", label: "Business Address (व्यवसाय का पता)", type: "text", placeholder: "Full business address", colSpan: 2 },
-      { name: "businessDetails.annualTurnover", label: "Annual Turnover (वार्षिक टर्नओवर)", type: "number", placeholder: "e.g., 5000000", prefix: "₹" },
+      { name: "businessDetails.businessAddress", label: "Business Address", type: "text", placeholder: "Full business address", colSpan: 2 },
+      { name: "businessDetails.annualTurnover", label: "Annual Turnover (₹)", type: "number", placeholder: "e.g., 5000000", prefix: "₹" },
       { name: "businessDetails.profitAfterTax", label: "Profit After Tax (कर के बाद लाभ)", type: "number", placeholder: "e.g., 500000", prefix: "₹" },
     ]
   },
   {
-    title: "2. Loan Details",
-    subtitle: "ऋण की जानकारी",
+    title: "2. Applicant Details",
+    subtitle: "आवेदक की जानकारी",
     fields: [
-      { name: "loanDetails.loanAmountRequired", label: "Required Loan Amount (आवश्यक लोन राशि)", type: "number", placeholder: "e.g., 1000000", prefix: "₹" },
-      { name: "loanDetails.loanTenureRequired", label: "Preferred Tenure (लोन अवधि - Years)", type: "number", placeholder: "e.g., 5" },
-      { name: "loanDetails.purposeOfLoan", label: "Purpose of Loan (लोन का उद्देश्य)", type: "radio", options: [
-          {value: "working_capital", label: "Working Capital (कार्यशील पूंजी)"},
-          {value: "machinery_purchase", label: "Machinery Purchase (मशीनरी खरीद)"},
-          {value: "business_expansion", label: "Business Expansion (विस्तार)"},
-          {value: "other", label: "Other (अन्य)"}
+      { name: "applicantDetails.name", label: "Applicant Name", type: "text", placeholder: "Full Name" },
+      { name: "applicantDetails.dob", label: "Date of Birth (जन्म तिथि)", type: "date" },
+      { name: "applicantDetails.mobile", label: "Mobile Number", type: "tel", placeholder: "10-digit mobile" },
+      { name: "applicantDetails.email", label: "Email ID", type: "email", placeholder: "example@mail.com" },
+      { name: "applicantDetails.pan", label: "PAN Number (पैन नंबर)", type: "text", placeholder: "ABCDE1234F", isPAN: true },
+      { name: "applicantDetails.aadhaar", label: "Aadhaar Number (आधार नंबर)", type: "text", placeholder: "123456789012", isAadhaar: true },
+    ]
+  },
+  {
+    title: "3. Loan Requirement",
+    subtitle: "ऋण की आवश्यकता",
+    fields: [
+      { name: "loanDetails.loanAmountRequired", label: "Loan Amount Required (₹)", type: "number", placeholder: "e.g., 1000000", prefix: "₹" },
+      { name: "loanDetails.loanTenureRequired", label: "Loan Tenure (in Months)", type: "number", placeholder: "e.g., 60" },
+      { name: "loanDetails.purposeOfLoan", label: "Purpose of Loan", type: "radio", options: [
+          {value: "working_capital", label: "Working Capital"},
+          {value: "machinery_purchase", label: "Machinery"},
+          {value: "business_expansion", label: "Business Expansion"},
+          {value: "other", label: "Other"}
         ], colSpan: 2 },
       { name: "loanDetails.otherPurposeOfLoan", label: "If Other, specify purpose (अन्य उद्देश्य निर्दिष्ट करें)", type: "text", placeholder: "Specify other purpose" },
       { name: "loanDetails.hasExistingLoans", label: "Any Existing Loans? (क्या कोई वर्तमान लोन है?)", type: "radio", options: [{value: "yes", label: "Yes (हाँ)"}, {value: "no", label: "No (नहीं)"}], colSpan: 2 },
@@ -50,50 +62,19 @@ const businessLoanSections = [
     ]
   },
   {
-    title: "3. Applicant Details",
-    subtitle: "आवेदक की जानकारी",
+    title: "4. Upload Required Documents",
+    subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.",
     fields: [
-      { name: "applicantDetails.name", label: "Name of Applicant (आवेदक का नाम)", type: "text", placeholder: "Full Name" },
-      { name: "applicantDetails.dob", label: "Date of Birth (जन्म तिथि)", type: "date" },
-      { name: "applicantDetails.mobile", label: "Mobile Number (मोबाइल नंबर)", type: "tel", placeholder: "10-digit mobile" },
-      { name: "applicantDetails.email", label: "Email ID (ईमेल आईडी)", type: "email", placeholder: "example@mail.com" },
-      { name: "applicantDetails.pan", label: "PAN Number (पैन नंबर)", type: "text", placeholder: "ABCDE1234F", isPAN: true },
-      { name: "applicantDetails.aadhaar", label: "Aadhaar Number (आधार नंबर)", type: "text", placeholder: "123456789012", isAadhaar: true },
-    ]
-  },
-  {
-    title: "4. KYC Documents",
-    subtitle: "केवाईसी दस्तावेज़ (फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
-    fields: [
-      { name: "documentUploadDetails.panCard", label: "PAN Card (PDF/JPG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.aadhaarCard", label: "Aadhaar Card (PDF/JPG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.applicantPhoto", label: "Applicant Photo (JPG/PNG)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-    ]
-  },
-  {
-    title: "5. Business Proof",
-    subtitle: "व्यवसाय प्रमाण (फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
-    fields: [
-      { name: "documentUploadDetails.gstCertificate", label: "GST Registration Certificate", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.udyamCertificate", label: "Udyam / Shop & Establishment Certificate", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.partnershipDeedOrMOA", label: "Partnership Deed / MOA & AOA (यदि लागू हो)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-    ]
-  },
-  {
-    title: "6. Financial Documents",
-    subtitle: "वित्तीय दस्तावेज़ (फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
-    fields: [
-      { name: "documentUploadDetails.bankStatement", label: "Bank Statement (6–12 महीनों का PDF)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.itrLast2Years", label: "ITR Last 2 Years (PDF)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.balanceSheetAndPL", label: "Balance Sheet & Profit-Loss Statement", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-    ]
-  },
-  {
-    title: "7. Other Documents (if applicable)",
-    subtitle: "अन्य दस्तावेज़ (यदि लागू हो तो, फाइल नाम या 'अपलोड किया गया' दर्ज करें)",
-    fields: [
-      { name: "documentUploadDetails.existingLoanStatement", label: "Existing Loan Statement", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
-      { name: "documentUploadDetails.machineryQuotation", label: "Machinery Quotation / Invoice", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.panCard", label: "PAN Card", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.aadhaarCard", label: "Aadhaar Card", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.applicantPhoto", label: "Passport Size Photo", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.gstOrUdyamCertificate", label: "GST Registration / Udyam Certificate", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.businessProof", label: "Shop Act / Business Proof", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.itrLast2Years", label: "ITR for Last 2 Years", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.balanceSheetAndPL", label: "Balance Sheet & Profit/Loss Statement", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.existingLoanStatement", label: "Existing Loan Statement (if applicable)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
+      { name: "documentUploadDetails.machineryQuotation", label: "Quotation (for Machinery Loan)", type: "text", placeholder: "File name or 'Uploaded'", colSpan: 2 },
     ]
   }
 ];
@@ -120,13 +101,12 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
       existingLoanEMI: undefined,
       existingLoanBankName: '',
     },
-    documentUploadDetails: { // These keys must match the 'name' attributes in the fields
+    documentUploadDetails: { 
         panCard: '',
         aadhaarCard: '',
         applicantPhoto: '',
-        gstCertificate: '',
-        udyamCertificate: '',
-        partnershipDeedOrMOA: '',
+        gstOrUdyamCertificate: '',
+        businessProof: '',
         bankStatement: '',
         itrLast2Years: '',
         balanceSheetAndPL: '',
@@ -138,8 +118,8 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
   return (
     <GenericLoanForm
       setCurrentPage={setCurrentPage}
-      formTitle="Business Loan Application"
-      formSubtitle="व्यवसाय ऋण आवेदन फॉर्म"
+      formTitle="Business Loan Application Form"
+      formSubtitle="Easy Application Process • Minimum Documentation • 100% Digital & Secure"
       formIcon={<Briefcase className="w-12 h-12 mx-auto text-primary mb-2" />}
       schema={BusinessLoanApplicationSchema}
       defaultValues={defaultValues}
@@ -148,4 +128,3 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
     />
   );
 }
-

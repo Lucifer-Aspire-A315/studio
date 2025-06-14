@@ -72,7 +72,7 @@ export const PersonalLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
   employmentIncome: EmploymentIncomeSchema,
-  loanDetails: z.object({ // Simplified loan details for personal loan
+  loanDetails: z.object({ 
     loanAmountRequired: z.preprocess(
       (val) => (val === "" ? undefined : Number(val)),
       z.number({ invalid_type_error: "Loan amount must be a number"}).min(1, "Loan amount is required")
@@ -121,9 +121,9 @@ const LoanDetailsForBusinessSchema = z.object({
     (val) => (val === "" ? undefined : Number(val)),
     z.number({invalid_type_error: "Loan amount must be a number"}).min(1, "Loan amount is required")
   ),
-  loanTenureRequired: z.preprocess(
+  loanTenureRequired: z.preprocess( // Tenure in months for Business Loan, but schema just takes number
     (val) => (val === "" ? undefined : Number(val)),
-    z.number({invalid_type_error: "Loan tenure must be a number"}).min(1, "Loan tenure is required (in years)")
+    z.number({invalid_type_error: "Loan tenure must be a number"}).min(1, "Loan tenure is required (in months)")
   ),
   purposeOfLoan: z.enum(["working_capital", "machinery_purchase", "business_expansion", "other"], { required_error: "Purpose of loan is required" }),
   otherPurposeOfLoan: z.string().optional(),
@@ -160,17 +160,16 @@ const LoanDetailsForBusinessSchema = z.object({
 });
 
 export const DocumentUploadDetailsSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card (PDF/JPG)"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card (PDF/JPG)"),
-  applicantPhoto: z.string().optional().describe("Applicant Photo (JPG/PNG)"),
-  gstCertificate: z.string().optional().describe("GST Registration Certificate"),
-  udyamCertificate: z.string().optional().describe("Udyam / Shop & Establishment Certificate"),
-  partnershipDeedOrMOA: z.string().optional().describe("Partnership Deed / MOA & AOA (if applicable)"),
-  bankStatement: z.string().optional().describe("Bank Statement (6-12 months PDF)"),
-  itrLast2Years: z.string().optional().describe("ITR Last 2 Years (PDF)"),
-  balanceSheetAndPL: z.string().optional().describe("Balance Sheet & Profit-Loss Statement"),
+  panCard: z.string().optional().describe("PAN Card"),
+  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
+  applicantPhoto: z.string().optional().describe("Passport Size Photo"),
+  gstOrUdyamCertificate: z.string().optional().describe("GST Registration / Udyam Certificate"),
+  businessProof: z.string().optional().describe("Shop Act / Business Proof"),
+  bankStatement: z.string().optional().describe("Bank Statement (Last 6–12 Months)"),
+  itrLast2Years: z.string().optional().describe("ITR for Last 2 Years"),
+  balanceSheetAndPL: z.string().optional().describe("Balance Sheet & Profit/Loss Statement"),
   existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if applicable)"),
-  machineryQuotation: z.string().optional().describe("Machinery Quotation / Invoice (if applicable)"),
+  machineryQuotation: z.string().optional().describe("Quotation (for Machinery Loan)"),
 });
 export type DocumentUploadDetailsFormData = z.infer<typeof DocumentUploadDetailsSchema>;
 
