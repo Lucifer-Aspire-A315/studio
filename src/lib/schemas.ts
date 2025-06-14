@@ -335,15 +335,3 @@ export const CreditCardApplicationSchema = z.object({
   documentUploads: CreditCardDocumentUploadSchema.optional(),
 });
 export type CreditCardApplicationFormData = z.infer<typeof CreditCardApplicationSchema>;
-
-
-// ITR Filing Schema
-export const ITRFilingSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  pan: z.string().regex(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/, "Invalid PAN format"),
-  email: z.string().email("Invalid email address"),
-  mobile: z.string().regex(/^\d{10}$/, "Invalid mobile number"),
-  assessmentYear: z.string().min(1, "Assessment year is required"),
-});
-export type ITRFilingFormData = z.infer<typeof ITRFilingSchema>;
-
