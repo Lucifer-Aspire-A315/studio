@@ -612,3 +612,80 @@ export const AccountingBookkeepingFormSchema = z.object({
   documentUploads: AccountingDocumentUploadSchema.optional(),
 });
 export type AccountingBookkeepingFormData = z.infer<typeof AccountingBookkeepingFormSchema>;
+
+
+// Company Incorporation Form Schemas
+export const IncorporationApplicantFounderDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
+  emailId: z.string().email("Invalid email address"),
+  dob: z.string().min(1, "Date of Birth is required"),
+  occupation: z.enum(["business", "job", "student", "other"], { required_error: "Occupation is required" }),
+  otherOccupationDetail: z.string().optional(),
+  residentialAddress: z.string().min(1, "Residential Address is required"),
+  cityAndState: z.string().min(1, "City & State are required"),
+}).superRefine((data, ctx) => {
+  if (data.occupation === "other" && (!data.otherOccupationDetail || data.otherOccupationDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other occupation",
+      path: ["otherOccupationDetail"],
+    });
+  }
+});
+export type IncorporationApplicantFounderDetailsFormData = z.infer<typeof IncorporationApplicantFounderDetailsSchema>;
+
+export const IncorporationCompanyDetailsSchema = z.object({
+  companyType: z.enum(["pvt_ltd", "llp", "opc", "partnership", "other"], { required_error: "Type of Company is required" }),
+  otherCompanyTypeDetail: z.string().optional(),
+  proposedCompanyName1: z.string().min(1, "At least one proposed company name is required"),
+  proposedCompanyName2: z.string().optional(),
+  proposedCompanyName3: z.string().optional(),
+  businessActivity: z.string().min(1, "Business Activity / Nature of Work is required"),
+  proposedBusinessAddress: z.string().min(1, "Proposed Business Address is required"),
+}).superRefine((data, ctx) => {
+  if (data.companyType === "other" && (!data.otherCompanyTypeDetail || data.otherCompanyTypeDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other company type",
+      path: ["otherCompanyTypeDetail"],
+    });
+  }
+});
+export type IncorporationCompanyDetailsFormData = z.infer<typeof IncorporationCompanyDetailsSchema>;
+
+export const IncorporationDirectorsPartnersSchema = z.object({
+  numberOfDirectorsPartners: z.enum(["1", "2", "3", "4+"], { required_error: "Number of Directors / Partners is required" }),
+});
+export type IncorporationDirectorsPartnersFormData = z.infer<typeof IncorporationDirectorsPartnersSchema>;
+
+export const IncorporationDocumentUploadsSchema = z.object({
+  directorPanCard: z.string().optional().describe("PAN Card (for each director/partner)"),
+  directorAadhaarCard: z.string().optional().describe("Aadhaar Card (for each director/partner)"),
+  directorPhoto: z.string().optional().describe("Passport Size Photo (for each director/partner)"),
+  businessAddressProof: z.string().optional().describe("Electricity Bill / Rent Agreement (Business Address Proof)"),
+  directorBankStatement: z.string().optional().describe("Bank Statement (Last 1 month, for each director/partner)"),
+  dsc: z.string().optional().describe("Digital Signature Certificate (DSC, if available, for each director)"),
+});
+export type IncorporationDocumentUploadsFormData = z.infer<typeof IncorporationDocumentUploadsSchema>;
+
+export const IncorporationOptionalServicesSchema = z.object({
+  gstRegistration: z.boolean().optional().default(false),
+  msmeRegistration: z.boolean().optional().default(false),
+  trademarkFiling: z.boolean().optional().default(false),
+  openBusinessBankAccount: z.boolean().optional().default(false),
+  accountingTaxSetup: z.boolean().optional().default(false),
+});
+export type IncorporationOptionalServicesFormData = z.infer<typeof IncorporationOptionalServicesSchema>;
+
+export const CompanyIncorporationFormSchema = z.object({
+  applicantFounderDetails: IncorporationApplicantFounderDetailsSchema,
+  companyDetails: IncorporationCompanyDetailsSchema,
+  directorsPartners: IncorporationDirectorsPartnersSchema,
+  documentUploads: IncorporationDocumentUploadsSchema.optional(),
+  optionalServices: IncorporationOptionalServicesSchema.optional(),
+  declaration: z.boolean().refine(val => val === true, {
+    message: "You must accept the declaration to proceed."
+  }),
+});
+export type CompanyIncorporationFormData = z.infer<typeof CompanyIncorporationFormSchema>;

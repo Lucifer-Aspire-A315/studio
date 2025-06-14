@@ -55,6 +55,8 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
       setCurrentPage('itrFilingConsultationForm');
     } else if (serviceId === 'accounting') {
       setCurrentPage('accountingBookkeepingForm');
+    } else if (serviceId === 'incorporation') {
+      setCurrentPage('companyIncorporationForm');
     }
      else {
       toast({
