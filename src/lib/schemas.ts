@@ -458,7 +458,7 @@ export const GstServiceRequiredSchema = z.object({
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one GST service must be selected.",
-        path: ["newGstRegistration"], // Points to the first checkbox for error indication
+        path: ["newGstRegistration"], 
     });
   }
 });
@@ -481,3 +481,64 @@ export const GstServiceApplicationSchema = z.object({
   documentUploads: GstDocumentUploadSchema.optional(),
 });
 export type GstServiceApplicationFormData = z.infer<typeof GstServiceApplicationSchema>;
+
+// ITR Filing & Consultation Schemas
+export const ItrApplicantDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
+  emailId: z.string().email("Invalid email address"),
+  dob: z.string().min(1, "Date of Birth is required"),
+  panNumber: z.string().regex(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/, "Invalid PAN format"),
+  aadhaarNumber: z.string().regex(/^\d{12}$/, "Invalid Aadhaar format (must be 12 digits)"),
+  address: z.string().min(1, "Address is required"),
+  cityAndState: z.string().min(1, "City & State are required"),
+});
+export type ItrApplicantDetailsFormData = z.infer<typeof ItrApplicantDetailsSchema>;
+
+export const IncomeSourceTypeSchema = z.object({
+  salariedEmployee: z.boolean().optional().default(false),
+  businessIncome: z.boolean().optional().default(false),
+  freelanceProfessional: z.boolean().optional().default(false),
+  capitalGains: z.boolean().optional().default(false),
+  housePropertyIncome: z.boolean().optional().default(false),
+  otherIncomeSource: z.boolean().optional().default(false),
+  otherIncomeSourceDetail: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.otherIncomeSource && (!data.otherIncomeSourceDetail || data.otherIncomeSourceDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other income source details.",
+      path: ["otherIncomeSourceDetail"],
+    });
+  }
+  const { otherIncomeSourceDetail, ...sources } = data;
+  const oneSelected = Object.values(sources).some(val => val === true);
+  if (!oneSelected) {
+    ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one income source must be selected.",
+        path: ["salariedEmployee"], 
+    });
+  }
+});
+export type IncomeSourceTypeFormData = z.infer<typeof IncomeSourceTypeSchema>;
+
+export const ItrDocumentUploadSchema = z.object({
+  panCard: z.string().optional().describe("PAN Card"),
+  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
+  form16: z.string().optional().describe("Form 16 (if Salaried)"),
+  salarySlips: z.string().optional().describe("Salary Slips (if applicable)"),
+  bankStatement: z.string().optional().describe("Bank Statement (Full FY)"),
+  investmentProofs: z.string().optional().describe("Investment Proofs (LIC, PPF, 80C, etc.)"),
+  rentReceipts: z.string().optional().describe("Rent Receipts / HRA Proofs"),
+  capitalGainStatement: z.string().optional().describe("Capital Gain Statement (if any)"),
+  businessIncomeProof: z.string().optional().describe("Business Income Proof / ITR of Previous Year"),
+});
+export type ItrDocumentUploadFormData = z.infer<typeof ItrDocumentUploadSchema>;
+
+export const ItrFilingConsultationFormSchema = z.object({
+  applicantDetails: ItrApplicantDetailsSchema,
+  incomeSourceType: IncomeSourceTypeSchema,
+  documentUploads: ItrDocumentUploadSchema.optional(),
+});
+export type ItrFilingConsultationFormData = z.infer<typeof ItrFilingConsultationFormSchema>;

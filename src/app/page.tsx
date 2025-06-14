@@ -15,9 +15,10 @@ import { GovernmentSchemesPage } from '@/components/sections/GovernmentSchemesPa
 import { GovernmentSchemeLoanApplicationForm } from '@/components/forms/GovernmentSchemeLoanApplicationForm';
 import { CAServicesPage } from '@/components/sections/CAServicesPage';
 import { GstServiceApplicationForm } from '@/components/forms/GstServiceApplicationForm';
+import { ItrFilingConsultationForm } from '@/components/forms/ItrFilingConsultationForm';
 import { Skeleton } from '@/components/ui/skeleton'; 
 
-export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication' | 'caServices' | 'gstServiceForm';
+export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication' | 'caServices' | 'gstServiceForm' | 'itrFilingConsultationForm';
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
 export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -137,6 +138,8 @@ export default function Home() {
         return <CAServicesPage setCurrentPage={setCurrentPage} />;
       case 'gstServiceForm':
         return <GstServiceApplicationForm setCurrentPage={setCurrentPage} />;
+      case 'itrFilingConsultationForm':
+        return <ItrFilingConsultationForm setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }

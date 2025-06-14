@@ -19,7 +19,7 @@ const caServicesList = [
     description: "Accurate accounting and bookkeeping services to keep your finances in order."
   },
   {
-    id: "gst-registration", // Added distinct ID for GST
+    id: "gst-registration",
     title: "GST Registration and Filing",
     description: "Complete GST solutions, from registration to timely return filing."
   },
@@ -51,6 +51,8 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
   const handleApplyService = (serviceId: string, serviceTitle: string) => {
     if (serviceId === 'gst-registration') {
       setCurrentPage('gstServiceForm');
+    } else if (serviceId === 'itr') {
+      setCurrentPage('itrFilingConsultationForm');
     } else {
       toast({
         title: "Application Coming Soon",
