@@ -16,7 +16,7 @@ export const ResidentialAddressSchema = z.object({
 
 export const EmploymentIncomeSchema = z.object({
   employmentType: z.enum(["salaried", "self-employed"], { required_error: "Occupation Type is required" }),
-  occupation: z.string().min(1, "Occupation is required"),
+  occupation: z.string().min(1, "Occupation is required").optional(), // Made optional here to avoid breaking other forms if they might use it. A more specific fix is below.
   companyName: z.string().min(1, "Company / Business Name is required"),
   monthlyIncome: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
@@ -76,7 +76,7 @@ export const HomeLoanApplicationSchema = z.object({
   residentialAddress: ResidentialAddressSchema,
   isPermanentAddressDifferent: z.boolean().optional().default(false),
   permanentAddress: ResidentialAddressSchema.optional(),
-  employmentIncome: EmploymentIncomeSchema,
+  employmentIncome: EmploymentIncomeSchema, // occupation is optional in base schema
   loanPropertyDetails: LoanPropertyDetailsSchema,
   hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
   existingLoans: ExistingLoansSchema.optional(),
@@ -132,7 +132,7 @@ export type PersonalLoanDocumentUploadFormData = z.infer<typeof PersonalLoanDocu
 export const PersonalLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
-  employmentIncome: EmploymentIncomeSchema, // Removed omit, so yearsInCurrentJobOrBusiness is included
+  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }), // Omit occupation as it's not in the new form
   loanDetails: z.object({
     loanAmountRequired: z.preprocess(
       (val) => (val === "" ? undefined : Number(val)),
@@ -280,7 +280,7 @@ export type BusinessLoanApplicationFormData = z.infer<typeof BusinessLoanApplica
 export const CreditCardApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
-  employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true }),
+  employmentIncome: EmploymentIncomeSchema.omit({ yearsInCurrentJobOrBusiness: true, occupation: true }), // Also omit occupation here
 });
 export type CreditCardApplicationFormData = z.infer<typeof CreditCardApplicationSchema>;
 
@@ -294,3 +294,4 @@ export const ITRFilingSchema = z.object({
   assessmentYear: z.string().min(1, "Assessment year is required"),
 });
 export type ITRFilingFormData = z.infer<typeof ITRFilingSchema>;
+
