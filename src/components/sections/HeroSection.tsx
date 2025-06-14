@@ -31,7 +31,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             onClick={scrollToServices} // Or navigate to a general apply page if preferred
             aria-label="Explore Our Loan Services"
           >
-            Explore Loans
+            ITR FILING
           </Button>
           <Button 
             variant="outline" 
