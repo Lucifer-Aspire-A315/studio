@@ -67,72 +67,72 @@ const businessLoanSections = [
     fields: [
       { 
         name: "documentUploadDetails.panCard", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />PAN Card</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />PAN Card</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.aadhaarCard", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />Aadhaar Card</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Aadhaar Card</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.applicantPhoto", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />Passport Size Photo</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Passport Size Photo</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.gstOrUdyamCertificate", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />GST Registration / Udyam Certificate</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />GST Registration / Udyam Certificate</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.businessProof", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />Shop Act / Business Proof</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Shop Act / Business Proof</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.bankStatement", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />Bank Statement (Last 6–12 Months)</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Bank Statement (Last 6–12 Months)</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.itrLast2Years", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />ITR for Last 2 Years</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />ITR for Last 2 Years</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.balanceSheetAndPL", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />Balance Sheet & Profit/Loss Statement</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Balance Sheet & Profit/Loss Statement</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.existingLoanStatement", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />Existing Loan Statement (if applicable)</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Existing Loan Statement (if applicable)</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
       { 
         name: "documentUploadDetails.machineryQuotation", 
-        label: <><UploadCloud className="w-4 h-4 mr-2 inline-block text-muted-foreground" />Quotation (for Machinery Loan)</>, 
+        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Quotation (for Machinery Loan)</>, 
         type: "text", 
-        placeholder: "File name or 'Uploaded'", 
+        placeholder: "Click here to upload", 
         colSpan: 2 
       },
     ]
