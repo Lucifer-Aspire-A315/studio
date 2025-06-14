@@ -40,10 +40,11 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             onClick={scrollToServices}
             aria-label="Learn more about our services"
           >
-            GOVERNMENT SME LOAN
+            Government Scheme Loan
           </Button>
         </div>
       </div>
     </section>
   );
 }
+
