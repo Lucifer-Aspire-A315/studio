@@ -17,7 +17,7 @@ import type { SetPageView } from '@/app/page';
 
 interface FieldConfig {
   name: string;
-  label: string;
+  label: React.ReactNode; // Changed from string to React.ReactNode
   type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio';
   placeholder?: string;
   options?: { value: string; label: string }[];
