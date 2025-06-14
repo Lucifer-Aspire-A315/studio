@@ -4,7 +4,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ReceiptText, Building2, ClipboardCheck, FileSpreadsheet, TrendingUp } from 'lucide-react'; 
+import { ArrowLeft } from 'lucide-react'; 
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,31 +16,26 @@ const caServicesList = [
   {
     id: "gst",
     title: "GST Registration and Filing",
-    icon: <ReceiptText className="w-8 h-8 text-primary" />,
     description: "Complete GST solutions, from registration to timely return filing."
   },
   {
     id: "incorporation",
     title: "Company Incorporation",
-    icon: <Building2 className="w-8 h-8 text-primary" />,
     description: "Hassle-free company registration and compliance services."
   },
   {
     id: "audit",
     title: "Audit and Assurance",
-    icon: <ClipboardCheck className="w-8 h-8 text-primary" />,
     description: "Reliable audit services to ensure financial accuracy and compliance."
   },
   {
     id: "itr",
     title: "Income Tax Filing and Consultation",
-    icon: <FileSpreadsheet className="w-8 h-8 text-primary" />,
     description: "Expert ITR filing and tax planning for individuals and businesses."
   },
   {
     id: "advisory",
     title: "Financial Advisory",
-    icon: <TrendingUp className="w-8 h-8 text-primary" />,
     description: "Strategic financial advice and management consultancy to grow your business."
   }
 ];
@@ -78,8 +73,7 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {caServicesList.map((service) => (
               <Card key={service.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <CardHeader className="flex flex-row items-center space-x-4 pb-2">
-                  {service.icon}
+                <CardHeader className="pb-2">
                   <CardTitle className="text-lg">{service.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
