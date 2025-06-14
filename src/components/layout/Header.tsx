@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import type { PageView, SetPageView } from '@/app/page'; 
 
@@ -90,6 +90,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background p-0">
+              <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="p-6 border-b">
                 <Link href="/" onClick={() => handleNavClick('#home', () => setCurrentPage('main'))} className="text-xl font-bold">
                   <AnimatedGradientText />
