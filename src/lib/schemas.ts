@@ -413,3 +413,71 @@ export const GovernmentSchemeLoanApplicationSchema = z.object({
 });
 
 export type GovernmentSchemeLoanApplicationFormData = z.infer<typeof GovernmentSchemeLoanApplicationSchema>;
+
+
+// GST Service Application Schemas
+export const GstApplicantDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
+  emailId: z.string().email("Invalid email address"),
+  businessName: z.string().optional(),
+  businessType: z.enum(["proprietorship", "partnership", "pvt_ltd", "other"], { required_error: "Business type is required" }),
+  otherBusinessTypeDetail: z.string().optional(),
+  natureOfBusiness: z.string().min(1, "Nature of Business is required"),
+  stateAndCity: z.string().min(1, "State & City are required"),
+}).superRefine((data, ctx) => {
+  if (data.businessType === "other" && (!data.otherBusinessTypeDetail || data.otherBusinessTypeDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other business type",
+      path: ["otherBusinessTypeDetail"],
+    });
+  }
+});
+export type GstApplicantDetailsFormData = z.infer<typeof GstApplicantDetailsSchema>;
+
+export const GstServiceRequiredSchema = z.object({
+  newGstRegistration: z.boolean().optional().default(false),
+  gstReturnFiling: z.boolean().optional().default(false),
+  gstCancellationAmendment: z.boolean().optional().default(false),
+  gstAudit: z.boolean().optional().default(false),
+  gstNoticeHandling: z.boolean().optional().default(false),
+  otherGstService: z.boolean().optional().default(false),
+  otherGstServiceDetail: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.otherGstService && (!data.otherGstServiceDetail || data.otherGstServiceDetail.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify other GST service details.",
+      path: ["otherGstServiceDetail"],
+    });
+  }
+  const { otherGstServiceDetail, ...services } = data; // Exclude detail field for check
+  const oneSelected = Object.values(services).some(val => val === true);
+  if (!oneSelected) {
+    ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one GST service must be selected.",
+        path: ["newGstRegistration"], // Points to the first checkbox for error indication
+    });
+  }
+});
+export type GstServiceRequiredFormData = z.infer<typeof GstServiceRequiredSchema>;
+
+export const GstDocumentUploadSchema = z.object({
+  panCard: z.string().optional().describe("PAN Card of Applicant/Business"),
+  aadhaarCard: z.string().optional().describe("Aadhaar Card of Proprietor/Director"),
+  passportPhoto: z.string().optional().describe("Passport Size Photo (JPG/PNG)"),
+  businessProof: z.string().optional().describe("Business Proof (e.g., Shop Act/License)"),
+  addressProof: z.string().optional().describe("Electricity Bill / Rent Agreement (Address Proof)"),
+  bankDetails: z.string().optional().describe("Cancelled Cheque or Bank Passbook (1st page)"),
+  digitalSignature: z.string().optional().describe("Digital Signature (If available)"),
+});
+export type GstDocumentUploadFormData = z.infer<typeof GstDocumentUploadSchema>;
+
+export const GstServiceApplicationSchema = z.object({
+  applicantDetails: GstApplicantDetailsSchema,
+  gstServiceRequired: GstServiceRequiredSchema,
+  documentUploads: GstDocumentUploadSchema.optional(),
+});
+export type GstServiceApplicationFormData = z.infer<typeof GstServiceApplicationSchema>;

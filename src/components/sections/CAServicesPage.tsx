@@ -19,6 +19,11 @@ const caServicesList = [
     description: "Accurate accounting and bookkeeping services to keep your finances in order."
   },
   {
+    id: "gst-registration",
+    title: "GST Registration and Filing",
+    description: "Complete GST solutions, from registration to timely return filing."
+  },
+  {
     id: "incorporation",
     title: "Company Incorporation",
     description: "Hassle-free company registration and compliance services."
@@ -43,12 +48,15 @@ const caServicesList = [
 export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
   const { toast } = useToast();
 
-  const handleApplyService = (serviceTitle: string) => {
-    toast({
-      title: "Application Coming Soon",
-      description: `The application form for "${serviceTitle}" will be available shortly.`,
-    });
-    // Later, this could navigate to a specific form: setCurrentPage('caServiceFormFor_' + serviceId);
+  const handleApplyService = (serviceId: string, serviceTitle: string) => {
+    if (serviceId === 'gst-registration') {
+      setCurrentPage('gstServiceForm');
+    } else {
+      toast({
+        title: "Application Coming Soon",
+        description: `The application form for "${serviceTitle}" will be available shortly.`,
+      });
+    }
   };
 
   return (
@@ -79,7 +87,7 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">{service.description}</p>
                   <Button
-                    onClick={() => handleApplyService(service.title)}
+                    onClick={() => handleApplyService(service.id, service.title)}
                     className="w-full cta-button"
                   >
                     Apply for this Service
@@ -99,4 +107,3 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
     </section>
   );
 }
-
