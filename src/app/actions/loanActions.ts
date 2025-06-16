@@ -36,19 +36,19 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
       userFullName: userFullName || null,
       userType: userType || null,
       loanType,
-      formData: data,
-      status: 'submitted',
+      formData: data, // This includes documentUploads with URLs
+      status: 'submitted', // Default status
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
 
     const docRef = await addDoc(collection(db, 'loanApplications'), applicationData);
     
-    console.log(`Loan application stored with ID: ${docRef.id}`);
+    console.log(`${loanType} application stored in 'loanApplications' with ID: ${docRef.id}`);
 
     return {
       success: true,
-      message: `${loanType} application submitted successfully! Your application ID is ${docRef.id}.`,
+      message: `${loanType} application submitted successfully! Your application ID is ${docRef.id}. We will review your application and get back to you.`,
       applicationId: docRef.id,
     };
 
