@@ -3,22 +3,29 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
-import type { PageView, SetPageView } from '@/app/page'; 
+import { Menu, LogOut } from 'lucide-react';
+import type { PageView, SetPageView, UserData, SetCurrentUser } from '@/app/page';
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   setCurrentPage: SetPageView;
+  currentUser: UserData | null;
+  setCurrentUser: SetCurrentUser;
+  logoutAction: () => Promise<{ success: boolean, message?: string, errors?: any }>;
 }
 
 const AnimatedGradientText = () => (
   <span className="animated-gradient-text">RN Fintech</span>
 );
 
-export function Header({ setCurrentPage }: HeaderProps) {
+export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutAction }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,18 +45,34 @@ export function Header({ setCurrentPage }: HeaderProps) {
   const handleNavClick = (href: string, action?: () => void) => {
     if (action) action();
     setMobileMenuOpen(false);
-    if (href.startsWith('#')) {
-      // Ensure 'main' page is active for hash links to work correctly from other pages
+    if (href.startsWith('/')) {
+      router.push(href);
+    } else if (href.startsWith('#')) {
       if (href === '#home' || href === '#services' || href === '#calculator' || href === '#about') {
-        setCurrentPage('main');
-        // Delay scrolling to allow page context to switch if necessary
-        setTimeout(() => {
-          const element = document.getElementById(href.substring(1));
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 0);
+        // Ensure main page context is set if not already on it AND not already trying to scroll on main
+        if (router.pathname !== '/' && (window.location.pathname !== '/' || window.location.hash !== href)) {
+            setCurrentPage('main'); // This might cause a slight delay if not handled well with Next router
+            router.push('/' + href); // Navigate to home and then scroll
+        } else {
+             // If already on main page, just scroll
+            const element = document.getElementById(href.substring(1));
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    setMobileMenuOpen(false);
+    const result = await logoutAction();
+    if (result.success) {
+      setCurrentUser(null);
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
+      router.push('/'); // Redirect to home after logout
+    } else {
+      toast({ variant: "destructive", title: "Logout Failed", description: result.message || "Could not log out." });
     }
   };
   
@@ -70,19 +93,34 @@ export function Header({ setCurrentPage }: HeaderProps) {
           ))}
         </div>
         <div className="flex items-center flex-shrink-0 space-x-2">
-          <Button 
-            variant="outline" 
-            className="hidden md:inline-flex cta-button border-primary text-primary hover:bg-primary/10 hover:text-primary"
-            onClick={() => setCurrentPage('partnerLoginOptions')}
-          >
-            PARTNER LOGIN
-          </Button>
-          <Button 
-            className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground"
-            onClick={() => { /* Placeholder for main login, can be updated later */ setCurrentPage('main'); }}
-          >
-            LOGIN
-          </Button>
+          {currentUser ? (
+            <>
+              <span className="hidden md:inline-flex text-sm text-muted-foreground">Welcome, {currentUser.fullName}!</span>
+              <Button 
+                variant="outline" 
+                className="cta-button border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                className="hidden md:inline-flex cta-button border-primary text-primary hover:bg-primary/10 hover:text-primary"
+                onClick={() => router.push('/partner-login')}
+              >
+                PARTNER LOGIN
+              </Button>
+              <Button 
+                className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground"
+                onClick={() => { /* Placeholder for main user login */ toast({title: "Login coming soon"}); }}
+              >
+                LOGIN
+              </Button>
+            </>
+          )}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon" aria-label="Open menu">
@@ -105,23 +143,40 @@ export function Header({ setCurrentPage }: HeaderProps) {
                   </SheetClose>
                 ))}
                 <div className="border-t my-2 mx-6"></div>
-                 <SheetClose asChild>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {setCurrentPage('partnerLoginOptions'); setMobileMenuOpen(false);}} 
-                    className={`${mobileLinkClasses} text-primary font-semibold text-left justify-start border-primary w-full`}
-                  >
-                    PARTNER LOGIN
-                  </Button>
-                </SheetClose>
-                <SheetClose asChild>
-                  <Button 
-                    onClick={() => { /* Placeholder */ setMobileMenuOpen(false); setCurrentPage('main'); }} 
-                    className={`${mobileLinkClasses} bg-primary text-primary-foreground font-semibold text-left justify-start w-full`}
-                  >
-                    LOGIN
-                  </Button>
-                </SheetClose>
+                {currentUser ? (
+                  <SheetClose asChild>
+                     <div className="px-6 py-3">
+                        <p className="text-sm text-muted-foreground mb-2">Welcome, {currentUser.fullName}!</p>
+                        <Button 
+                            variant="outline" 
+                            onClick={handleLogout} 
+                            className={`${mobileLinkClasses} text-destructive font-semibold text-left justify-start border-destructive w-full`}
+                        >
+                           <LogOut className="mr-2 h-4 w-4" /> Logout
+                        </Button>
+                     </div>
+                  </SheetClose>
+                ) : (
+                  <>
+                    <SheetClose asChild>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {router.push('/partner-login'); setMobileMenuOpen(false);}} 
+                        className={`${mobileLinkClasses} text-primary font-semibold text-left justify-start border-primary w-full`}
+                      >
+                        PARTNER LOGIN
+                      </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Button 
+                        onClick={() => { /* Placeholder */ toast({title: "Login coming soon"}); setMobileMenuOpen(false); }} 
+                        className={`${mobileLinkClasses} bg-primary text-primary-foreground font-semibold text-left justify-start w-full`}
+                      >
+                        LOGIN
+                      </Button>
+                    </SheetClose>
+                  </>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
@@ -130,3 +185,5 @@ export function Header({ setCurrentPage }: HeaderProps) {
     </header>
   );
 }
+
+    

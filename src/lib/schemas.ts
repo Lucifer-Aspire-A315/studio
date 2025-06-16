@@ -12,7 +12,7 @@ const fileSchema = (types: string[]) => z.instanceof(File, { message: "File is r
   .refine(file => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
   .refine(file => types.includes(file.type), `Unsupported file type. Accepted: ${types.join(', ')}`)
   .optional()
-  .nullable(); // Allow undefined or null if not required
+  .nullable();
 
 const stringOrFileSchema = (types: string[]) => z.union([
   z.string().url({ message: "Invalid URL." }).optional().nullable(),
@@ -22,7 +22,7 @@ const stringOrFileSchema = (types: string[]) => z.union([
 
 export const HomeLoanApplicantDetailsSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  dob: z.string().min(1, "Date of Birth is required"), // Consider z.date() if using a date picker that returns Date object
+  dob: z.string().min(1, "Date of Birth is required"),
   mobile: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
   email: z.string().email("Invalid email address"),
   pan: z.string().regex(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/, "Invalid PAN format"),
@@ -35,7 +35,7 @@ export const ResidentialAddressSchema = z.object({
 
 export const EmploymentIncomeSchema = z.object({
   employmentType: z.enum(["salaried", "self-employed"], { required_error: "Occupation Type is required" }),
-  occupation: z.string().min(1, "Occupation is required").optional(), // Kept for now, might be specific to some forms
+  occupation: z.string().min(1, "Occupation is required").optional(),
   companyName: z.string().min(1, "Company / Business Name is required"),
   monthlyIncome: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
@@ -115,7 +115,7 @@ export const HomeLoanApplicationSchema = z.object({
     if (!data.existingLoans) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "EMI and Bank Name are required if you have existing loans.", path: ["existingLoans", "emiAmount"] });
     } else {
-        if (data.existingLoans.emiAmount === undefined || data.existingLoans.emiAmount <= 0) { // EMI should be > 0
+        if (data.existingLoans.emiAmount === undefined || data.existingLoans.emiAmount <= 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Valid EMI is required if existing loans is 'Yes'",
@@ -396,8 +396,8 @@ export const GovernmentSchemeBusinessInfoSchema = z.object({
 });
 
 export const GovernmentSchemeLoanDetailsSchema = z.object({
-  selectedScheme: z.string().min(1, "Loan scheme is required"), 
-  otherSchemeName: z.string().optional(), 
+  selectedScheme: z.string().min(1, "Loan scheme is required"),
+  otherSchemeName: z.string().optional(),
   loanAmountRequired: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
     z.number({ invalid_type_error: "Loan amount must be a number" }).min(1, "Loan Amount Required is required")
@@ -469,13 +469,13 @@ export const GstServiceRequiredSchema = z.object({
       path: ["otherGstServiceDetail"],
     });
   }
-  const { otherGstServiceDetail, ...services } = data; 
+  const { otherGstServiceDetail, ...services } = data;
   const oneSelected = Object.values(services).some(val => val === true);
   if (!oneSelected) {
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one GST service must be selected.",
-        path: ["newGstRegistration"], 
+        path: ["newGstRegistration"],
     });
   }
 });
@@ -534,7 +534,7 @@ export const IncomeSourceTypeSchema = z.object({
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one income source must be selected.",
-        path: ["salariedEmployee"], 
+        path: ["salariedEmployee"],
     });
   }
 });
@@ -605,7 +605,7 @@ export const AccountingServicesRequiredSchema = z.object({
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one service must be selected.",
-        path: ["bookkeeping"], 
+        path: ["bookkeeping"],
     });
   }
 });
@@ -762,7 +762,7 @@ export const FinancialAdvisoryServicesRequiredSchema = z.object({
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one advisory service must be selected.",
-        path: ["taxSavingPlan"], 
+        path: ["taxSavingPlan"],
     });
   }
 });
@@ -820,16 +820,9 @@ export const PartnerSignUpSchema = z.object({
   confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters long"),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
-  path: ["confirmPassword"], 
+  path: ["confirmPassword"],
 });
 export type PartnerSignUpFormData = z.infer<typeof PartnerSignUpSchema>;
-
-// Normal User Login Schema
-export const NormalUserLoginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-export type NormalUserLoginFormData = z.infer<typeof NormalUserLoginSchema>;
 
 // Partner Login Schema
 export const PartnerLoginSchema = z.object({
@@ -838,15 +831,4 @@ export const PartnerLoginSchema = z.object({
 });
 export type PartnerLoginFormData = z.infer<typeof PartnerLoginSchema>;
 
-// Normal User Sign Up Schema
-export const NormalUserSignUpSchema = z.object({
-  fullName: z.string().min(1, "Full Name is required"),
-  email: z.string().email("Invalid email address"),
-  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
-  password: z.string().min(8, "Password must be at least 8 characters long"),
-  confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters long"),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-export type NormalUserSignUpFormData = z.infer<typeof NormalUserSignUpSchema>;
+    
