@@ -831,4 +831,23 @@ export const PartnerLoginSchema = z.object({
 });
 export type PartnerLoginFormData = z.infer<typeof PartnerLoginSchema>;
 
-    
+
+// Normal User Sign Up Schema
+export const UserSignUpSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  email: z.string().email("Invalid email address"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+  confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters long"),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+export type UserSignUpFormData = z.infer<typeof UserSignUpSchema>;
+
+// Normal User Login Schema
+export const UserLoginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+export type UserLoginFormData = z.infer<typeof UserLoginSchema>;

@@ -6,10 +6,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
-import { Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut, Loader2 } from 'lucide-react'; // Added Loader2
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext'; 
 
 interface HeaderProps {
   setCurrentPage: SetPageView;
@@ -24,7 +24,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { currentUser, logout, isLoading } = useAuth(); // Get currentUser and logout from AuthContext
+  const { currentUser, logout, isLoading } = useAuth(); 
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,9 +63,8 @@ export function Header({ setCurrentPage }: HeaderProps) {
 
   const handleLogout = async () => {
     setMobileMenuOpen(false);
-    await logout(); // Use logout from AuthContext
+    await logout(); 
     toast({ title: "Logged Out", description: "You have been successfully logged out." });
-    // Router push is handled within logout context function now
   };
   
   const commonLinkClasses = "text-gray-600 hover:text-primary transition-colors";
@@ -109,7 +108,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
               </Button>
               <Button 
                 className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => { toast({title: "Login coming soon"}); }}
+                onClick={() => router.push('/login')}
               >
                 LOGIN
               </Button>
@@ -165,10 +164,19 @@ export function Header({ setCurrentPage }: HeaderProps) {
                     </SheetClose>
                     <SheetClose asChild>
                       <Button 
-                        onClick={() => { toast({title: "Login coming soon"}); setMobileMenuOpen(false); }} 
+                        onClick={() => { router.push('/login'); setMobileMenuOpen(false); }} 
                         className={`${mobileLinkClasses} bg-primary text-primary-foreground font-semibold text-left justify-start w-full`}
                       >
                         LOGIN
+                      </Button>
+                    </SheetClose>
+                     <SheetClose asChild>
+                      <Button 
+                        variant="link"
+                        onClick={() => { router.push('/signup'); setMobileMenuOpen(false); }} 
+                        className={`${mobileLinkClasses} text-accent font-semibold text-left justify-start w-full`}
+                      >
+                        CREATE ACCOUNT
                       </Button>
                     </SheetClose>
                   </>

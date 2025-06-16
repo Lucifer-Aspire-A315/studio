@@ -2,7 +2,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import type { PartnerSignUpFormData, PartnerLoginFormData } from '@/lib/schemas';
+import type { PartnerSignUpFormData, PartnerLoginFormData, UserSignUpFormData, UserLoginFormData } from '@/lib/schemas';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 // Consider using a password hashing library like bcrypt or argon2
@@ -61,7 +61,7 @@ export async function partnerSignUpAction(
     if (!querySnapshot.empty) {
       return {
         success: false,
-        message: 'This email address is already registered.',
+        message: 'This email address is already registered as a partner.',
         errors: { email: ['Email already in use.'] },
       };
     }
@@ -77,6 +77,7 @@ export async function partnerSignUpAction(
       password: hashedPassword, // Store hashed password
       createdAt: Timestamp.fromDate(new Date()),
       isApproved: false, // Partners might need approval
+      type: 'partner',
     };
 
     const docRef = await addDoc(partnersRef, partnerDataToSave);
@@ -117,7 +118,7 @@ export async function partnerLoginAction(
       return {
         success: false,
         message: 'Invalid email or password.',
-        errors: { email: ['No account found with this email.'] },
+        errors: { email: ['No partner account found with this email.'] },
       };
     }
 
@@ -139,7 +140,7 @@ export async function partnerLoginAction(
     if (!partnerData.isApproved) {
         return {
             success: false,
-            message: 'Your account is pending approval. Please contact support.',
+            message: 'Your partner account is pending approval. Please contact support.',
             errors: { form: ['Account not approved.'] },
         }
     }
@@ -155,11 +156,117 @@ export async function partnerLoginAction(
 
     return {
       success: true,
-      message: 'Login successful!',
+      message: 'Partner login successful!',
       user: loggedInUser,
     };
   } catch (error: any) {
     console.error('Error during partner login:', error);
+    return {
+      success: false,
+      message: 'An unexpected error occurred during login. Please try again.',
+      errors: { serverError: [error.message || 'Server error occurred'] },
+    };
+  }
+}
+
+export async function userSignUpAction(
+  data: UserSignUpFormData
+): Promise<AuthServerActionResponse> {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('email', '==', data.email));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      return {
+        success: false,
+        message: 'This email address is already registered.',
+        errors: { email: ['Email already in use.'] },
+      };
+    }
+
+    const hashedPassword = data.password; // Current: plain text. HASH IN PRODUCTION!
+
+    const userDataToSave = {
+      fullName: data.fullName,
+      email: data.email,
+      mobileNumber: data.mobileNumber,
+      password: hashedPassword,
+      createdAt: Timestamp.fromDate(new Date()),
+      type: 'normal',
+    };
+
+    const docRef = await addDoc(usersRef, userDataToSave);
+    
+    const newUser: UserData = {
+      id: docRef.id,
+      fullName: data.fullName,
+      email: data.email,
+      type: 'normal',
+    };
+
+    await setSessionCookies(newUser);
+
+    return {
+      success: true,
+      message: 'Sign-up successful! Welcome to FinSol RN.',
+      user: newUser,
+    };
+  } catch (error: any) {
+    console.error('Error during user sign-up:', error);
+    return {
+      success: false,
+      message: 'An unexpected error occurred during sign-up. Please try again.',
+      errors: { serverError: [error.message || 'Server error occurred'] },
+    };
+  }
+}
+
+export async function userLoginAction(
+  data: UserLoginFormData
+): Promise<AuthServerActionResponse> {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('email', '==', data.email));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return {
+        success: false,
+        message: 'Invalid email or password.',
+        errors: { email: ['No account found with this email.'] },
+      };
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data();
+
+    const passwordIsValid = data.password === userData.password; // Current: plain text. COMPARE HASH IN PRODUCTION!
+
+    if (!passwordIsValid) {
+      return {
+        success: false,
+        message: 'Invalid email or password.',
+        errors: { password: ['Incorrect password.'] },
+      };
+    }
+
+    const loggedInUser: UserData = {
+      id: userDoc.id,
+      fullName: userData.fullName,
+      email: userData.email,
+      type: 'normal',
+    };
+
+    await setSessionCookies(loggedInUser);
+
+    return {
+      success: true,
+      message: 'Login successful!',
+      user: loggedInUser,
+    };
+  } catch (error: any) {
+    console.error('Error during user login:', error);
     return {
       success: false,
       message: 'An unexpected error occurred during login. Please try again.',
