@@ -12,17 +12,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserPlus } from 'lucide-react';
 import { partnerSignUpAction } from '@/app/actions/authActions';
 import Link from 'next/link';
-import type { UserData } from '@/app/page'; // Assuming UserData type will be in page.tsx or a shared types file
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useRouter } from 'next/navigation';
 
-interface PartnerSignUpFormProps {
-  setCurrentUser: (user: UserData | null) => void;
-  // Consider adding a prop to navigate to login page or dashboard after signup
-  // onSignUpSuccess?: () => void; 
-}
 
-export function PartnerSignUpForm({ setCurrentUser }: PartnerSignUpFormProps) {
+// setCurrentUser prop is no longer needed
+// interface PartnerSignUpFormProps {
+//   setCurrentUser: (user: UserData | null) => void;
+// }
+
+export function PartnerSignUpForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth(); // Get login function from AuthContext (can be used for signup too)
+  const router = useRouter();
 
   const form = useForm<PartnerSignUpFormData>({
     resolver: zodResolver(PartnerSignUpSchema),
@@ -44,10 +47,9 @@ export function PartnerSignUpForm({ setCurrentUser }: PartnerSignUpFormProps) {
           title: "Sign Up Successful",
           description: result.message || "Your account has been created and is pending approval.",
         });
-        setCurrentUser(result.user); // Update client-side state
+        login(result.user); // Update global state via AuthContext
         form.reset();
-        // Potentially navigate: onSignUpSuccess?.();
-        // Or redirect using next/navigation if not on main page
+        router.push('/'); // Redirect to home page after successful signup
       } else {
         toast({
           variant: "destructive",
@@ -165,5 +167,3 @@ export function PartnerSignUpForm({ setCurrentUser }: PartnerSignUpFormProps) {
     </div>
   );
 }
-
-    

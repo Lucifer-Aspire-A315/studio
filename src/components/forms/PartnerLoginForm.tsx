@@ -12,18 +12,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, LogIn } from 'lucide-react';
 import { partnerLoginAction } from '@/app/actions/authActions';
 import Link from 'next/link';
-import type { UserData } from '@/app/page'; // Assuming UserData type will be in page.tsx or a shared types file
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
+// setCurrentUser prop is no longer needed
+// interface PartnerLoginFormProps {
+//   setCurrentUser: (user: UserData | null) => void; 
+// }
 
-interface PartnerLoginFormProps {
-  setCurrentUser: (user: UserData | null) => void;
-}
-
-export function PartnerLoginForm({ setCurrentUser }: PartnerLoginFormProps) {
+export function PartnerLoginForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth(); // Get login function from AuthContext
 
   const form = useForm<PartnerLoginFormData>({
     resolver: zodResolver(PartnerLoginSchema),
@@ -42,7 +43,7 @@ export function PartnerLoginForm({ setCurrentUser }: PartnerLoginFormProps) {
           title: "Login Successful",
           description: result.message || "Welcome back!",
         });
-        setCurrentUser(result.user); // Update client-side state
+        login(result.user); // Update global state via AuthContext
         form.reset();
         router.push('/'); // Redirect to home page after successful login
       } else {
@@ -123,5 +124,3 @@ export function PartnerLoginForm({ setCurrentUser }: PartnerLoginFormProps) {
     </div>
   );
 }
-
-    

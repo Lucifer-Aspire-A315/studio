@@ -7,25 +7,24 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
 import { Menu, LogOut } from 'lucide-react';
-import type { PageView, SetPageView, UserData, SetCurrentUser } from '@/app/page';
+import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface HeaderProps {
   setCurrentPage: SetPageView;
-  currentUser: UserData | null;
-  setCurrentUser: SetCurrentUser;
-  logoutAction: () => Promise<{ success: boolean, message?: string, errors?: any }>;
 }
 
 const AnimatedGradientText = () => (
   <span className="animated-gradient-text">RN Fintech</span>
 );
 
-export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutAction }: HeaderProps) {
+export function Header({ setCurrentPage }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { currentUser, logout, isLoading } = useAuth(); // Get currentUser and logout from AuthContext
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,12 +48,10 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
       router.push(href);
     } else if (href.startsWith('#')) {
       if (href === '#home' || href === '#services' || href === '#calculator' || href === '#about') {
-        // Ensure main page context is set if not already on it AND not already trying to scroll on main
         if (router.pathname !== '/' && (window.location.pathname !== '/' || window.location.hash !== href)) {
-            setCurrentPage('main'); // This might cause a slight delay if not handled well with Next router
-            router.push('/' + href); // Navigate to home and then scroll
+            setCurrentPage('main'); 
+            router.push('/' + href); 
         } else {
-             // If already on main page, just scroll
             const element = document.getElementById(href.substring(1));
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
@@ -66,14 +63,9 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
 
   const handleLogout = async () => {
     setMobileMenuOpen(false);
-    const result = await logoutAction();
-    if (result.success) {
-      setCurrentUser(null);
-      toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      router.push('/'); // Redirect to home after logout
-    } else {
-      toast({ variant: "destructive", title: "Logout Failed", description: result.message || "Could not log out." });
-    }
+    await logout(); // Use logout from AuthContext
+    toast({ title: "Logged Out", description: "You have been successfully logged out." });
+    // Router push is handled within logout context function now
   };
   
   const commonLinkClasses = "text-gray-600 hover:text-primary transition-colors";
@@ -93,7 +85,9 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
           ))}
         </div>
         <div className="flex items-center flex-shrink-0 space-x-2">
-          {currentUser ? (
+          {isLoading ? (
+             <Button variant="ghost" size="icon" disabled><Loader2 className="w-5 h-5 animate-spin" /></Button>
+          ) : currentUser ? (
             <>
               <span className="hidden md:inline-flex text-sm text-muted-foreground">Welcome, {currentUser.fullName}!</span>
               <Button 
@@ -115,7 +109,7 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
               </Button>
               <Button 
                 className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => { /* Placeholder for main user login */ toast({title: "Login coming soon"}); }}
+                onClick={() => { toast({title: "Login coming soon"}); }}
               >
                 LOGIN
               </Button>
@@ -123,8 +117,8 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
           )}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" aria-label="Open menu">
-                <Menu className="w-6 h-6" />
+              <Button variant="ghost" size="icon" aria-label="Open menu" disabled={isLoading}>
+                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Menu className="w-6 h-6" />}
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background p-0">
@@ -143,7 +137,9 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
                   </SheetClose>
                 ))}
                 <div className="border-t my-2 mx-6"></div>
-                {currentUser ? (
+                {isLoading ? (
+                  <div className="px-6 py-3 text-center"><Loader2 className="w-5 h-5 animate-spin inline-block" /></div>
+                ) : currentUser ? (
                   <SheetClose asChild>
                      <div className="px-6 py-3">
                         <p className="text-sm text-muted-foreground mb-2">Welcome, {currentUser.fullName}!</p>
@@ -169,7 +165,7 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
                     </SheetClose>
                     <SheetClose asChild>
                       <Button 
-                        onClick={() => { /* Placeholder */ toast({title: "Login coming soon"}); setMobileMenuOpen(false); }} 
+                        onClick={() => { toast({title: "Login coming soon"}); setMobileMenuOpen(false); }} 
                         className={`${mobileLinkClasses} bg-primary text-primary-foreground font-semibold text-left justify-start w-full`}
                       >
                         LOGIN
@@ -185,5 +181,3 @@ export function Header({ setCurrentPage, currentUser, setCurrentUser, logoutActi
     </header>
   );
 }
-
-    

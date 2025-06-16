@@ -19,16 +19,14 @@ import { ItrFilingConsultationForm } from '@/components/forms/ItrFilingConsultat
 import { AccountingBookkeepingForm } from '@/components/forms/AccountingBookkeepingForm';
 import { CompanyIncorporationForm } from '@/components/forms/CompanyIncorporationForm';
 import { FinancialAdvisoryForm } from '@/components/forms/FinancialAdvisoryForm';
-// import { PartnerLoginOptionsPage } from '@/components/sections/PartnerLoginOptionsPage'; // Removed
 import { Skeleton } from '@/components/ui/skeleton'; 
-import { logoutAction } from '@/app/actions/authActions'; // Import logoutAction
-
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 export interface UserData {
   id: string;
   fullName: string;
   email: string;
-  type: 'partner' | 'normal'; // Add other types as needed
+  type: 'partner' | 'normal'; 
 }
 
 export type PageView = 
@@ -45,38 +43,24 @@ export type PageView =
   'accountingBookkeepingForm' | 
   'companyIncorporationForm' | 
   'financialAdvisoryForm';
-  // 'partnerLoginOptions' removed
 
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
 export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
-export type SetCurrentUser = (user: UserData | null) => void;
-
+// SetCurrentUser is no longer needed here as AuthContext will manage it.
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<PageView>('main');
   const [isClient, setIsClient] = useState(false);
   const [selectedGovernmentScheme, setSelectedGovernmentScheme] = useState<string | undefined>();
   const [otherGovernmentSchemeName, setOtherGovernmentSchemeName] = useState<string | undefined>();
-  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
-
+  
+  // currentUser and setCurrentUser are now managed by AuthContext
+  const { isLoading: isAuthLoading } = useAuth(); // Get loading state from AuthContext
 
   useEffect(() => {
     setIsClient(true);
-    // Logic to check for existing session on initial load (e.g., from a cookie or API call)
-    // This part needs to be robust for session persistence across refreshes.
-    // For now, currentUser is only set by login/signup forms.
-    // Example:
-    // async function checkSession() {
-    //   try {
-    //     const res = await fetch('/api/auth/session'); // You'd need to create this API route
-    //     if (res.ok) {
-    //       const data = await res.json();
-    //       if (data.user) setCurrentUser(data.user);
-    //     }
-    //   } catch (error) { console.error("Session check failed", error); }
-    // }
-    // checkSession();
+    // Session checking is now handled by AuthProvider
 
     const handleHashChange = () => {
       const hash = window.location.hash;
@@ -98,12 +82,10 @@ export default function Home() {
        }, 100);
     }
 
-
     return () => {
       window.removeEventListener('hashchange', handleHashChange, false);
     };
   }, [currentPage]);
-
 
   useEffect(() => {
     if (currentPage !== 'main') {
@@ -111,22 +93,7 @@ export default function Home() {
     }
   }, [currentPage]);
 
-  const handleSetCurrentUser: SetCurrentUser = (user) => {
-    setCurrentUser(user);
-  };
-
-  // Replace mockSetCurrentUser in PartnerLogin and PartnerSignUp pages with this
-  // This requires making these pages components rendered by Home, or using Context.
-  // For now, the mock function in those page.tsx files will log to console.
-  // A better approach for true SPA behavior would be React Context.
-  // For separate pages (/partner-login), they will need their own way to call setCurrentUser,
-  // or for Header to get current user from a global context/store.
-  // For this iteration, Header receives currentUser from this Home component.
-  // If navigating to /partner-login, that page will manage its own form submission
-  // and the Header won't immediately update unless we use a global state (Context).
-  // The redirect after login from /partner-login to '/' will allow Home to potentially re-fetch session.
-
-  if (!isClient) {
+  if (!isClient || isAuthLoading) { // Also consider AuthContext loading state
     return (
       <div className="flex flex-col min-h-screen">
         <Skeleton className="h-16 w-full" />
@@ -141,14 +108,6 @@ export default function Home() {
   }
   
   const renderPageContent = () => {
-    // If currentUser changes, this will re-render, and Header will get the new currentUser prop.
-    // This works when forms are rendered as part of this Home component's tree.
-    // For /partner-login and /partner-signup, they are separate Next.js pages.
-    // Their forms will call their own `setCurrentUser` prop.
-    // The `setCurrentUser` in `partner-login/page.tsx` and `partner-signup/page.tsx`
-    // should be replaced with a mechanism to update a shared state (like React Context)
-    // or rely on a redirect back to '/' which would re-evaluate session for the Header.
-
     switch (currentPage) {
       case 'main':
         return (
@@ -214,8 +173,6 @@ export default function Home() {
         return <CompanyIncorporationForm setCurrentPage={setCurrentPage} />;
       case 'financialAdvisoryForm':
         return <FinancialAdvisoryForm setCurrentPage={setCurrentPage} />;
-      // case 'partnerLoginOptions': // Removed
-      //   return <PartnerLoginOptionsPage setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }
@@ -223,13 +180,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Pass currentUser and setCurrentUser (via handleSetCurrentUser) to Header */}
-      <Header 
-        setCurrentPage={setCurrentPage} 
-        currentUser={currentUser} 
-        setCurrentUser={handleSetCurrentUser} 
-        logoutAction={logoutAction}
-      />
+      <Header setCurrentPage={setCurrentPage} /> {/* Header will use AuthContext */}
       <main className="flex-grow">
         {renderPageContent()}
       </main>
@@ -237,5 +188,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

@@ -45,7 +45,9 @@ async function setSessionCookies(userData: UserData) {
 
 async function clearSessionCookies() {
   const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type'];
-  cookieNames.forEach(name => cookies().delete(name));
+  cookieNames.forEach(name => {
+    cookies().set(name, '', { expires: new Date(0), path: '/' });
+  });
 }
 
 export async function partnerSignUpAction(
@@ -72,7 +74,7 @@ export async function partnerSignUpAction(
       fullName: data.fullName,
       email: data.email,
       mobileNumber: data.mobileNumber,
-      password: hashedPassword,
+      password: hashedPassword, // Store hashed password
       createdAt: Timestamp.fromDate(new Date()),
       isApproved: false, // Partners might need approval
     };
@@ -180,4 +182,27 @@ export async function logoutAction(): Promise<AuthServerActionResponse> {
   }
 }
 
-    
+export async function checkSessionAction(): Promise<UserData | null> {
+  try {
+    const userId = cookies().get('user_id')?.value;
+    const userName = cookies().get('user_name')?.value;
+    const userEmail = cookies().get('user_email')?.value;
+    const userType = cookies().get('user_type')?.value as UserData['type'] | undefined;
+    const sessionToken = cookies().get('session_token')?.value;
+
+    if (userId && userName && userEmail && userType && sessionToken) {
+      // In a real app, you might want to validate the sessionToken further
+      // For example, check against a session store or decode a JWT
+      return {
+        id: userId,
+        fullName: userName,
+        email: userEmail,
+        type: userType,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error checking session:', error);
+    return null;
+  }
+}
