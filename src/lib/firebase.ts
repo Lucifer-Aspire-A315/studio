@@ -1,6 +1,6 @@
 
 import { initializeApp, getApp, getApps, type FirebaseOptions } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, memoryLocalCache } from 'firebase/firestore';
 // import { getAuth } from 'firebase/auth'; // For Firebase Auth later
 
 const firebaseConfig: FirebaseOptions = {
@@ -17,6 +17,10 @@ const firebaseConfig: FirebaseOptions = {
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
+  // Initialize Firestore with experimentalForceLongPolling or memoryLocalCache if needed for specific environments like StackBlitz/WebContainers
+  // initializeFirestore(app, { experimentalForceLongPolling: true });
+  // Using memoryLocalCache for environments where indexedDB might be restricted or to avoid persistence warnings.
+  initializeFirestore(app, { localCache: memoryLocalCache() });
 } else {
   app = getApp();
 }
@@ -25,3 +29,4 @@ const db = getFirestore(app);
 // const auth = getAuth(app); // For Firebase Auth later, if needed
 
 export { db };
+
