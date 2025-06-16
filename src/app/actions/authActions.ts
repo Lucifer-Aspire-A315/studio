@@ -5,14 +5,13 @@ import { cookies } from 'next/headers';
 import type { PartnerSignUpFormData, PartnerLoginFormData, UserSignUpFormData, UserLoginFormData } from '@/lib/schemas';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
-// Consider using a password hashing library like bcrypt or argon2
-// import bcrypt from 'bcryptjs'; // Example
+import bcrypt from 'bcryptjs';
 
 interface UserData {
   id: string;
   fullName: string;
   email: string;
-  type: 'partner' | 'normal'; // Add other types if needed
+  type: 'partner' | 'normal';
 }
 
 interface AuthServerActionResponse {
@@ -24,6 +23,7 @@ interface AuthServerActionResponse {
 }
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
+const SALT_ROUNDS = 10; // For bcrypt
 
 async function setSessionCookies(userData: UserData) {
   const cookieOptions = {
@@ -34,8 +34,7 @@ async function setSessionCookies(userData: UserData) {
     sameSite: 'lax' as const,
   };
 
-  // Simulate a session token; in production, use a secure random string or JWT
-  const sessionToken = `mock-session-token-${userData.id}-${Date.now()}`;
+  const sessionToken = `mock-secure-session-token-${userData.id}-${Date.now()}`; // Replace with real secure token generation
   cookies().set('session_token', sessionToken, cookieOptions);
   cookies().set('user_id', userData.id, cookieOptions);
   cookies().set('user_name', userData.fullName, cookieOptions);
@@ -66,17 +65,15 @@ export async function partnerSignUpAction(
       };
     }
 
-    // IMPORTANT: Hash the password before saving in a real application!
-    // const hashedPassword = await bcrypt.hash(data.password, 10); // Example with bcrypt
-    const hashedPassword = data.password; // Current: plain text
+    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
 
     const partnerDataToSave = {
       fullName: data.fullName,
       email: data.email,
       mobileNumber: data.mobileNumber,
-      password: hashedPassword, // Store hashed password
+      password: hashedPassword,
       createdAt: Timestamp.fromDate(new Date()),
-      isApproved: false, // Partners might need approval
+      isApproved: false,
       type: 'partner',
     };
 
@@ -89,12 +86,13 @@ export async function partnerSignUpAction(
       type: 'partner',
     };
 
-    await setSessionCookies(newUser);
+    // Partners are pending approval, so don't set session cookies immediately.
+    // Session will be set upon login after approval.
 
     return {
       success: true,
       message: 'Partner sign-up successful! Your account is pending approval.',
-      user: newUser,
+      user: newUser, // Still return user data for context, but not logged in yet
     };
   } catch (error: any) {
     console.error('Error during partner sign-up:', error);
@@ -125,9 +123,7 @@ export async function partnerLoginAction(
     const partnerDoc = querySnapshot.docs[0];
     const partnerData = partnerDoc.data();
 
-    // IMPORTANT: Compare hashed password in a real application!
-    // const passwordIsValid = await bcrypt.compare(data.password, partnerData.password); // Example
-    const passwordIsValid = data.password === partnerData.password; // Current: plain text comparison
+    const passwordIsValid = await bcrypt.compare(data.password, partnerData.password);
 
     if (!passwordIsValid) {
       return {
@@ -185,7 +181,7 @@ export async function userSignUpAction(
       };
     }
 
-    const hashedPassword = data.password; // Current: plain text. HASH IN PRODUCTION!
+    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
 
     const userDataToSave = {
       fullName: data.fullName,
@@ -239,9 +235,9 @@ export async function userLoginAction(
     }
 
     const userDoc = querySnapshot.docs[0];
-    const userData = userDoc.data();
+    const userDataFromDb = userDoc.data(); // Renamed to avoid conflict with UserData interface
 
-    const passwordIsValid = data.password === userData.password; // Current: plain text. COMPARE HASH IN PRODUCTION!
+    const passwordIsValid = await bcrypt.compare(data.password, userDataFromDb.password);
 
     if (!passwordIsValid) {
       return {
@@ -253,8 +249,8 @@ export async function userLoginAction(
 
     const loggedInUser: UserData = {
       id: userDoc.id,
-      fullName: userData.fullName,
-      email: userData.email,
+      fullName: userDataFromDb.fullName,
+      email: userDataFromDb.email,
       type: 'normal',
     };
 
@@ -298,8 +294,7 @@ export async function checkSessionAction(): Promise<UserData | null> {
     const sessionToken = cookies().get('session_token')?.value;
 
     if (userId && userName && userEmail && userType && sessionToken) {
-      // In a real app, you might want to validate the sessionToken further
-      // For example, check against a session store or decode a JWT
+      // In a real app, validate the sessionToken against a session store or decode/verify a JWT
       return {
         id: userId,
         fullName: userName,
