@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -7,17 +8,67 @@ import { ItrFilingConsultationFormSchema, type ItrFilingConsultationFormData } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, FileSpreadsheet, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { Textarea } from '@/components/ui/textarea';
 import { submitItrFilingConsultationAction } from '@/app/actions/caServiceActions';
+import { uploadFileAction } from '@/app/actions/fileUploadActions';
 
 interface ItrFilingConsultationFormProps {
   setCurrentPage: SetPageView;
 }
+
+interface _FormFileInputProps {
+  fieldLabel: React.ReactNode;
+  rhfName: string;
+  rhfRef: React.Ref<HTMLInputElement>;
+  rhfOnBlur: () => void;
+  rhfOnChange: (file: File | null) => void;
+  selectedFile: File | null | undefined;
+  accept?: string;
+}
+
+const _FormFileInput: React.FC<_FormFileInputProps> = ({
+  fieldLabel,
+  rhfRef,
+  rhfName,
+  rhfOnBlur,
+  rhfOnChange,
+  selectedFile,
+  accept,
+}) => {
+  const { formItemId } = useFormField();
+  return (
+    <FormItem>
+      <FormLabel htmlFor={formItemId} className="flex items-center">
+        <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
+      </FormLabel>
+      <Input
+        id={formItemId}
+        type="file"
+        ref={rhfRef}
+        name={rhfName}
+        onBlur={rhfOnBlur}
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          rhfOnChange(file);
+        }}
+        accept={accept}
+        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+      />
+      {selectedFile && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+        </p>
+      )}
+      <FormMessage />
+    </FormItem>
+  );
+};
+
 
 const incomeSourceOptions = [
   { name: "incomeSourceType.salariedEmployee", label: "Salaried Employee" },
@@ -29,7 +80,7 @@ const incomeSourceOptions = [
 ] as const;
 
 
-const documentFields = [
+const documentFieldsConfig = [
     { name: "documentUploads.panCard", label: "PAN Card" },
     { name: "documentUploads.aadhaarCard", label: "Aadhaar Card" },
     { name: "documentUploads.form16", label: "Form 16 (if Salaried)" },
@@ -44,6 +95,8 @@ const documentFields = [
 export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultationFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+
 
   const defaultValues: ItrFilingConsultationFormData = {
     applicantDetails: {
@@ -66,15 +119,15 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
       otherIncomeSourceDetail: '',
     },
     documentUploads: {
-        panCard: '',
-        aadhaarCard: '',
-        form16: '',
-        salarySlips: '',
-        bankStatement: '',
-        investmentProofs: '',
-        rentReceipts: '',
-        capitalGainStatement: '',
-        businessIncomeProof: '',
+        panCard: undefined,
+        aadhaarCard: undefined,
+        form16: undefined,
+        salarySlips: undefined,
+        bankStatement: undefined,
+        investmentProofs: undefined,
+        rentReceipts: undefined,
+        capitalGainStatement: undefined,
+        businessIncomeProof: undefined,
     }
   };
 
@@ -83,20 +136,53 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
     defaultValues,
   });
 
-  const { control, handleSubmit, watch, reset, setError: setFormError } = form;
+  const { control, handleSubmit, watch, reset, setError: setFormError, setValue } = form;
 
   const watchOtherIncomeSource = watch("incomeSourceType.otherIncomeSource");
 
   async function onSubmit(data: ItrFilingConsultationFormData) {
     setIsSubmitting(true);
+    const dataToSubmit = { ...data };
+
     try {
-      const result = await submitItrFilingConsultationAction(data, ItrFilingConsultationFormSchema);
+      const documentUploadPromises = Object.entries(data.documentUploads || {})
+        .filter(([, file]) => file instanceof File)
+        .map(async ([key, file]) => {
+          if (file instanceof File) {
+            toast({ title: `Uploading ${key}...`, description: "Please wait." });
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name);
+            formData.append('fileType', file.type);
+            const uploadResult = await uploadFileAction(formData);
+            if (uploadResult.success && uploadResult.url) {
+              toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
+              return { key, url: uploadResult.url };
+            } else {
+              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
+            }
+          }
+          return null;
+        });
+
+      const uploadedDocuments = await Promise.all(documentUploadPromises);
+      
+      const updatedDocumentUploads = { ...dataToSubmit.documentUploads };
+      uploadedDocuments.forEach(doc => {
+        if (doc) {
+          (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
+        }
+      });
+      dataToSubmit.documentUploads = updatedDocumentUploads as any;
+
+      const result = await submitItrFilingConsultationAction(dataToSubmit, ItrFilingConsultationFormSchema);
       if (result.success) {
         toast({
           title: "ITR Service Application Submitted!",
           description: result.message,
         });
         reset(); 
+        setSelectedFiles({});
       } else {
         toast({
           variant: "destructive",
@@ -112,11 +198,11 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
        toast({
         variant: "destructive",
         title: "Submission Error",
-        description: "An error occurred while submitting the ITR Filing & Consultation application.",
+        description: error.message || "An error occurred while submitting the ITR Filing & Consultation application.",
       });
       console.error("Error submitting ITR Filing & Consultation application:", error);
     } finally {
@@ -142,16 +228,16 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
               
               <FormSection title="Applicant Details">
-                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input type="tel" placeholder="10-digit mobile" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><FormControl><Input type="email" placeholder="example@mail.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.dob" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.panNumber" render={({ field }) => (<FormItem><FormLabel>PAN Number</FormLabel><FormControl><Input placeholder="ABCDE1234F" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.aadhaarNumber" render={({ field }) => (<FormItem><FormLabel>Aadhaar Number</FormLabel><FormControl><Input placeholder="123456789012" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><Input placeholder="Full Name" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><Input type="tel" placeholder="10-digit mobile" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><Input type="email" placeholder="example@mail.com" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.dob" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><Input type="date" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.panNumber" render={({ field }) => (<FormItem><FormLabel>PAN Number</FormLabel><Input placeholder="ABCDE1234F" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.aadhaarNumber" render={({ field }) => (<FormItem><FormLabel>Aadhaar Number</FormLabel><Input placeholder="123456789012" {...field} /><FormMessage /></FormItem>)} />
                 <FormFieldWrapper className="md:col-span-2">
-                  <FormField control={control} name="applicantDetails.address" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><FormControl><Textarea placeholder="Your full address" {...field} rows={3} /></FormControl><FormMessage /></FormItem>)} />
+                  <FormField control={control} name="applicantDetails.address" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><Textarea placeholder="Your full address" {...field} rows={3} /><FormMessage /></FormItem>)} />
                 </FormFieldWrapper>
-                <FormField control={control} name="applicantDetails.cityAndState" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>City & State</FormLabel><FormControl><Input placeholder="e.g., Mumbai, Maharashtra" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.cityAndState" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>City & State</FormLabel><Input placeholder="e.g., Mumbai, Maharashtra" {...field} /><FormMessage /></FormItem>)} />
               </FormSection>
 
               <FormSection title="Income Source Type" subtitle="Select all that apply">
@@ -164,12 +250,7 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
                                 name={source.name}
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         <FormLabel className="font-normal leading-snug">
                                             {source.label}
                                         </FormLabel>
@@ -183,9 +264,7 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
                                 name="incomeSourceType.otherIncomeSourceDetail"
                                 render={({ field }) => (
                                     <FormItem className="mt-2">
-                                        <FormLabel>Specify Other Income Source</FormLabel>
-                                        <FormControl><Input placeholder="Details for other income source" {...field} /></FormControl>
-                                        <FormMessage />
+                                        <FormLabel>Specify Other Income Source</FormLabel><Input placeholder="Details for other income source" {...field} /><FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -196,28 +275,25 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
               </FormSection>
 
               <FormSection title="Upload Required Documents" subtitle="Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.">
-                {documentFields.map(docField => (
+                {documentFieldsConfig.map(docField => (
                   <FormFieldWrapper key={docField.name} className="md:col-span-2">
                     <FormField
                       control={control}
-                      name={docField.name as any}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center">
-                            <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {docField.label}
-                          </FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="text" 
-                              placeholder="Click to upload (filename placeholder)" 
-                              {...field} 
-                              readOnly 
-                              onClick={() => toast({title: "File Upload", description: "Actual file upload functionality is not yet implemented. This is a placeholder."})}
-                              className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      name={docField.name as keyof ItrFilingConsultationFormData['documentUploads']}
+                      render={({ field: { ref, name, onBlur, onChange: rhfOnChange } }) => (
+                        <_FormFileInput
+                          fieldLabel={docField.label}
+                          rhfName={name}
+                          rhfRef={ref}
+                          rhfOnBlur={onBlur}
+                          rhfOnChange={(file) => {
+                            rhfOnChange(file);
+                            setSelectedFiles(prev => ({ ...prev, [name]: file }));
+                            setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
+                          }}
+                          selectedFile={selectedFiles[name]}
+                          accept=".pdf,.jpg,.jpeg,.png"
+                        />
                       )}
                     />
                   </FormFieldWrapper>
@@ -236,4 +312,3 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
     </section>
   );
 }
-

@@ -8,24 +8,26 @@ import type { ZodType, ZodTypeDef } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { validateIdentificationDetails, type ValidateIdentificationDetailsOutput } from '@/ai/flows/validate-identification-details';
 import { submitLoanApplicationAction } from '@/app/actions/loanActions';
-import { ArrowLeft, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Loader2, Info, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
+import { uploadFileAction } from '@/app/actions/fileUploadActions';
 
 interface FieldConfig {
   name: string;
   label: React.ReactNode; 
-  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio';
+  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file'; // Added 'file'
   placeholder?: string;
   options?: { value: string; label: string }[];
   isPAN?: boolean;
   isAadhaar?: boolean;
   prefix?: string; 
   colSpan?: 1 | 2;
+  accept?: string; // For file inputs
 }
 
 interface SectionConfig {
@@ -33,6 +35,56 @@ interface SectionConfig {
   subtitle?: string;
   fields: FieldConfig[];
 }
+
+// Local presentational component for file input
+interface _FormFileInputProps {
+  fieldLabel: React.ReactNode;
+  rhfName: string;
+  rhfRef: React.Ref<HTMLInputElement>;
+  rhfOnBlur: () => void;
+  rhfOnChange: (file: File | null) => void;
+  selectedFile: File | null | undefined;
+  accept?: string;
+}
+
+const _FormFileInput: React.FC<_FormFileInputProps> = ({
+  fieldLabel,
+  rhfRef,
+  rhfName,
+  rhfOnBlur,
+  rhfOnChange,
+  selectedFile,
+  accept,
+}) => {
+  const { formItemId } = useFormField(); // Get ID from FormField context
+  return (
+    <FormItem>
+      <FormLabel htmlFor={formItemId} className="flex items-center">
+        {fieldLabel} {/* Icon is already part of label from config */}
+      </FormLabel>
+      <Input
+        id={formItemId} // Link label to input
+        type="file"
+        ref={rhfRef}
+        name={rhfName}
+        onBlur={rhfOnBlur}
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          rhfOnChange(file); // Update react-hook-form
+        }}
+        accept={accept}
+        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+      />
+      {selectedFile && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+        </p>
+      )}
+      <FormMessage />
+    </FormItem>
+  );
+};
+
 
 interface GenericLoanFormProps<T extends Record<string, any>> {
   setCurrentPage: SetPageView;
@@ -45,7 +97,7 @@ interface GenericLoanFormProps<T extends Record<string, any>> {
   loanType: string; 
 }
 
-export function GenericLoanForm<T extends Record<string, any>>({ 
+export function GenericLoanForm<TData extends Record<string, any>>({ 
   setCurrentPage, 
   formTitle, 
   formSubtitle, 
@@ -54,31 +106,71 @@ export function GenericLoanForm<T extends Record<string, any>>({
   defaultValues, 
   sections,
   loanType,
-}: GenericLoanFormProps<T>) {
+}: GenericLoanFormProps<TData>) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifyingPAN, setIsVerifyingPAN] = useState(false);
   const [isVerifyingAadhaar, setIsVerifyingAadhaar] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
 
-  const form = useForm<T>({
+
+  const form = useForm<TData>({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
-  const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset } = form;
+  const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset, setValue } = form;
 
-  async function onSubmit(data: T) {
+  async function onSubmit(data: TData) {
     setIsSubmitting(true);
+    const dataToSubmit = { ...data };
+
     try {
-      const result = await submitLoanApplicationAction(data, loanType, schema);
+      // Identify document upload fields based on schema or a convention
+      const documentUploadsKey = 'documentUploads' in data ? 'documentUploads' : ('documentUploadDetails' in data ? 'documentUploadDetails' : null);
+
+      if (documentUploadsKey && dataToSubmit[documentUploadsKey] && typeof dataToSubmit[documentUploadsKey] === 'object') {
+        const currentDocumentUploads = dataToSubmit[documentUploadsKey] as Record<string, any>;
+        const documentUploadPromises = Object.entries(currentDocumentUploads)
+          .filter(([, file]) => file instanceof File)
+          .map(async ([key, file]) => {
+            if (file instanceof File) {
+              toast({ title: `Uploading ${key}...`, description: "Please wait." });
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('fileName', file.name);
+              formData.append('fileType', file.type);
+              const uploadResult = await uploadFileAction(formData);
+              if (uploadResult.success && uploadResult.url) {
+                toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
+                return { key, url: uploadResult.url };
+              } else {
+                throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
+              }
+            }
+            return null;
+          });
+
+        const uploadedDocuments = await Promise.all(documentUploadPromises);
+        
+        const updatedDocumentUploads = { ...currentDocumentUploads };
+        uploadedDocuments.forEach(doc => {
+          if (doc) {
+            updatedDocumentUploads[doc.key] = doc.url;
+          }
+        });
+        dataToSubmit[documentUploadsKey] = updatedDocumentUploads;
+      }
+
+
+      const result = await submitLoanApplicationAction(dataToSubmit, loanType, schema);
       if (result.success) {
         toast({
           title: `${loanType} Application Submitted!`,
           description: result.message,
         });
-        reset(); // Reset form on successful submission
-        // Optionally navigate away or clear form state further
-        // setCurrentPage('main'); // Example: navigate back home
+        reset(); 
+        setSelectedFiles({});
       } else {
         toast({
           variant: "destructive",
@@ -86,21 +178,19 @@ export function GenericLoanForm<T extends Record<string, any>>({
           description: result.message || "An unknown error occurred.",
         });
         if (result.errors) {
-          // Handle field-specific errors if your server action returns them
           Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
             setError(fieldName as any, {
               type: 'manual',
-              // @ts-ignore
               message: (errorMessages as string[]).join(', '),
             });
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Submission Error",
-        description: `An error occurred while submitting the ${loanType.toLowerCase()} application.`,
+        description: error.message || `An error occurred while submitting the ${loanType.toLowerCase()} application.`,
       });
       console.error(`Error submitting ${loanType} application:`, error);
     } finally {
@@ -177,24 +267,40 @@ export function GenericLoanForm<T extends Record<string, any>>({
                       <FormField
                         control={control}
                         name={fieldConfig.name as any}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center">
-                              {fieldConfig.label}
-                              {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                              {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                            </FormLabel>
-                            <FormControl>
+                        render={({ field: { ref, name, onBlur, onChange: rhfOnChange, value } }) => {
+                          if (fieldConfig.type === 'file') {
+                            return (
+                              <_FormFileInput
+                                fieldLabel={fieldConfig.label}
+                                rhfName={name}
+                                rhfRef={ref}
+                                rhfOnBlur={onBlur}
+                                rhfOnChange={(file) => {
+                                  rhfOnChange(file); // Update RHF
+                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); // Update local state
+                                  setValue(name as any, file, { shouldValidate: true, shouldDirty: true }); // Explicitly set value for RHF for File object
+                                }}
+                                selectedFile={selectedFiles[name]}
+                                accept={fieldConfig.accept}
+                              />
+                            );
+                          }
+                          return (
+                            <FormItem>
+                              <FormLabel className="flex items-center">
+                                {fieldConfig.label}
+                                {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                              </FormLabel>
                               {fieldConfig.type === 'radio' ? (
                                 <RadioGroup
-                                  onValueChange={field.onChange}
-                                  // Pass field.value directly for RadioGroup as it handles undefined fine for defaultValue
-                                  defaultValue={field.value}
+                                  onValueChange={rhfOnChange}
+                                  defaultValue={value}
                                   className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
                                 >
                                   {fieldConfig.options?.map(option => (
                                     <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                                      <FormControl><RadioGroupItem value={option.value} /></FormControl>
+                                      <RadioGroupItem value={option.value} />
                                       <FormLabel className="font-normal">{option.label}</FormLabel>
                                     </FormItem>
                                   ))}
@@ -205,12 +311,11 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                   <Input 
                                     type={fieldConfig.type} 
                                     placeholder={fieldConfig.placeholder} 
-                                    {...field}
-                                    value={field.value ?? ''} // Ensure value is always defined
-                                    onBlur={() => {
-                                      field.onBlur(); 
-                                      if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
-                                    }}
+                                    ref={ref}
+                                    name={name}
+                                    value={value ?? ''}
+                                    onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                                    onChange={rhfOnChange}
                                     className="pl-7"
                                   />
                                 </div>
@@ -218,18 +323,17 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                 <Input 
                                   type={fieldConfig.type} 
                                   placeholder={fieldConfig.placeholder} 
-                                  {...field} 
-                                  value={field.value ?? ''} // Ensure value is always defined
-                                  onBlur={() => {
-                                    field.onBlur(); 
-                                    if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
-                                  }}
+                                  ref={ref}
+                                  name={name}
+                                  value={value ?? ''}
+                                  onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                                  onChange={rhfOnChange}
                                 />
                               )}
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
                       />
                     </FormFieldWrapper>
                   ))}
@@ -255,4 +359,3 @@ export function GenericLoanForm<T extends Record<string, any>>({
     </section>
   );
 }
-

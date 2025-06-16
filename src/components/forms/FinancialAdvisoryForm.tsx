@@ -9,16 +9,66 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, PiggyBank, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { submitFinancialAdvisoryAction } from '@/app/actions/caServiceActions';
+import { uploadFileAction } from '@/app/actions/fileUploadActions';
 
 interface FinancialAdvisoryFormProps {
   setCurrentPage: SetPageView;
 }
+
+interface _FormFileInputProps {
+  fieldLabel: React.ReactNode;
+  rhfName: string;
+  rhfRef: React.Ref<HTMLInputElement>;
+  rhfOnBlur: () => void;
+  rhfOnChange: (file: File | null) => void;
+  selectedFile: File | null | undefined;
+  accept?: string;
+}
+
+const _FormFileInput: React.FC<_FormFileInputProps> = ({
+  fieldLabel,
+  rhfRef,
+  rhfName,
+  rhfOnBlur,
+  rhfOnChange,
+  selectedFile,
+  accept,
+}) => {
+  const { formItemId } = useFormField();
+  return (
+    <FormItem>
+      <FormLabel htmlFor={formItemId} className="flex items-center">
+        <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
+      </FormLabel>
+      <Input
+        id={formItemId}
+        type="file"
+        ref={rhfRef}
+        name={rhfName}
+        onBlur={rhfOnBlur}
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          rhfOnChange(file);
+        }}
+        accept={accept}
+        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+      />
+      {selectedFile && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+        </p>
+      )}
+      <FormMessage />
+    </FormItem>
+  );
+};
+
 
 const occupationOptionsFA = [
   { value: "salaried", label: "Salaried" },
@@ -49,7 +99,7 @@ const currentInvestmentTypeOptions = [
 ] as const;
 
 
-const documentFieldsFA = [
+const documentFieldsConfig = [
     { name: "documentUploads.panCard", label: "PAN Card" },
     { name: "documentUploads.aadhaarCard", label: "Aadhaar Card" },
     { name: "documentUploads.salarySlipsIncomeProof", label: "Salary Slips / Income Proof" },
@@ -62,6 +112,8 @@ const documentFieldsFA = [
 export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+
 
   const defaultValues: FinancialAdvisoryFormData = {
     applicantDetails: {
@@ -101,13 +153,13 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
       },
     },
     documentUploads: {
-        panCard: '',
-        aadhaarCard: '',
-        salarySlipsIncomeProof: '',
-        lastYearItrForm16: '',
-        bankStatement: '',
-        investmentProofs: '',
-        existingLoanEmiDetails: '',
+        panCard: undefined,
+        aadhaarCard: undefined,
+        salarySlipsIncomeProof: undefined,
+        lastYearItrForm16: undefined,
+        bankStatement: undefined,
+        investmentProofs: undefined,
+        existingLoanEmiDetails: undefined,
     }
   };
 
@@ -116,21 +168,55 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
     defaultValues,
   });
 
-  const { control, handleSubmit, watch, reset, setError: setFormError } = form;
+  const { control, handleSubmit, watch, reset, setError: setFormError, setValue } = form;
 
   const watchOccupation = watch("applicantDetails.occupation");
   const watchOtherAdvisoryService = watch("advisoryServicesRequired.otherAdvisoryService");
 
   async function onSubmit(data: FinancialAdvisoryFormData) {
     setIsSubmitting(true);
+    const dataToSubmit = { ...data };
+
     try {
-      const result = await submitFinancialAdvisoryAction(data, FinancialAdvisoryFormSchema);
+      const documentUploadPromises = Object.entries(data.documentUploads || {})
+        .filter(([, file]) => file instanceof File)
+        .map(async ([key, file]) => {
+          if (file instanceof File) {
+            toast({ title: `Uploading ${key}...`, description: "Please wait." });
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name);
+            formData.append('fileType', file.type);
+            const uploadResult = await uploadFileAction(formData);
+            if (uploadResult.success && uploadResult.url) {
+              toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
+              return { key, url: uploadResult.url };
+            } else {
+              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
+            }
+          }
+          return null;
+        });
+
+      const uploadedDocuments = await Promise.all(documentUploadPromises);
+      
+      const updatedDocumentUploads = { ...dataToSubmit.documentUploads };
+      uploadedDocuments.forEach(doc => {
+        if (doc) {
+          (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
+        }
+      });
+      dataToSubmit.documentUploads = updatedDocumentUploads as any;
+
+
+      const result = await submitFinancialAdvisoryAction(dataToSubmit, FinancialAdvisoryFormSchema);
       if (result.success) {
         toast({
           title: "Service Application Submitted!",
           description: result.message,
         });
         reset(); 
+        setSelectedFiles({});
       } else {
         toast({
           variant: "destructive",
@@ -146,11 +232,11 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
        toast({
         variant: "destructive",
         title: "Submission Error",
-        description: "An error occurred while submitting the Financial Advisory application.",
+        description: error.message || "An error occurred while submitting the Financial Advisory application.",
       });
       console.error("Error submitting Financial Advisory application:", error);
     } finally {
@@ -176,34 +262,34 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
               
               <FormSection title="Applicant Details">
-                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input type="tel" placeholder="10-digit mobile" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><FormControl><Input type="email" placeholder="example@mail.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.dob" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><Input placeholder="Full Name" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><Input type="tel" placeholder="10-digit mobile" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><Input type="email" placeholder="example@mail.com" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.dob" render={({ field }) => (<FormItem><FormLabel>Date of Birth</FormLabel><Input type="date" {...field} /><FormMessage /></FormItem>)} />
                 <FormField control={control} name="applicantDetails.occupation" render={({ field }) => (
-                    <FormItem className="md:col-span-2"><FormLabel>Occupation</FormLabel><FormControl>
+                    <FormItem className="md:col-span-2"><FormLabel>Occupation</FormLabel>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-x-4 gap-y-2">
                             {occupationOptionsFA.map(opt => (
                                 <FormItem key={opt.value} className="flex items-center space-x-2">
-                                    <FormControl><RadioGroupItem value={opt.value} /></FormControl>
+                                    <RadioGroupItem value={opt.value} />
                                     <FormLabel className="font-normal">{opt.label}</FormLabel>
                                 </FormItem>
                             ))}
-                        </RadioGroup></FormControl><FormMessage />
+                        </RadioGroup><FormMessage />
                     </FormItem>)} />
                 {watchOccupation === "other" && (
-                  <FormField control={control} name="applicantDetails.otherOccupationDetail" render={({ field }) => (<FormItem><FormLabel>Specify Other Occupation</FormLabel><FormControl><Input placeholder="Specify occupation" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                  <FormField control={control} name="applicantDetails.otherOccupationDetail" render={({ field }) => (<FormItem><FormLabel>Specify Other Occupation</FormLabel><Input placeholder="Specify occupation" {...field} /><FormMessage /></FormItem>)} />
                 )}
-                <FormField control={control} name="applicantDetails.cityAndState" render={({ field }) => (<FormItem><FormLabel>City & State</FormLabel><FormControl><Input placeholder="e.g., Mumbai, Maharashtra" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.cityAndState" render={({ field }) => (<FormItem><FormLabel>City & State</FormLabel><Input placeholder="e.g., Mumbai, Maharashtra" {...field} /><FormMessage /></FormItem>)} />
                 <FormField control={control} name="applicantDetails.maritalStatus" render={({ field }) => (
-                    <FormItem><FormLabel>Marital Status</FormLabel><FormControl>
+                    <FormItem><FormLabel>Marital Status</FormLabel>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-x-4 gap-y-2">
-                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="single" /></FormControl><FormLabel className="font-normal">Single</FormLabel></FormItem>
-                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal">Married</FormLabel></FormItem>
-                        </RadioGroup></FormControl><FormMessage />
+                            <FormItem className="flex items-center space-x-2"><RadioGroupItem value="single" /><FormLabel className="font-normal">Single</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-2"><RadioGroupItem value="married" /><FormLabel className="font-normal">Married</FormLabel></FormItem>
+                        </RadioGroup><FormMessage />
                     </FormItem>)} />
-                <FormField control={control} name="applicantDetails.dependentMembersAdults" render={({ field }) => (<FormItem><FormLabel>Dependent Adults</FormLabel><FormControl><Input type="number" placeholder="e.g., 2" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.dependentMembersChildren" render={({ field }) => (<FormItem><FormLabel>Dependent Children</FormLabel><FormControl><Input type="number" placeholder="e.g., 1" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.dependentMembersAdults" render={({ field }) => (<FormItem><FormLabel>Dependent Adults</FormLabel><Input type="number" placeholder="e.g., 2" {...field} value={field.value ?? ''} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.dependentMembersChildren" render={({ field }) => (<FormItem><FormLabel>Dependent Children</FormLabel><Input type="number" placeholder="e.g., 1" {...field} value={field.value ?? ''} /><FormMessage /></FormItem>)} />
               </FormSection>
 
               <FormSection title="Advisory Services Required" subtitle="Select all that apply">
@@ -216,12 +302,7 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
                                 name={service.name}
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         <FormLabel className="font-normal leading-snug">
                                             {service.label}
                                         </FormLabel>
@@ -235,9 +316,7 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
                                 name="advisoryServicesRequired.otherAdvisoryServiceDetail"
                                 render={({ field }) => (
                                     <FormItem className="mt-2">
-                                        <FormLabel>Specify Other Service</FormLabel>
-                                        <FormControl><Input placeholder="Details for other service" {...field} /></FormControl>
-                                        <FormMessage />
+                                        <FormLabel>Specify Other Service</FormLabel><Input placeholder="Details for other service" {...field} /><FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -248,9 +327,9 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
               </FormSection>
               
               <FormSection title="Current Financial Overview">
-                <FormField control={control} name="currentFinancialOverview.annualIncome" render={({ field }) => (<FormItem><FormLabel>Annual Income (approx) (₹)</FormLabel><FormControl><Input type="number" placeholder="e.g., 1200000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="currentFinancialOverview.monthlySavings" render={({ field }) => (<FormItem><FormLabel>Monthly Savings (avg) (₹)</FormLabel><FormControl><Input type="number" placeholder="e.g., 25000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="currentFinancialOverview.currentInvestmentsAmount" render={({ field }) => (<FormItem><FormLabel>Current Investments (approx) (₹)</FormLabel><FormControl><Input type="number" placeholder="e.g., 500000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="currentFinancialOverview.annualIncome" render={({ field }) => (<FormItem><FormLabel>Annual Income (approx) (₹)</FormLabel><Input type="number" placeholder="e.g., 1200000" {...field} value={field.value ?? ''} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="currentFinancialOverview.monthlySavings" render={({ field }) => (<FormItem><FormLabel>Monthly Savings (avg) (₹)</FormLabel><Input type="number" placeholder="e.g., 25000" {...field} value={field.value ?? ''} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="currentFinancialOverview.currentInvestmentsAmount" render={({ field }) => (<FormItem><FormLabel>Current Investments (approx) (₹)</FormLabel><Input type="number" placeholder="e.g., 500000" {...field} value={field.value ?? ''} /><FormMessage /></FormItem>)} />
                  <FormFieldWrapper className="md:col-span-2">
                     <FormLabel>Current Investment Types</FormLabel>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
@@ -261,12 +340,7 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
                                 name={invType.name}
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-center space-x-2 space-y-0 p-2 border rounded-md shadow-sm">
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         <FormLabel className="font-normal text-sm">
                                             {invType.label}
                                         </FormLabel>
@@ -280,28 +354,25 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
               </FormSection>
 
               <FormSection title="Upload Required Documents" subtitle="Optional but Recommended. Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.">
-                {documentFieldsFA.map(docField => (
+                {documentFieldsConfig.map(docField => (
                   <FormFieldWrapper key={docField.name} className="md:col-span-2">
                     <FormField
                       control={control}
-                      name={docField.name as any}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center">
-                            <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {docField.label}
-                          </FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="text" 
-                              placeholder="Click to upload (filename placeholder)" 
-                              {...field} 
-                              readOnly 
-                              onClick={() => toast({title: "File Upload", description: "Actual file upload functionality is not yet implemented. This is a placeholder."})}
-                              className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      name={docField.name as keyof FinancialAdvisoryFormData['documentUploads']}
+                      render={({ field: { ref, name, onBlur, onChange: rhfOnChange } }) => (
+                        <_FormFileInput
+                          fieldLabel={docField.label}
+                          rhfName={name}
+                          rhfRef={ref}
+                          rhfOnBlur={onBlur}
+                          rhfOnChange={(file) => {
+                            rhfOnChange(file);
+                            setSelectedFiles(prev => ({ ...prev, [name]: file }));
+                            setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
+                          }}
+                          selectedFile={selectedFiles[name]}
+                          accept=".pdf,.jpg,.jpeg,.png"
+                        />
                       )}
                     />
                   </FormFieldWrapper>
