@@ -19,7 +19,7 @@ import { uploadFileAction } from '@/app/actions/fileUploadActions';
 
 interface FieldConfig {
   name: string;
-  label: React.ReactNode; // Can be string or JSX. For file inputs, this will be string.
+  label: string; 
   type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file';
   placeholder?: string;
   options?: { value: string; label: string }[];
@@ -36,9 +36,8 @@ interface SectionConfig {
   fields: FieldConfig[];
 }
 
-// Local Presentational Component for File Input
 interface FormFileInputPresentationProps {
-  fieldLabel: string; // Expecting string now
+  fieldLabel: string;
   rhfName: string; 
   rhfRef: React.Ref<HTMLInputElement>;
   rhfOnBlur: () => void;
@@ -48,7 +47,7 @@ interface FormFileInputPresentationProps {
 }
 
 const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
-  fieldLabel, // Now a string
+  fieldLabel,
   rhfRef,
   rhfName,
   rhfOnBlur,
@@ -56,21 +55,21 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
   selectedFile,
   accept,
 }) => {
-  const { formItemId } = useFormField(); // Get formItemId from context
+  const { formItemId } = useFormField(); 
   return (
     <FormItem>
-      <FormLabel htmlFor={formItemId} className="flex items-center"> {/* Link label to input */}
+      <FormLabel htmlFor={formItemId} className="flex items-center">
         <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
       </FormLabel>
       <Input
-        id={formItemId} // Set id on input
+        id={formItemId} 
         type="file"
         ref={rhfRef}
         name={rhfName}
         onBlur={rhfOnBlur}
         onChange={(e) => {
           const file = e.target.files?.[0] ?? null;
-          rhfOnChange(file); // This calls the onChange passed from FormField render prop
+          rhfOnChange(file); 
         }}
         accept={accept}
         className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -131,9 +130,9 @@ export function GenericLoanForm<TData extends Record<string, any>>({
       if (documentUploadsKey && dataToSubmit[documentUploadsKey] && typeof dataToSubmit[documentUploadsKey] === 'object') {
         const currentDocumentUploads = dataToSubmit[documentUploadsKey] as Record<string, any>;
         const documentUploadPromises = Object.entries(currentDocumentUploads)
-          .filter(([, file]) => file instanceof File) // Only process actual File objects
+          .filter(([, file]) => file instanceof File) 
           .map(async ([key, file]) => {
-            if (file instanceof File) { // Double check, should always be true here
+            if (file instanceof File) { 
               toast({ title: `Uploading ${key}...`, description: "Please wait." });
               const formData = new FormData();
               formData.append('file', file);
@@ -158,9 +157,25 @@ export function GenericLoanForm<TData extends Record<string, any>>({
             (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
           }
         });
-        dataToSubmit[documentUploadsKey] = updatedDocumentUploads as any; // Cast after processing
+        dataToSubmit[documentUploadsKey] = updatedDocumentUploads as any; 
       }
 
+      console.log(`[GenericLoanForm - ${loanType}] Data being sent to server action (checking for serializability):`);
+      try {
+        const serializableCheck = JSON.parse(JSON.stringify(dataToSubmit));
+        console.log(`[GenericLoanForm - ${loanType}] dataToSubmit is serializable:`, serializableCheck);
+      } catch (e: any) {
+        console.error(`[GenericLoanForm - ${loanType}] dataToSubmit IS NOT serializable:`, e.message);
+        console.error(`[GenericLoanForm - ${loanType}] Problematic dataToSubmit:`, dataToSubmit);
+        // Potentially identify non-serializable parts
+        for (const key in dataToSubmit) {
+            try {
+                JSON.stringify(dataToSubmit[key]);
+            } catch (fieldError: any) {
+                console.error(`[GenericLoanForm - ${loanType}] Non-serializable field "${key}":`, dataToSubmit[key], fieldError.message);
+            }
+        }
+      }
 
       const result = await submitLoanApplicationAction(dataToSubmit, loanType, schema);
       if (result.success) {
@@ -270,7 +285,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                           if (fieldConfig.type === 'file') {
                             return (
                               <FormFileInputPresentation
-                                fieldLabel={fieldConfig.label as string} // Asserting label is string for file inputs
+                                fieldLabel={fieldConfig.label}
                                 rhfName={name}
                                 rhfRef={ref}
                                 rhfOnBlur={onBlur}
@@ -287,7 +302,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                           return (
                             <FormItem>
                               <FormLabel className="flex items-center">
-                                {fieldConfig.label} {/* Original label (can be JSX for non-file types) */}
+                                {fieldConfig.label}
                                 {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                                 {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                               </FormLabel>

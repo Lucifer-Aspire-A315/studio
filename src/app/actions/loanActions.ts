@@ -19,11 +19,9 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
   data: T,
   loanType: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  schema: ZodType<T, ZodTypeDef, T> // Schema can be used for server-side validation if needed
+  schema: ZodType<T, ZodTypeDef, T> 
 ): Promise<ServerActionResponse> {
   console.log(`[Server Action - ${loanType}] Received application.`);
-  // Be cautious logging full data in production if it contains sensitive info
-  // For debugging, you might log: console.log(`[Server Action - ${loanType}] Data:`, JSON.stringify(data, null, 2));
 
   try {
     const userId = cookies().get('user_id')?.value;
@@ -31,21 +29,37 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
     const userFullName = cookies().get('user_name')?.value;
     const userType = cookies().get('user_type')?.value as 'partner' | 'normal' | undefined;
 
-    // Ensure formData is serializable (File objects should already be URLs)
     const applicationData = {
       userId: userId || null,
       userEmail: userEmail || null,
       userFullName: userFullName || null,
       userType: userType || null,
       loanType,
-      formData: data, // This should contain URLs, not File objects
+      formData: data, 
       status: 'submitted', 
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
     
-    // For debugging, you might log what's about to be saved:
-    // console.log(`[Server Action - ${loanType}] Attempting to save to Firestore:`, JSON.stringify(applicationData, null, 2));
+    console.log(`[Server Action - ${loanType}] Attempting to save to Firestore. Data to be serialized (next log):`);
+    try {
+      const serializedDataForLog = JSON.stringify(applicationData, null, 2);
+      console.log(`[Server Action - ${loanType}] Successfully serialized applicationData for logging:`, serializedDataForLog);
+    } catch (serializationError: any) {
+      console.error(`[Server Action - ${loanType}] FAILED TO SERIALIZE applicationData for logging before Firestore write:`, serializationError.message);
+      console.log(`[Server Action - ${loanType}] Raw applicationData structure (pre-serialization attempt):`, applicationData);
+      // Iterate over formData fields if serialization fails to find potential non-serializable parts
+      if (applicationData.formData && typeof applicationData.formData === 'object') {
+        for (const key in applicationData.formData) {
+          try {
+            JSON.stringify((applicationData.formData as Record<string, any>)[key]);
+          } catch (fieldError: any) {
+            console.error(`[Server Action - ${loanType}] Non-serializable field in formData "${key}":`, (applicationData.formData as Record<string, any>)[key], fieldError.message);
+          }
+        }
+      }
+      throw new Error(`Data for ${loanType} is not serializable. Check server logs for details.`); // Re-throw to be caught by outer catch
+    }
 
     const docRef = await addDoc(collection(db, 'loanApplications'), applicationData);
     
@@ -62,13 +76,11 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
     console.error("Error Name:", error.name);
     console.error("Error Message:", error.message);
     console.error("Error Stack:", error.stack);
-    if (error.code) console.error("Error Code:", error.code); // Firestore errors often have a code
+    if (error.code) console.error("Error Code:", error.code);
     if (error.details) console.error("Error Details:", error.details);
     
     let errorMessage = `There was an error submitting your ${loanType} application. Please try again.`;
-    // Avoid exposing raw error.message to client in production for security.
-    // errorMessage += ` Server error: ${error.message || 'Internal server error.'}`;
-
+    
     return {
       success: false,
       message: errorMessage,
@@ -76,5 +88,3 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
     };
   }
 }
-
-    
