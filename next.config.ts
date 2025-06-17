@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -18,8 +19,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // The 'allowedDevOrigins' key was previously under 'experimental'.
+  // The error "Unrecognized key(s) in object: 'allowedDevOrigins' at "experimental""
+  // suggests it's no longer expected there. Moving it to top-level.
+  allowedDevOrigins: ['9000-firebase-studio-1749891643669.cluster-ancjwrkgr5dvux4qug5rbzyc2y.cloudworkstations.dev'],
   experimental: {
-    allowedDevOrigins: ['6000-firebase-studio-1749891643669.cluster-ancjwrkgr5dvux4qug5rbzyc2y.cloudworkstations.dev'],
+    // Other experimental flags would go here if needed
   },
 };
 
