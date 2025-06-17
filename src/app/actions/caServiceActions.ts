@@ -27,7 +27,7 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   schema: ZodType<T, ZodTypeDef, T>
 ): Promise<ServerActionResponse> {
-  console.log(`Received CA Service application for "${serviceType}" on the server.`);
+  console.log(`[Server Action - CA Service] Received application for "${serviceType}".`);
 
   try {
     const userId = cookies().get('user_id')?.value;
@@ -47,9 +47,11 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
       updatedAt: Timestamp.now(),
     };
 
+    // console.log(`[Server Action - CA Service] Attempting to save to Firestore:`, JSON.stringify(applicationData, null, 2));
+
     const docRef = await addDoc(collection(db, 'caServiceApplications'), applicationData);
     
-    console.log(`CA Service application for "${serviceType}" stored in 'caServiceApplications' with ID: ${docRef.id}`);
+    console.log(`[Server Action - CA Service] Application for "${serviceType}" stored with ID: ${docRef.id}`);
 
     return {
       success: true,
@@ -58,17 +60,20 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
     };
 
   } catch (error: any) {
-    console.error(`Error submitting ${serviceType} application to Firestore:`, error);
+    console.error(`[Server Action - CA Service] Error submitting "${serviceType}" application to Firestore:`);
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Error Stack:", error.stack);
+    if (error.code) console.error("Error Code:", error.code);
+    if (error.details) console.error("Error Details:", error.details);
+
     let errorMessage = `There was an error submitting your ${serviceType} application. Please try again.`;
-     if (error.message) {
-        errorMessage += ` Server error: ${error.message}`;
-    } else if (typeof error === 'object' && error !== null) {
-        errorMessage += ` Server error: ${JSON.stringify(error)}`;
-    }
+    // errorMessage += ` Server error: ${error.message || 'Internal server error.'}`;
+    
     return {
       success: false,
       message: errorMessage,
-      errors: { serverError: [error.message || 'Failed to save application to database.'] },
+      errors: { serverError: [error.message || 'Failed to save application to database due to an internal error.'] },
     };
   }
 }
