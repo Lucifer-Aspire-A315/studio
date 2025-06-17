@@ -17,7 +17,7 @@ import { ArrowLeft, Home as HomeIcon, Loader2, UploadCloud } from 'lucide-react'
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
-
+import { submitLoanApplicationAction } from '@/app/actions/loanActions'; // Import the server action
 
 interface HomeLoanApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -100,7 +100,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
       },
       employmentIncome: {
         employmentType: undefined, 
-        occupation: '', 
+        // occupation: '', // Occupation removed from schema, ensure default matches
         companyName: '',
         monthlyIncome: undefined,
         yearsInCurrentJobOrBusiness: undefined,
@@ -133,7 +133,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
     },
   });
 
-  const { control, handleSubmit, getValues, setError, clearErrors, watch, setValue } = form;
+  const { control, handleSubmit, getValues, setError, clearErrors, watch, setValue, reset } = form;
 
   const isPermanentAddressDifferent = watch("isPermanentAddressDifferent");
   const hasExistingLoans = watch("hasExistingLoans");
@@ -143,6 +143,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
     const dataToSubmit = { ...data };
 
     try {
+      // Process file uploads
       const documentUploadPromises = Object.entries(data.documentUploads || {})
         .filter(([, file]) => file instanceof File)
         .map(async ([key, file]) => {
@@ -154,10 +155,10 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
             formData.append('fileType', file.type);
             const uploadResult = await uploadFileAction(formData);
             if (uploadResult.success && uploadResult.url) {
-              toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
+              toast({ title: `${key} uploaded successfully.`, description: `URL: ${uploadResult.url}` });
               return { key, url: uploadResult.url };
             } else {
-              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
+              throw new Error(`Failed to upload ${key}: ${uploadResult.error || 'Unknown error'}`);
             }
           }
           return null;
@@ -171,23 +172,39 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
           (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
         }
       });
-      dataToSubmit.documentUploads = updatedDocumentUploads as any; // Cast after processing
+      dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
-      console.log("Home Loan Data to be sent to server action:", dataToSubmit);
-      // Simulate server action for now
-      await new Promise(resolve => setTimeout(resolve, 2000)); 
-      toast({
-        title: "Application Submitted!",
-        description: "Your home loan application has been successfully submitted. We will contact you shortly.",
-      });
-      form.reset();
-      setSelectedFiles({});
+      // Call the server action
+      const result = await submitLoanApplicationAction(dataToSubmit, "Home Loan", HomeLoanApplicationSchema);
+
+      if (result.success) {
+        toast({
+          title: "Application Submitted!",
+          description: result.message,
+        });
+        reset();
+        setSelectedFiles({});
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Application Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
+            setError(fieldName as any, {
+              type: 'manual',
+              message: (errorMessages as string[]).join(', '),
+            });
+          });
+        }
+      }
     } catch (error: any) {
-      console.error("Error during submission:", error);
+      console.error("Error during Home Loan submission:", error);
       toast({
         variant: "destructive",
-        title: "Submission Failed",
-        description: error.message || "An error occurred during submission.",
+        title: "Submission Error",
+        description: error.message || "An unexpected error occurred while submitting your application.",
       });
     } finally {
       setIsSubmitting(false);
@@ -203,6 +220,8 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
     } else if (field === 'aadhaar' && aadhaarNumber.match(/^\d{12}$/)) {
       setIsVerifyingAadhaar(true);
     } else {
+      if (field === 'pan') clearErrors("applicantDetails.pan");
+      if (field === 'aadhaar') clearErrors("applicantDetails.aadhaar");
       return; 
     }
     
@@ -210,6 +229,16 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
       if (!panNumber.match(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/) || !aadhaarNumber.match(/^\d{12}$/)) {
          if (field === 'pan') setIsVerifyingPAN(false);
          if (field === 'aadhaar') setIsVerifyingAadhaar(false);
+         if (panNumber && !panNumber.match(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/)) {
+            setError("applicantDetails.pan", { type: "manual", message: "Invalid PAN format." });
+         } else {
+            clearErrors("applicantDetails.pan");
+         }
+         if (aadhaarNumber && !aadhaarNumber.match(/^\d{12}$/)) {
+            setError("applicantDetails.aadhaar", { type: "manual", message: "Invalid Aadhaar format." });
+         } else {
+            clearErrors("applicantDetails.aadhaar");
+         }
         return;
       }
 
@@ -324,8 +353,8 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                             rhfRef={ref}
                             rhfOnBlur={onBlur}
                             rhfOnChange={(file) => {
-                                rhfOnChange(file);
-                                setSelectedFiles(prev => ({ ...prev, [name]: file }));
+                                rhfOnChange(file); // This passes the file object to RHF
+                                setSelectedFiles(prev => ({ ...prev, [name]: file })); // Local state for filename display
                                 setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
                             }}
                             selectedFile={selectedFiles[name]}
@@ -349,3 +378,5 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
     </section>
   );
 }
+
+    
