@@ -17,7 +17,7 @@ import { ArrowLeft, Home as HomeIcon, Loader2, UploadCloud } from 'lucide-react'
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
-import { submitLoanApplicationAction } from '@/app/actions/loanActions'; // Import the server action
+import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface HomeLoanApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -100,7 +100,6 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
       },
       employmentIncome: {
         employmentType: undefined, 
-        // occupation: '', // Occupation removed from schema, ensure default matches
         companyName: '',
         monthlyIncome: undefined,
         yearsInCurrentJobOrBusiness: undefined,
@@ -139,15 +138,18 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
   const hasExistingLoans = watch("hasExistingLoans");
 
   async function onSubmit(data: HomeLoanApplicationFormData) {
+    console.log("[HomeLoanForm] onSubmit triggered with data:", JSON.parse(JSON.stringify(data)));
     setIsSubmitting(true);
     const dataToSubmit = { ...data };
+    console.log("[HomeLoanForm] dataToSubmit (initial):", JSON.parse(JSON.stringify(dataToSubmit)));
 
     try {
-      // Process file uploads
+      console.log("[HomeLoanForm] Entering try block for file uploads.");
       const documentUploadPromises = Object.entries(data.documentUploads || {})
         .filter(([, file]) => file instanceof File)
         .map(async ([key, file]) => {
           if (file instanceof File) {
+            console.log(`[HomeLoanForm] Uploading ${key}: ${file.name}`);
             toast({ title: `Uploading ${key}...`, description: "Please wait." });
             const formData = new FormData();
             formData.append('file', file);
@@ -155,9 +157,11 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
             formData.append('fileType', file.type);
             const uploadResult = await uploadFileAction(formData);
             if (uploadResult.success && uploadResult.url) {
+              console.log(`[HomeLoanForm] ${key} uploaded! URL: ${uploadResult.url}`);
               toast({ title: `${key} uploaded successfully.`, description: `URL: ${uploadResult.url}` });
               return { key, url: uploadResult.url };
             } else {
+              console.error(`[HomeLoanForm] Failed to upload ${key}: ${uploadResult.error}`);
               throw new Error(`Failed to upload ${key}: ${uploadResult.error || 'Unknown error'}`);
             }
           }
@@ -165,6 +169,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
         });
 
       const uploadedDocuments = await Promise.all(documentUploadPromises);
+      console.log("[HomeLoanForm] Processed file uploads. Uploaded documents results:", uploadedDocuments);
       
       const updatedDocumentUploads = { ...dataToSubmit.documentUploads };
       uploadedDocuments.forEach(doc => {
@@ -173,9 +178,11 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
         }
       });
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
+      console.log("[HomeLoanForm] dataToSubmit (after file URLs):", JSON.parse(JSON.stringify(dataToSubmit)));
 
-      // Call the server action
+      console.log("[HomeLoanForm] Calling submitLoanApplicationAction...");
       const result = await submitLoanApplicationAction(dataToSubmit, "Home Loan", HomeLoanApplicationSchema);
+      console.log("[HomeLoanForm] submitLoanApplicationAction result:", result);
 
       if (result.success) {
         toast({
@@ -200,13 +207,14 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
         }
       }
     } catch (error: any) {
-      console.error("Error during Home Loan submission:", error);
+      console.error("[HomeLoanForm] SUBMISSION ERROR CAUGHT:", error.message, error.stack);
       toast({
         variant: "destructive",
         title: "Submission Error",
         description: error.message || "An unexpected error occurred while submitting your application.",
       });
     } finally {
+      console.log("[HomeLoanForm] Entering finally block.");
       setIsSubmitting(false);
     }
   }
@@ -260,8 +268,8 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
           description: result.validationDetails,
         });
       }
-    } catch (error) {
-      console.error("Validation error:", error);
+    } catch (error: any) {
+      console.error("[HomeLoanForm] Validation error:", error);
       toast({
         variant: "destructive",
         title: "Validation Error",
@@ -353,8 +361,8 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
                             rhfRef={ref}
                             rhfOnBlur={onBlur}
                             rhfOnChange={(file) => {
-                                rhfOnChange(file); // This passes the file object to RHF
-                                setSelectedFiles(prev => ({ ...prev, [name]: file })); // Local state for filename display
+                                rhfOnChange(file); 
+                                setSelectedFiles(prev => ({ ...prev, [name]: file })); 
                                 setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
                             }}
                             selectedFile={selectedFiles[name]}
@@ -378,5 +386,4 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
     </section>
   );
 }
-
     
