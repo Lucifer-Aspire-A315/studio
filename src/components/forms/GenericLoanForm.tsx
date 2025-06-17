@@ -122,100 +122,77 @@ export function GenericLoanForm<TData extends Record<string, any>>({
 
   async function onSubmit(data: TData) {
     setIsSubmitting(true);
-    const dataToSubmit = { ...data };
+    // Create a deep copy to work with, ensuring original form state is not directly mutated.
+    const payloadForServer = JSON.parse(JSON.stringify(data));
 
-    console.log(`[GenericLoanForm - ${loanType}] Initial data before file processing:`, JSON.parse(JSON.stringify(dataToSubmit)));
+    console.log(`[GenericLoanForm - ${loanType}] Raw data from form:`, JSON.parse(JSON.stringify(data)));
 
     try {
-      // Client-side check for non-serializable data BEFORE file processing
-      try {
-        JSON.parse(JSON.stringify(dataToSubmit));
-        console.log(`[GenericLoanForm - ${loanType}] Initial dataToSubmit IS serializable before file processing.`);
-      } catch (e: any) {
-        console.error(`[GenericLoanForm - ${loanType}] Initial dataToSubmit IS NOT serializable before file processing:`, e.message);
-        // Log problematic fields
-        for (const key in dataToSubmit) {
-          try {
-            JSON.stringify((dataToSubmit as Record<string, any>)[key]);
-          } catch (fieldError: any) {
-            console.error(`[GenericLoanForm - ${loanType}] Problematic field in initial dataToSubmit -> "${key}":`, (dataToSubmit as Record<string, any>)[key]);
+      const documentUploadsKey = 'documentUploads' in data 
+        ? 'documentUploads' 
+        : ('documentUploadDetails' in data ? 'documentUploadDetails' : null);
+
+      if (documentUploadsKey && data[documentUploadsKey] && typeof data[documentUploadsKey] === 'object') {
+        const currentDocumentFields = data[documentUploadsKey] as Record<string, any>;
+        const fileUploadPromises: Promise<{ key: string, url: string } | null>[] = [];
+        const serverReadyDocumentUploads: Record<string, string | undefined> = {};
+
+        for (const key in currentDocumentFields) {
+          const fieldValue = currentDocumentFields[key];
+          if (fieldValue instanceof File) {
+            // Add to promises to be uploaded
+            fileUploadPromises.push(
+              (async () => {
+                console.log(`[GenericLoanForm - ${loanType}] Uploading file for key: ${key}, Name: ${fieldValue.name}`);
+                toast({ title: `Uploading ${key}...`, description: "Please wait." });
+                const formData = new FormData();
+                formData.append('file', fieldValue);
+                formData.append('fileName', fieldValue.name);
+                formData.append('fileType', fieldValue.type);
+                const uploadResult = await uploadFileAction(formData);
+                if (uploadResult.success && uploadResult.url) {
+                  toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
+                  return { key, url: uploadResult.url };
+                } else {
+                  console.error(`[GenericLoanForm - ${loanType}] Failed to upload ${key}: ${uploadResult.error}`);
+                  throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
+                }
+              })()
+            );
+          } else if (typeof fieldValue === 'string' && fieldValue.startsWith('http')) {
+            // If it's already a URL string, keep it
+            serverReadyDocumentUploads[key] = fieldValue;
+          } else if (fieldValue === null || fieldValue === undefined) {
+            // Keep null or undefined fields as they are (optional fields not filled)
+            serverReadyDocumentUploads[key] = fieldValue;
           }
         }
-        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields before upload. Check console." });
-        setIsSubmitting(false);
-        return;
-      }
-
-      const documentUploadsKey = 'documentUploads' in data ? 'documentUploads' : ('documentUploadDetails' in data ? 'documentUploadDetails' : null);
-
-      if (documentUploadsKey && dataToSubmit[documentUploadsKey] && typeof dataToSubmit[documentUploadsKey] === 'object') {
-        const currentDocumentUploads = dataToSubmit[documentUploadsKey] as Record<string, any>;
-        const documentUploadPromises = Object.entries(currentDocumentUploads)
-          .filter(([, file]) => file instanceof File) 
-          .map(async ([key, file]) => {
-            if (file instanceof File) { 
-              console.log(`[GenericLoanForm - ${loanType}] Uploading file for key: ${key}, Name: ${file.name}`);
-              toast({ title: `Uploading ${key}...`, description: "Please wait." });
-              const formData = new FormData();
-              formData.append('file', file);
-              formData.append('fileName', file.name);
-              formData.append('fileType', file.type);
-              const uploadResult = await uploadFileAction(formData);
-              if (uploadResult.success && uploadResult.url) {
-                toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
-                return { key, url: uploadResult.url };
-              } else {
-                console.error(`[GenericLoanForm - ${loanType}] Failed to upload ${key}: ${uploadResult.error}`);
-                throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
-              }
-            }
-            return null;
-          });
-
-        const uploadedDocuments = await Promise.all(documentUploadPromises);
         
-        const updatedDocumentUploads = { ...currentDocumentUploads };
+        const uploadedDocuments = await Promise.all(fileUploadPromises);
         uploadedDocuments.forEach(doc => {
-          if (doc) {
-            (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
+          if (doc) { // doc is { key: string, url: string }
+            serverReadyDocumentUploads[doc.key] = doc.url;
           }
         });
-        dataToSubmit[documentUploadsKey] = updatedDocumentUploads as any; 
+        
+        // Replace the document uploads section in our payload copy
+        payloadForServer[documentUploadsKey] = serverReadyDocumentUploads;
       }
       
-      console.log(`[GenericLoanForm - ${loanType}] Data after file processing (URLs expected):`, JSON.parse(JSON.stringify(dataToSubmit)));
-
-      // Client-side check for non-serializable data AFTER file processing
+      console.log(`[GenericLoanForm - ${loanType}] Data prepared for server action (URLs for files):`, JSON.parse(JSON.stringify(payloadForServer)));
+      
+      // Client-side check for non-serializable data AFTER file processing, just before sending
       try {
-        JSON.parse(JSON.stringify(dataToSubmit));
-        console.log(`[GenericLoanForm - ${loanType}] dataToSubmit IS serializable before sending to server action.`);
+        JSON.parse(JSON.stringify(payloadForServer));
+        console.log(`[GenericLoanForm - ${loanType}] payloadForServer IS serializable before sending to server action.`);
       } catch (e: any) {
-        console.error(`[GenericLoanForm - ${loanType}] dataToSubmit IS NOT serializable AFTER file processing (URLs expected):`, e.message);
-        // Log problematic fields again
-         for (const key in dataToSubmit) {
-          if (dataToSubmit[key] && typeof dataToSubmit[key] === 'object') {
-            for (const subKey in (dataToSubmit as Record<string, any>)[key]) {
-                 try {
-                    JSON.stringify((dataToSubmit as Record<string, any>)[key][subKey]);
-                  } catch (fieldError: any) {
-                    console.error(`[GenericLoanForm - ${loanType}] Problematic field in dataToSubmit -> "${key}.${subKey}":`, (dataToSubmit as Record<string, any>)[key][subKey]);
-                  }
-            }
-          } else {
-             try {
-                JSON.stringify((dataToSubmit as Record<string, any>)[key]);
-              } catch (fieldError: any) {
-                console.error(`[GenericLoanForm - ${loanType}] Problematic field in dataToSubmit -> "${key}":`, (dataToSubmit as Record<string, any>)[key]);
-              }
-          }
-        }
+        console.error(`[GenericLoanForm - ${loanType}] payloadForServer IS NOT serializable AFTER file processing:`, e.message);
         toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console." });
         setIsSubmitting(false);
         return;
       }
 
-
-      const result = await submitLoanApplicationAction(dataToSubmit, loanType);
+      const result = await submitLoanApplicationAction(payloadForServer, loanType);
       if (result.success) {
         toast({
           title: `${loanType} Application Submitted!`,
@@ -330,7 +307,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                                 rhfOnChange={(file: File | null) => {
                                   rhfNativeOnChange(file); 
                                   setSelectedFiles(prev => ({ ...prev, [name]: file }));
-                                  setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
+                                  // setValue(name as any, file, { shouldValidate: true, shouldDirty: true }); // setValue might be redundant if rhfNativeOnChange updates the RHF state correctly
                                 }}
                                 selectedFile={selectedFiles[name]}
                                 accept={fieldConfig.accept}
