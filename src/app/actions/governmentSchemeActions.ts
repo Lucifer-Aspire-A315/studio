@@ -10,14 +10,12 @@ import type { GovernmentSchemeLoanApplicationFormData } from '@/lib/schemas';
 
 interface ServerActionResponse {
   success: boolean;
-  message: string; // Ensure this is always a string
+  message: string; 
   applicationId?: string;
-  // errors field removed to simplify error responses
 }
 
 export async function submitGovernmentSchemeLoanApplicationAction(
   data: GovernmentSchemeLoanApplicationFormData,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   schema: ZodType<GovernmentSchemeLoanApplicationFormData, ZodTypeDef, GovernmentSchemeLoanApplicationFormData>
 ): Promise<ServerActionResponse> {
   const schemeName = data.loanDetailsGov.selectedScheme === 'Other' && data.loanDetailsGov.otherSchemeName
@@ -68,7 +66,7 @@ export async function submitGovernmentSchemeLoanApplicationAction(
     
     const safeErrorMessage = (typeof error.message === 'string' && error.message)
         ? error.message
-        : `There was an error submitting your application for "${schemeName}". Please check server logs and try again.`;
+        : `There was an error submitting your application for "${schemeName}". Please check server logs for details.`;
     
     return {
       success: false,

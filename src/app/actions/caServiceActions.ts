@@ -15,16 +15,14 @@ import type {
 
 interface ServerActionResponse {
   success: boolean;
-  message: string; // Ensure this is always a string
+  message: string; 
   applicationId?: string;
-  // errors field removed to simplify error responses
 }
 
 async function submitCAServiceApplication<T extends Record<string, any>>(
   data: T,
   serviceType: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  schema: ZodType<T, ZodTypeDef, T> // Schema remains for potential future use or type inference aid
+  schema: ZodType<T, ZodTypeDef, T> 
 ): Promise<ServerActionResponse> {
   console.log(`[Server Action - CA Service] Received application for "${serviceType}".`);
 
@@ -70,7 +68,7 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
 
     const safeErrorMessage = (typeof error.message === 'string' && error.message)
         ? error.message
-        : `There was an error submitting your ${serviceType} application. Please check server logs and try again.`;
+        : `There was an error submitting your ${serviceType} application. Please check server logs for details.`;
     
     return {
       success: false,

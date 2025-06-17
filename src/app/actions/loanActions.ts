@@ -1,19 +1,16 @@
 
 'use server';
 
-import type { ZodType, ZodTypeDef } from 'zod';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, Timestamp }  from 'firebase/firestore';
 import { cookies } from 'next/headers';
 
 interface ServerActionResponse {
   success: boolean;
-  message: string; // Ensure this is always a string
+  message: string; 
   applicationId?: string;
-  // errors field removed to simplify error responses
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function submitLoanApplicationAction<T extends Record<string, any>>(
   data: T,
   loanType: string
@@ -88,7 +85,7 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
     
     const safeErrorMessage = (typeof error.message === 'string' && error.message) 
       ? error.message 
-      : `An internal server error occurred while submitting your ${loanType} application. Please check server logs.`;
+      : `An internal server error occurred while submitting your ${loanType} application. Please check server logs for details.`;
     
     return {
       success: false,

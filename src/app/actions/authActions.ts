@@ -16,16 +16,15 @@ interface UserData {
 
 interface AuthServerActionResponse {
   success: boolean;
-  message?: string; // Keep message optional for success cases where it might not be needed
+  message?: string; 
   user?: UserData;
-  // errors field removed to simplify error responses and rely on server logs
 }
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
 const SALT_ROUNDS = 10; // For bcrypt
 
 async function setSessionCookies(userData: UserData) {
-  await cookies().get('any-placeholder-cookie'); // "Warm up" cookie store
+  await cookies().get('any-placeholder-cookie'); 
 
   const cookieOptions = {
     httpOnly: true,
@@ -44,7 +43,7 @@ async function setSessionCookies(userData: UserData) {
 }
 
 async function clearSessionCookies() {
-  await cookies().get('any-placeholder-cookie'); // "Warm up" cookie store
+  await cookies().get('any-placeholder-cookie'); 
 
   const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type'];
   cookieNames.forEach(name => {
@@ -95,10 +94,16 @@ export async function partnerSignUpAction(
       user: newUser, 
     };
   } catch (error: any) {
-    console.error('Error during partner sign-up:', error);
+    console.error('Error during partner sign-up:');
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Error Stack:", error.stack);
+    if (error.code) console.error("Error Code:", error.code);
+    if (error.details) console.error("Error Details:", error.details);
+    
     const safeErrorMessage = (typeof error.message === 'string' && error.message)
       ? error.message
-      : 'An unexpected error occurred during sign-up. Please try again.';
+      : 'An unexpected error occurred during sign-up. Please try again. Check server logs for details.';
     return {
       success: false,
       message: safeErrorMessage,
@@ -156,10 +161,16 @@ export async function partnerLoginAction(
       user: loggedInUser,
     };
   } catch (error: any) {
-    console.error('Error during partner login:', error);
+    console.error('Error during partner login:');
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Error Stack:", error.stack);
+    if (error.code) console.error("Error Code:", error.code);
+    if (error.details) console.error("Error Details:", error.details);
+
     const safeErrorMessage = (typeof error.message === 'string' && error.message)
       ? error.message
-      : 'An unexpected error occurred during login. Please try again.';
+      : 'An unexpected error occurred during login. Please try again. Check server logs for details.';
     return {
       success: false,
       message: safeErrorMessage,
@@ -211,10 +222,16 @@ export async function userSignUpAction(
       user: newUser,
     };
   } catch (error: any) {
-    console.error('Error during user sign-up:', error);
+    console.error('Error during user sign-up:');
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Error Stack:", error.stack);
+    if (error.code) console.error("Error Code:", error.code);
+    if (error.details) console.error("Error Details:", error.details);
+    
     const safeErrorMessage = (typeof error.message === 'string' && error.message)
       ? error.message
-      : 'An unexpected error occurred during sign-up. Please try again.';
+      : 'An unexpected error occurred during sign-up. Please try again. Check server logs for details.';
     return {
       success: false,
       message: safeErrorMessage,
@@ -265,10 +282,16 @@ export async function userLoginAction(
       user: loggedInUser,
     };
   } catch (error: any) {
-    console.error('Error during user login:', error);
+    console.error('Error during user login:');
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Error Stack:", error.stack);
+    if (error.code) console.error("Error Code:", error.code);
+    if (error.details) console.error("Error Details:", error.details);
+    
     const safeErrorMessage = (typeof error.message === 'string' && error.message)
       ? error.message
-      : 'An unexpected error occurred during login. Please try again.';
+      : 'An unexpected error occurred during login. Please try again. Check server logs for details.';
     return {
       success: false,
       message: safeErrorMessage,
@@ -281,10 +304,16 @@ export async function logoutAction(): Promise<AuthServerActionResponse> {
     await clearSessionCookies();
     return { success: true, message: "Logged out successfully." };
   } catch (error: any) {
-    console.error('Error during logout:', error);
+    console.error('Error during logout:');
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Error Stack:", error.stack);
+    if (error.code) console.error("Error Code:", error.code);
+    if (error.details) console.error("Error Details:", error.details);
+    
     const safeErrorMessage = (typeof error.message === 'string' && error.message)
       ? error.message
-      : 'Logout failed due to a server error.';
+      : 'Logout failed due to a server error. Please check server logs for details.';
     return { 
         success: false, 
         message: safeErrorMessage,
