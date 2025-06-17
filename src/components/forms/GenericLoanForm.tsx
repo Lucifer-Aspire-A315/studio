@@ -20,14 +20,14 @@ import { uploadFileAction } from '@/app/actions/fileUploadActions';
 interface FieldConfig {
   name: string;
   label: React.ReactNode; 
-  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file'; // Added 'file'
+  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file';
   placeholder?: string;
   options?: { value: string; label: string }[];
   isPAN?: boolean;
   isAadhaar?: boolean;
   prefix?: string; 
   colSpan?: 1 | 2;
-  accept?: string; // For file inputs
+  accept?: string; 
 }
 
 interface SectionConfig {
@@ -36,18 +36,17 @@ interface SectionConfig {
   fields: FieldConfig[];
 }
 
-// Local presentational component for file input
-interface _FormFileInputProps {
+interface FormFileInputPresentationProps {
   fieldLabel: React.ReactNode;
-  rhfName: string;
+  rhfName: string; 
   rhfRef: React.Ref<HTMLInputElement>;
   rhfOnBlur: () => void;
-  rhfOnChange: (file: File | null) => void;
+  rhfOnChange: (file: File | null) => void; 
   selectedFile: File | null | undefined;
   accept?: string;
 }
 
-const _FormFileInput: React.FC<_FormFileInputProps> = ({
+const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
   fieldLabel,
   rhfRef,
   rhfName,
@@ -56,21 +55,21 @@ const _FormFileInput: React.FC<_FormFileInputProps> = ({
   selectedFile,
   accept,
 }) => {
-  const { formItemId } = useFormField(); // Get ID from FormField context
+  const { formItemId } = useFormField();
   return (
     <FormItem>
       <FormLabel htmlFor={formItemId} className="flex items-center">
-        {fieldLabel} {/* Icon is already part of label from config */}
+        {fieldLabel}
       </FormLabel>
       <Input
-        id={formItemId} // Link label to input
+        id={formItemId}
         type="file"
         ref={rhfRef}
         name={rhfName}
         onBlur={rhfOnBlur}
         onChange={(e) => {
           const file = e.target.files?.[0] ?? null;
-          rhfOnChange(file); // Update react-hook-form
+          rhfOnChange(file);
         }}
         accept={accept}
         className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -126,7 +125,6 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     const dataToSubmit = { ...data };
 
     try {
-      // Identify document upload fields based on schema or a convention
       const documentUploadsKey = 'documentUploads' in data ? 'documentUploads' : ('documentUploadDetails' in data ? 'documentUploadDetails' : null);
 
       if (documentUploadsKey && dataToSubmit[documentUploadsKey] && typeof dataToSubmit[documentUploadsKey] === 'object') {
@@ -267,21 +265,22 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                       <FormField
                         control={control}
                         name={fieldConfig.name as any}
-                        render={({ field: { ref, name, onBlur, onChange: rhfOnChange, value } }) => {
+                        render={({ field: { ref, name, onBlur, onChange: rhfNativeOnChange, value } }) => {
                           if (fieldConfig.type === 'file') {
                             return (
-                              <_FormFileInput
-                                fieldLabel={fieldConfig.label}
+                              <FormFileInputPresentation
+                                fieldLabel={fieldConfig.label} 
                                 rhfName={name}
                                 rhfRef={ref}
                                 rhfOnBlur={onBlur}
                                 rhfOnChange={(file) => {
-                                  rhfOnChange(file); // Update RHF
-                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); // Update local state
-                                  setValue(name as any, file, { shouldValidate: true, shouldDirty: true }); // Explicitly set value for RHF for File object
+                                  rhfNativeOnChange(file); // Update RHF's internal state for the File object
+                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); // Update local state for display
+                                  // Note: We don't call setValue(name, file.name) here as the form expects a File object or URL string, not just name.
+                                  // The File object itself is passed via rhfNativeOnChange.
                                 }}
                                 selectedFile={selectedFiles[name]}
-                                accept={fieldConfig.accept}
+                                accept={fieldConfig.accept || ".pdf,.jpg,.jpeg,.png"}
                               />
                             );
                           }
@@ -294,7 +293,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                               </FormLabel>
                               {fieldConfig.type === 'radio' ? (
                                 <RadioGroup
-                                  onValueChange={rhfOnChange}
+                                  onValueChange={rhfNativeOnChange}
                                   defaultValue={value}
                                   className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
                                 >
@@ -315,7 +314,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                                     name={name}
                                     value={value ?? ''}
                                     onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
-                                    onChange={rhfOnChange}
+                                    onChange={rhfNativeOnChange}
                                     className="pl-7"
                                   />
                                 </div>
@@ -327,7 +326,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                                   name={name}
                                   value={value ?? ''}
                                   onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
-                                  onChange={rhfOnChange}
+                                  onChange={rhfNativeOnChange}
                                 />
                               )}
                               <FormMessage />
@@ -359,3 +358,5 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     </section>
   );
 }
+
+    

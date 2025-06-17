@@ -25,8 +25,7 @@ export async function submitGovernmentSchemeLoanApplicationAction(
     ? data.loanDetailsGov.otherSchemeName
     : data.loanDetailsGov.selectedScheme;
 
-  console.log(`Received Government Scheme Loan application for "${schemeName}" on the server:`);
-  console.log(JSON.stringify(data, null, 2));
+  console.log(`Received Government Scheme Loan application for "${schemeName}" on the server.`);
 
   try {
     const userId = cookies().get('user_id')?.value;
@@ -40,8 +39,8 @@ export async function submitGovernmentSchemeLoanApplicationAction(
       userFullName: userFullName || null,
       userType: userType || null,
       schemeName,
-      formData: data, // This includes documentUploadsGov with URLs
-      status: 'submitted', // Default status
+      formData: data, // Ensure this contains URLs, not File objects
+      status: 'submitted',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -58,10 +57,18 @@ export async function submitGovernmentSchemeLoanApplicationAction(
 
   } catch (error: any) {
     console.error(`Error submitting Government Scheme Loan application to Firestore:`, error);
+    let errorMessage = 'There was an error submitting your application. Please try again.';
+    if (error.message) {
+        errorMessage += ` Server error: ${error.message}`;
+    } else if (typeof error === 'object' && error !== null) {
+        errorMessage += ` Server error: ${JSON.stringify(error)}`;
+    }
     return {
       success: false,
-      message: 'There was an error submitting your application. Please try again.',
+      message: errorMessage,
       errors: { serverError: [error.message || 'Failed to save application to database.'] },
     };
   }
 }
+
+    

@@ -27,8 +27,7 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   schema: ZodType<T, ZodTypeDef, T>
 ): Promise<ServerActionResponse> {
-  console.log(`Received CA Service application for "${serviceType}" on the server:`);
-  console.log(JSON.stringify(data, null, 2));
+  console.log(`Received CA Service application for "${serviceType}" on the server.`);
 
   try {
     const userId = cookies().get('user_id')?.value;
@@ -42,8 +41,8 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
       userFullName: userFullName || null,
       userType: userType || null,
       serviceType,
-      formData: data, // This includes documentUploads with URLs
-      status: 'submitted', // Default status
+      formData: data, // Ensure this contains URLs, not File objects
+      status: 'submitted', 
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -60,9 +59,15 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
 
   } catch (error: any) {
     console.error(`Error submitting ${serviceType} application to Firestore:`, error);
+    let errorMessage = `There was an error submitting your ${serviceType} application. Please try again.`;
+     if (error.message) {
+        errorMessage += ` Server error: ${error.message}`;
+    } else if (typeof error === 'object' && error !== null) {
+        errorMessage += ` Server error: ${JSON.stringify(error)}`;
+    }
     return {
       success: false,
-      message: `There was an error submitting your ${serviceType} application. Please try again.`,
+      message: errorMessage,
       errors: { serverError: [error.message || 'Failed to save application to database.'] },
     };
   }
@@ -103,3 +108,5 @@ export async function submitFinancialAdvisoryAction(
 ): Promise<ServerActionResponse> {
   return submitCAServiceApplication(data, "Financial Advisory Service", schema);
 }
+
+    
