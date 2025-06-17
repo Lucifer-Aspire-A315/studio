@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2 } from 'lucide-react'; // Added Loader2
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet'; // Added SheetDescription
+import { Menu, LogOut, Loader2 } from 'lucide-react'; 
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext'; 
@@ -122,6 +122,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background p-0">
               <SheetTitle className="sr-only">Menu</SheetTitle>
+              <SheetDescription className="sr-only">Site navigation and user options</SheetDescription> {/* Added for accessibility */}
               <div className="p-6 border-b">
                 <Link href="/" onClick={() => handleNavClick('#home', () => setCurrentPage('main'))} className="text-xl font-bold">
                   <AnimatedGradientText />

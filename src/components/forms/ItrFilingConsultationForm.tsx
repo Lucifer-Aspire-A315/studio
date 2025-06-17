@@ -175,7 +175,7 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
       });
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
-      const result = await submitItrFilingConsultationAction(dataToSubmit, ItrFilingConsultationFormSchema);
+      const result = await submitItrFilingConsultationAction(dataToSubmit); // Removed schema argument
       if (result.success) {
         toast({
           title: "ITR Service Application Submitted!",
@@ -189,14 +189,6 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
           title: "Application Failed",
           description: result.message || "An unknown error occurred.",
         });
-        if (result.errors) {
-          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
-            setFormError(fieldName as any, {
-              type: 'manual',
-              message: (errorMessages as string[]).join(', '),
-            });
-          });
-        }
       }
     } catch (error: any) {
        toast({

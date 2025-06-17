@@ -179,7 +179,7 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
       });
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
-      const result = await submitGstServiceApplicationAction(dataToSubmit, GstServiceApplicationSchema);
+      const result = await submitGstServiceApplicationAction(dataToSubmit); // Removed schema argument
       if (result.success) {
         toast({
           title: "GST Service Application Submitted!",
@@ -193,14 +193,6 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
           title: "Application Failed",
           description: result.message || "An unknown error occurred.",
         });
-        if (result.errors) {
-          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
-            setFormError(fieldName as any, {
-              type: 'manual',
-              message: (errorMessages as string[]).join(', '),
-            });
-          });
-        }
       }
     } catch (error: any) {
        toast({

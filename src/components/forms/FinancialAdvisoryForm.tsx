@@ -209,7 +209,7 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
 
-      const result = await submitFinancialAdvisoryAction(dataToSubmit, FinancialAdvisoryFormSchema);
+      const result = await submitFinancialAdvisoryAction(dataToSubmit); // Removed schema argument
       if (result.success) {
         toast({
           title: "Service Application Submitted!",
@@ -223,14 +223,6 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
           title: "Application Failed",
           description: result.message || "An unknown error occurred.",
         });
-        if (result.errors) {
-          Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
-            setFormError(fieldName as any, {
-              type: 'manual',
-              message: (errorMessages as string[]).join(', '),
-            });
-          });
-        }
       }
     } catch (error: any) {
        toast({

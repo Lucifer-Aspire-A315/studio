@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { ZodType, ZodTypeDef } from 'zod';
+// Removed ZodType import as schema parameter is no longer used
 import { db } from '@/lib/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { cookies } from 'next/headers';
@@ -21,8 +21,8 @@ interface ServerActionResponse {
 
 async function submitCAServiceApplication<T extends Record<string, any>>(
   data: T,
-  serviceType: string,
-  schema: ZodType<T, ZodTypeDef, T> 
+  serviceType: string
+  // schema parameter removed
 ): Promise<ServerActionResponse> {
   console.log(`[Server Action - CA Service] Received application for "${serviceType}".`);
 
@@ -79,38 +79,38 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
 
 
 export async function submitGstServiceApplicationAction(
-  data: GstServiceApplicationFormData,
-  schema: ZodType<GstServiceApplicationFormData, ZodTypeDef, GstServiceApplicationFormData>
+  data: GstServiceApplicationFormData
+  // schema parameter removed
 ): Promise<ServerActionResponse> {
-  return submitCAServiceApplication(data, "GST Service Application", schema);
+  return submitCAServiceApplication(data, "GST Service Application");
 }
 
 export async function submitItrFilingConsultationAction(
-  data: ItrFilingConsultationFormData,
-  schema: ZodType<ItrFilingConsultationFormData, ZodTypeDef, ItrFilingConsultationFormData>
+  data: ItrFilingConsultationFormData
+  // schema parameter removed
 ): Promise<ServerActionResponse> {
-  return submitCAServiceApplication(data, "ITR Filing & Consultation", schema);
+  return submitCAServiceApplication(data, "ITR Filing & Consultation");
 }
 
 export async function submitAccountingBookkeepingAction(
-  data: AccountingBookkeepingFormData,
-  schema: ZodType<AccountingBookkeepingFormData, ZodTypeDef, AccountingBookkeepingFormData>
+  data: AccountingBookkeepingFormData
+  // schema parameter removed
 ): Promise<ServerActionResponse> {
-  return submitCAServiceApplication(data, "Accounting & Bookkeeping Service", schema);
+  return submitCAServiceApplication(data, "Accounting & Bookkeeping Service");
 }
 
 export async function submitCompanyIncorporationAction(
-  data: CompanyIncorporationFormData,
-  schema: ZodType<CompanyIncorporationFormData, ZodTypeDef, CompanyIncorporationFormData>
+  data: CompanyIncorporationFormData
+  // schema parameter removed
 ): Promise<ServerActionResponse> {
-  return submitCAServiceApplication(data, "Company Incorporation", schema);
+  return submitCAServiceApplication(data, "Company Incorporation");
 }
 
 export async function submitFinancialAdvisoryAction(
-  data: FinancialAdvisoryFormData,
-  schema: ZodType<FinancialAdvisoryFormData, ZodTypeDef, FinancialAdvisoryFormData>
+  data: FinancialAdvisoryFormData
+  // schema parameter removed
 ): Promise<ServerActionResponse> {
-  return submitCAServiceApplication(data, "Financial Advisory Service", schema);
+  return submitCAServiceApplication(data, "Financial Advisory Service");
 }
 
     
