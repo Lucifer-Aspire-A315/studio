@@ -26,6 +26,11 @@ const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
 const SALT_ROUNDS = 10; // For bcrypt
 
 async function setSessionCookies(userData: UserData) {
+  // Ensure the cookie store is accessed in an async manner first.
+  // The cookie 'any-placeholder-cookie' doesn't need to exist.
+  // This call helps Next.js correctly handle the dynamic nature of cookies.
+  await cookies().get('any-placeholder-cookie');
+
   const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -43,6 +48,9 @@ async function setSessionCookies(userData: UserData) {
 }
 
 async function clearSessionCookies() {
+  // Ensure the cookie store is accessed in an async manner first.
+  await cookies().get('any-placeholder-cookie');
+
   const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type'];
   cookieNames.forEach(name => {
     cookies().set(name, '', { expires: new Date(0), path: '/' });
@@ -308,3 +316,5 @@ export async function checkSessionAction(): Promise<UserData | null> {
     return null;
   }
 }
+
+    
