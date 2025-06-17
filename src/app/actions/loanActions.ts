@@ -18,7 +18,6 @@ interface ServerActionResponse {
 export async function submitLoanApplicationAction<T extends Record<string, any>>(
   data: T,
   loanType: string
-  // schema parameter removed as it was unused
 ): Promise<ServerActionResponse> {
   console.log(`[Server Action - ${loanType}] Received application.`);
 
@@ -93,7 +92,7 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
     if (error.details) console.error("Error Details:", error.details);
     
     // Ensure the message sent to the client is a simple string.
-    const clientErrorMessage = typeof error.message === 'string' ? error.message : `An internal server error occurred while submitting your ${loanType} application.`;
+    const clientErrorMessage = typeof error.message === 'string' ? error.message : `An internal server error occurred while submitting your ${loanType} application. Please check server logs.`;
     
     return {
       success: false,
