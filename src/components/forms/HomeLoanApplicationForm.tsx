@@ -138,7 +138,7 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
   const hasExistingLoans = watch("hasExistingLoans");
 
   async function onSubmit(data: HomeLoanApplicationFormData) {
-    console.log("[HomeLoanForm] onSubmit triggered with data:", JSON.parse(JSON.stringify(data)));
+    console.log("[HomeLoanForm] onSubmit triggered. Initial data:", JSON.parse(JSON.stringify(data)));
     setIsSubmitting(true);
     const dataToSubmit = { ...data };
     console.log("[HomeLoanForm] dataToSubmit (initial):", JSON.parse(JSON.stringify(dataToSubmit)));
@@ -179,9 +179,21 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
       });
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
       console.log("[HomeLoanForm] dataToSubmit (after file URLs):", JSON.parse(JSON.stringify(dataToSubmit)));
+      
+      // Client-side check for non-serializable data AFTER file processing
+      try {
+        JSON.parse(JSON.stringify(dataToSubmit));
+        console.log(`[HomeLoanForm] dataToSubmit IS serializable before sending to server action.`);
+      } catch (e: any) {
+        console.error(`[HomeLoanForm] dataToSubmit IS NOT serializable AFTER file processing (URLs expected):`, e.message);
+        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console." });
+        setIsSubmitting(false);
+        return;
+      }
+
 
       console.log("[HomeLoanForm] Calling submitLoanApplicationAction...");
-      const result = await submitLoanApplicationAction(dataToSubmit, "Home Loan", HomeLoanApplicationSchema);
+      const result = await submitLoanApplicationAction(dataToSubmit, "Home Loan");
       console.log("[HomeLoanForm] submitLoanApplicationAction result:", result);
 
       if (result.success) {

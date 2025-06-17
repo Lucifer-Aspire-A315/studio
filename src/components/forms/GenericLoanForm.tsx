@@ -71,7 +71,7 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
           const file = e.target.files?.[0] ?? null;
           rhfOnChange(file); 
         }}
-        accept={accept}
+        accept={accept || ".pdf,.jpg,.jpeg,.png"}
         className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
       />
       {selectedFile && (
@@ -124,7 +124,28 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     setIsSubmitting(true);
     const dataToSubmit = { ...data };
 
+    console.log(`[GenericLoanForm - ${loanType}] Initial data before file processing:`, JSON.parse(JSON.stringify(dataToSubmit)));
+
     try {
+      // Client-side check for non-serializable data BEFORE file processing
+      try {
+        JSON.parse(JSON.stringify(dataToSubmit));
+        console.log(`[GenericLoanForm - ${loanType}] Initial dataToSubmit IS serializable before file processing.`);
+      } catch (e: any) {
+        console.error(`[GenericLoanForm - ${loanType}] Initial dataToSubmit IS NOT serializable before file processing:`, e.message);
+        // Log problematic fields
+        for (const key in dataToSubmit) {
+          try {
+            JSON.stringify((dataToSubmit as Record<string, any>)[key]);
+          } catch (fieldError: any) {
+            console.error(`[GenericLoanForm - ${loanType}] Problematic field in initial dataToSubmit -> "${key}":`, (dataToSubmit as Record<string, any>)[key]);
+          }
+        }
+        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields before upload. Check console." });
+        setIsSubmitting(false);
+        return;
+      }
+
       const documentUploadsKey = 'documentUploads' in data ? 'documentUploads' : ('documentUploadDetails' in data ? 'documentUploadDetails' : null);
 
       if (documentUploadsKey && dataToSubmit[documentUploadsKey] && typeof dataToSubmit[documentUploadsKey] === 'object') {
@@ -133,6 +154,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
           .filter(([, file]) => file instanceof File) 
           .map(async ([key, file]) => {
             if (file instanceof File) { 
+              console.log(`[GenericLoanForm - ${loanType}] Uploading file for key: ${key}, Name: ${file.name}`);
               toast({ title: `Uploading ${key}...`, description: "Please wait." });
               const formData = new FormData();
               formData.append('file', file);
@@ -143,6 +165,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                 toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
                 return { key, url: uploadResult.url };
               } else {
+                console.error(`[GenericLoanForm - ${loanType}] Failed to upload ${key}: ${uploadResult.error}`);
                 throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
               }
             }
@@ -159,25 +182,40 @@ export function GenericLoanForm<TData extends Record<string, any>>({
         });
         dataToSubmit[documentUploadsKey] = updatedDocumentUploads as any; 
       }
+      
+      console.log(`[GenericLoanForm - ${loanType}] Data after file processing (URLs expected):`, JSON.parse(JSON.stringify(dataToSubmit)));
 
-      console.log(`[GenericLoanForm - ${loanType}] Data being sent to server action (checking for serializability):`);
+      // Client-side check for non-serializable data AFTER file processing
       try {
-        const serializableCheck = JSON.parse(JSON.stringify(dataToSubmit));
-        console.log(`[GenericLoanForm - ${loanType}] dataToSubmit is serializable:`, serializableCheck);
+        JSON.parse(JSON.stringify(dataToSubmit));
+        console.log(`[GenericLoanForm - ${loanType}] dataToSubmit IS serializable before sending to server action.`);
       } catch (e: any) {
-        console.error(`[GenericLoanForm - ${loanType}] dataToSubmit IS NOT serializable:`, e.message);
-        console.error(`[GenericLoanForm - ${loanType}] Problematic dataToSubmit:`, dataToSubmit);
-        // Potentially identify non-serializable parts
-        for (const key in dataToSubmit) {
-            try {
-                JSON.stringify(dataToSubmit[key]);
-            } catch (fieldError: any) {
-                console.error(`[GenericLoanForm - ${loanType}] Non-serializable field "${key}":`, dataToSubmit[key], fieldError.message);
+        console.error(`[GenericLoanForm - ${loanType}] dataToSubmit IS NOT serializable AFTER file processing (URLs expected):`, e.message);
+        // Log problematic fields again
+         for (const key in dataToSubmit) {
+          if (dataToSubmit[key] && typeof dataToSubmit[key] === 'object') {
+            for (const subKey in (dataToSubmit as Record<string, any>)[key]) {
+                 try {
+                    JSON.stringify((dataToSubmit as Record<string, any>)[key][subKey]);
+                  } catch (fieldError: any) {
+                    console.error(`[GenericLoanForm - ${loanType}] Problematic field in dataToSubmit -> "${key}.${subKey}":`, (dataToSubmit as Record<string, any>)[key][subKey]);
+                  }
             }
+          } else {
+             try {
+                JSON.stringify((dataToSubmit as Record<string, any>)[key]);
+              } catch (fieldError: any) {
+                console.error(`[GenericLoanForm - ${loanType}] Problematic field in dataToSubmit -> "${key}":`, (dataToSubmit as Record<string, any>)[key]);
+              }
+          }
         }
+        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console." });
+        setIsSubmitting(false);
+        return;
       }
 
-      const result = await submitLoanApplicationAction(dataToSubmit, loanType, schema);
+
+      const result = await submitLoanApplicationAction(dataToSubmit, loanType);
       if (result.success) {
         toast({
           title: `${loanType} Application Submitted!`,
@@ -295,7 +333,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                                   setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
                                 }}
                                 selectedFile={selectedFiles[name]}
-                                accept={fieldConfig.accept || ".pdf,.jpg,.jpeg,.png"}
+                                accept={fieldConfig.accept}
                               />
                             );
                           }

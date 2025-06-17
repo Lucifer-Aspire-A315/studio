@@ -17,9 +17,8 @@ interface ServerActionResponse {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function submitLoanApplicationAction<T extends Record<string, any>>(
   data: T,
-  loanType: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  schema: ZodType<T, ZodTypeDef, T> 
+  loanType: string
+  // schema parameter removed as it was unused
 ): Promise<ServerActionResponse> {
   console.log(`[Server Action - ${loanType}] Received application.`);
 
@@ -56,15 +55,23 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
         console.error(`[Server Action - ${loanType}] Checking individual fields within formData for serialization issues:`);
         for (const key in applicationData.formData) {
           try {
-            JSON.stringify((applicationData.formData as Record<string, any>)[key]);
+            // Check if the value is a File object, which is non-serializable
+            if (typeof (applicationData.formData as Record<string, any>)[key] === 'object' && (applicationData.formData as Record<string, any>)[key] instanceof File) {
+                 console.error(`[Server Action - ${loanType}] Non-serializable File object found in formData -> "${key}": Value type: File`);
+            } else {
+                JSON.stringify((applicationData.formData as Record<string, any>)[key]);
+            }
           } catch (fieldError: any) {
             console.error(`[Server Action - ${loanType}] Non-serializable field in formData -> "${key}": Value type: ${typeof (applicationData.formData as Record<string, any>)[key]}, Error: ${fieldError.message}`);
           }
         }
       }
-      // Re-throw to be caught by the outer catch block, which will return a response to the client.
-      // This ensures the client gets a generic error, but server logs have details.
-      throw new Error(`Data for ${loanType} is not serializable. Check server logs for details on problematic fields.`); 
+      // Return a serializable error response
+      return {
+          success: false,
+          message: `Data for ${loanType} is not serializable. Client-side forms should convert File objects to URLs before submission. Check server logs for details.`,
+          errors: { serverError: [`Data for ${loanType} is not serializable. Check server logs for details on problematic fields.`] }
+      };
     }
 
     const docRef = await addDoc(collection(db, 'loanApplications'), applicationData);
@@ -86,7 +93,7 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
     if (error.details) console.error("Error Details:", error.details);
     
     // Ensure the message sent to the client is a simple string.
-    const clientErrorMessage = error.message || `An internal server error occurred while submitting your ${loanType} application.`;
+    const clientErrorMessage = typeof error.message === 'string' ? error.message : `An internal server error occurred while submitting your ${loanType} application.`;
     
     return {
       success: false,
