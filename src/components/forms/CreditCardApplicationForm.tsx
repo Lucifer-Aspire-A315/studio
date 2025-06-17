@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { CreditCardIcon, UploadCloud } from 'lucide-react';
+import { CreditCardIcon } from 'lucide-react'; // Removed UploadCloud as it's handled by GenericLoanForm
 import { GenericLoanForm } from './GenericLoanForm';
 import { CreditCardApplicationSchema, type CreditCardApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
@@ -58,13 +58,13 @@ const creditCardSections = [
     title: "4. Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
     fields: [
-      { name: "documentUploads.panCard", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />PAN Card</>, type: "text", placeholder: "Click to upload", colSpan: 2 },
-      { name: "documentUploads.aadhaarCard", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Aadhaar Card</>, type: "text", placeholder: "Click to upload", colSpan: 2 },
-      { name: "documentUploads.photograph", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Passport Size Photo</>, type: "text", placeholder: "Click to upload", colSpan: 2 },
-      { name: "documentUploads.incomeProof", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Income Proof (Salary Slip / ITR)</>, type: "text", placeholder: "Click to upload", colSpan: 2 },
-      { name: "documentUploads.bankStatement", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Bank Statement (Last 3–6 Months)</>, type: "text", placeholder: "Click to upload", colSpan: 2 },
-      { name: "documentUploads.employmentProof", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Employment/Business Proof</>, type: "text", placeholder: "Click to upload", colSpan: 2 },
-      { name: "documentUploads.existingCreditCardStatement", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Existing Credit Card Statement (if any)</>, type: "text", placeholder: "Click to upload", colSpan: 2 },
+      { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
+      { name: "documentUploads.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
+      { name: "documentUploads.photograph", label: "Passport Size Photo", type: "file", colSpan: 2 },
+      { name: "documentUploads.incomeProof", label: "Income Proof (Salary Slip / ITR)", type: "file", colSpan: 2 },
+      { name: "documentUploads.bankStatement", label: "Bank Statement (Last 3–6 Months)", type: "file", colSpan: 2 },
+      { name: "documentUploads.employmentProof", label: "Employment/Business Proof", type: "file", colSpan: 2 },
+      { name: "documentUploads.existingCreditCardStatement", label: "Existing Credit Card Statement (if any)", type: "file", colSpan: 2 },
     ]
   }
 ];
@@ -86,14 +86,14 @@ export function CreditCardApplicationForm({ setCurrentPage }: CreditCardApplicat
       existingCreditCardIssuer: '',
       existingCreditCardLimit: undefined,
     },
-    documentUploads: {
-      panCard: '',
-      aadhaarCard: '',
-      photograph: '',
-      incomeProof: '',
-      bankStatement: '',
-      employmentProof: '',
-      existingCreditCardStatement: '',
+    documentUploads: { // Ensure these are initially undefined or match schema expectations
+      panCard: undefined,
+      aadhaarCard: undefined,
+      photograph: undefined,
+      incomeProof: undefined,
+      bankStatement: undefined,
+      employmentProof: undefined,
+      existingCreditCardStatement: undefined,
     }
   };
 

@@ -19,7 +19,7 @@ import { uploadFileAction } from '@/app/actions/fileUploadActions';
 
 interface FieldConfig {
   name: string;
-  label: React.ReactNode; 
+  label: React.ReactNode; // Can be string or JSX. For file inputs, this will be string.
   type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file';
   placeholder?: string;
   options?: { value: string; label: string }[];
@@ -36,8 +36,9 @@ interface SectionConfig {
   fields: FieldConfig[];
 }
 
+// Local Presentational Component for File Input
 interface FormFileInputPresentationProps {
-  fieldLabel: React.ReactNode;
+  fieldLabel: string; // Expecting string now
   rhfName: string; 
   rhfRef: React.Ref<HTMLInputElement>;
   rhfOnBlur: () => void;
@@ -47,7 +48,7 @@ interface FormFileInputPresentationProps {
 }
 
 const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
-  fieldLabel,
+  fieldLabel, // Now a string
   rhfRef,
   rhfName,
   rhfOnBlur,
@@ -55,21 +56,21 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
   selectedFile,
   accept,
 }) => {
-  const { formItemId } = useFormField();
+  const { formItemId } = useFormField(); // Get formItemId from context
   return (
     <FormItem>
-      <FormLabel htmlFor={formItemId} className="flex items-center">
-        {fieldLabel}
+      <FormLabel htmlFor={formItemId} className="flex items-center"> {/* Link label to input */}
+        <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
       </FormLabel>
       <Input
-        id={formItemId}
+        id={formItemId} // Set id on input
         type="file"
         ref={rhfRef}
         name={rhfName}
         onBlur={rhfOnBlur}
         onChange={(e) => {
           const file = e.target.files?.[0] ?? null;
-          rhfOnChange(file);
+          rhfOnChange(file); // This calls the onChange passed from FormField render prop
         }}
         accept={accept}
         className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -130,9 +131,9 @@ export function GenericLoanForm<TData extends Record<string, any>>({
       if (documentUploadsKey && dataToSubmit[documentUploadsKey] && typeof dataToSubmit[documentUploadsKey] === 'object') {
         const currentDocumentUploads = dataToSubmit[documentUploadsKey] as Record<string, any>;
         const documentUploadPromises = Object.entries(currentDocumentUploads)
-          .filter(([, file]) => file instanceof File)
+          .filter(([, file]) => file instanceof File) // Only process actual File objects
           .map(async ([key, file]) => {
-            if (file instanceof File) {
+            if (file instanceof File) { // Double check, should always be true here
               toast({ title: `Uploading ${key}...`, description: "Please wait." });
               const formData = new FormData();
               formData.append('file', file);
@@ -154,10 +155,10 @@ export function GenericLoanForm<TData extends Record<string, any>>({
         const updatedDocumentUploads = { ...currentDocumentUploads };
         uploadedDocuments.forEach(doc => {
           if (doc) {
-            updatedDocumentUploads[doc.key] = doc.url;
+            (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
           }
         });
-        dataToSubmit[documentUploadsKey] = updatedDocumentUploads;
+        dataToSubmit[documentUploadsKey] = updatedDocumentUploads as any; // Cast after processing
       }
 
 
@@ -269,15 +270,14 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                           if (fieldConfig.type === 'file') {
                             return (
                               <FormFileInputPresentation
-                                fieldLabel={fieldConfig.label} 
+                                fieldLabel={fieldConfig.label as string} // Asserting label is string for file inputs
                                 rhfName={name}
                                 rhfRef={ref}
                                 rhfOnBlur={onBlur}
-                                rhfOnChange={(file) => {
-                                  rhfNativeOnChange(file); // Update RHF's internal state for the File object
-                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); // Update local state for display
-                                  // Note: We don't call setValue(name, file.name) here as the form expects a File object or URL string, not just name.
-                                  // The File object itself is passed via rhfNativeOnChange.
+                                rhfOnChange={(file: File | null) => {
+                                  rhfNativeOnChange(file); 
+                                  setSelectedFiles(prev => ({ ...prev, [name]: file }));
+                                  setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
                                 }}
                                 selectedFile={selectedFiles[name]}
                                 accept={fieldConfig.accept || ".pdf,.jpg,.jpeg,.png"}
@@ -287,7 +287,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                           return (
                             <FormItem>
                               <FormLabel className="flex items-center">
-                                {fieldConfig.label}
+                                {fieldConfig.label} {/* Original label (can be JSX for non-file types) */}
                                 {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                                 {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
                               </FormLabel>
@@ -358,5 +358,3 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     </section>
   );
 }
-
-    

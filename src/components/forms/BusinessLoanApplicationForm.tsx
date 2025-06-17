@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { Briefcase, UploadCloud } from 'lucide-react'; // Added UploadCloud
+import { Briefcase } from 'lucide-react'; // Removed UploadCloud as it's handled by GenericLoanForm
 import { GenericLoanForm } from './GenericLoanForm';
 import { BusinessLoanApplicationSchema, type BusinessLoanApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
@@ -65,76 +65,16 @@ const businessLoanSections = [
     title: "4. Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.",
     fields: [
-      { 
-        name: "documentUploadDetails.panCard", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />PAN Card</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.aadhaarCard", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Aadhaar Card</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.applicantPhoto", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Passport Size Photo</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.gstOrUdyamCertificate", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />GST Registration / Udyam Certificate</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.businessProof", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Shop Act / Business Proof</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.bankStatement", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Bank Statement (Last 6–12 Months)</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.itrLast2Years", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />ITR for Last 2 Years</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.balanceSheetAndPL", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Balance Sheet & Profit/Loss Statement</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.existingLoanStatement", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Existing Loan Statement (if applicable)</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
-      { 
-        name: "documentUploadDetails.machineryQuotation", 
-        label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Quotation (for Machinery Loan)</>, 
-        type: "text", 
-        placeholder: "Click here to upload", 
-        colSpan: 2 
-      },
+      { name: "documentUploadDetails.panCard", label: "PAN Card", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.applicantPhoto", label: "Passport Size Photo", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.gstOrUdyamCertificate", label: "GST Registration / Udyam Certificate", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.businessProof", label: "Shop Act / Business Proof", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.itrLast2Years", label: "ITR for Last 2 Years", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.balanceSheetAndPL", label: "Balance Sheet & Profit/Loss Statement", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.existingLoanStatement", label: "Existing Loan Statement (if applicable)", type: "file", colSpan: 2 },
+      { name: "documentUploadDetails.machineryQuotation", label: "Quotation (for Machinery Loan)", type: "file", colSpan: 2 },
     ]
   }
 ];
@@ -162,16 +102,16 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
       existingLoanBankName: '',
     },
     documentUploadDetails: { 
-        panCard: '',
-        aadhaarCard: '',
-        applicantPhoto: '',
-        gstOrUdyamCertificate: '',
-        businessProof: '',
-        bankStatement: '',
-        itrLast2Years: '',
-        balanceSheetAndPL: '',
-        existingLoanStatement: '',
-        machineryQuotation: '',
+        panCard: undefined,
+        aadhaarCard: undefined,
+        applicantPhoto: undefined,
+        gstOrUdyamCertificate: undefined,
+        businessProof: undefined,
+        bankStatement: undefined,
+        itrLast2Years: undefined,
+        balanceSheetAndPL: undefined,
+        existingLoanStatement: undefined,
+        machineryQuotation: undefined,
     }
   };
 

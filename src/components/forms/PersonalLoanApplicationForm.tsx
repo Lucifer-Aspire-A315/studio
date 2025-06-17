@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { User, UploadCloud } from 'lucide-react';
+import { User } from 'lucide-react'; // Removed UploadCloud as it's handled by GenericLoanForm
 import { GenericLoanForm } from './GenericLoanForm';
 import { PersonalLoanApplicationSchema, type PersonalLoanApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
@@ -59,13 +59,13 @@ const personalLoanSections = [
     title: "4. Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
     fields: [
-      { name: "documentUploads.panCard", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />PAN Card</>, type: "text", placeholder: "Click to upload (filename placeholder)", colSpan: 2 },
-      { name: "documentUploads.aadhaarCard", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Aadhaar Card</>, type: "text", placeholder: "Click to upload (filename placeholder)", colSpan: 2 },
-      { name: "documentUploads.photograph", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Passport Size Photograph</>, type: "text", placeholder: "Click to upload (filename placeholder)", colSpan: 2 },
-      { name: "documentUploads.incomeProof", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Income Proof (Salary Slip / ITR)</>, type: "text", placeholder: "Click to upload (filename placeholder)", colSpan: 2 },
-      { name: "documentUploads.bankStatement", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Bank Statement (Last 6 Months)</>, type: "text", placeholder: "Click to upload (filename placeholder)", colSpan: 2 },
-      { name: "documentUploads.employmentProof", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Employment/Business Proof</>, type: "text", placeholder: "Click to upload (filename placeholder)", colSpan: 2 },
-      { name: "documentUploads.existingLoanStatement", label: <><UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" />Existing Loan Statement (if any)</>, type: "text", placeholder: "Click to upload (filename placeholder)", colSpan: 2 },
+      { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
+      { name: "documentUploads.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
+      { name: "documentUploads.photograph", label: "Passport Size Photograph", type: "file", colSpan: 2 },
+      { name: "documentUploads.incomeProof", label: "Income Proof (Salary Slip / ITR)", type: "file", colSpan: 2 },
+      { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6 Months)", type: "file", colSpan: 2 },
+      { name: "documentUploads.employmentProof", label: "Employment/Business Proof", type: "file", colSpan: 2 },
+      { name: "documentUploads.existingLoanStatement", label: "Existing Loan Statement (if any)", type: "file", colSpan: 2 },
     ]
   }
 ];
@@ -77,7 +77,6 @@ export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanAppl
     residentialAddress: { fullAddress: '' },
     employmentIncome: { 
       employmentType: undefined,
-      // occupation: '', // Removed as per new form structure and schema update
       companyName: '', 
       monthlyIncome: undefined,
       yearsInCurrentJobOrBusiness: undefined 
@@ -93,14 +92,14 @@ export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanAppl
       emiAmount: undefined,
       bankName: '',
     },
-    documentUploads: {
-      panCard: '',
-      aadhaarCard: '',
-      photograph: '',
-      incomeProof: '',
-      bankStatement: '',
-      employmentProof: '',
-      existingLoanStatement: '',
+    documentUploads: { // Ensure these are initially undefined or match schema expectations
+      panCard: undefined,
+      aadhaarCard: undefined,
+      photograph: undefined,
+      incomeProof: undefined,
+      bankStatement: undefined,
+      employmentProof: undefined,
+      existingLoanStatement: undefined,
     }
   };
 
