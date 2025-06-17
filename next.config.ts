@@ -20,9 +20,9 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: ['https://6000-firebase-studio-1749891643669.cluster-ancjwrkgr5dvux4qug5rbzyc2y.cloudworkstations.dev'],
-  // experimental: {
-  //   // Other experimental flags would go here if needed
-  // },
+  serverActions: {
+    bodySizeLimit: '2mb', // Increased body size limit
+  },
 };
 
 export default nextConfig;
