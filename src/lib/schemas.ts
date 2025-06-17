@@ -93,19 +93,19 @@ export type HomeLoanDocumentUploadFormData = z.infer<typeof HomeLoanDocumentUplo
 export const HomeLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
-  isPermanentAddressDifferent: z.boolean().optional().default(false),
+  isPermanentAddressDifferent: z.enum(["yes", "no"], { required_error: "Please specify if your permanent address is different." }),
   permanentAddress: ResidentialAddressSchema.optional(),
-  employmentIncome: EmploymentIncomeSchema,
+  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }),
   loanPropertyDetails: LoanPropertyDetailsSchema,
   hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
   existingLoans: ExistingLoansSchema.optional(),
   documentUploads: HomeLoanDocumentUploadSchema.optional(),
 }).superRefine((data, ctx) => {
-  if (data.isPermanentAddressDifferent) {
+  if (data.isPermanentAddressDifferent === "yes") {
     if (!data.permanentAddress || !data.permanentAddress.fullAddress || data.permanentAddress.fullAddress.trim() === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Permanent Address is required.",
+        message: "Permanent Address is required if different.",
         path: ["permanentAddress", "fullAddress"]
       });
     }
@@ -127,6 +127,13 @@ export const HomeLoanApplicationSchema = z.object({
             code: z.ZodIssueCode.custom,
             message: "Bank name is required if existing loans is 'Yes'",
             path: ["existingLoans", "bankName"],
+          });
+        }
+         if (data.existingLoans.outstandingAmount === undefined || data.existingLoans.outstandingAmount < 0) { // Allow 0 for fully paid but still listed
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Valid outstanding amount is required if existing loans is 'Yes'",
+            path: ["existingLoans", "outstandingAmount"],
           });
         }
     }
@@ -330,7 +337,7 @@ const CreditCardPreferencesSchema = z.object({
   }
 });
 
-const CreditCardDocumentUploadSchema = z.object({
+export const CreditCardDocumentUploadSchema = z.object({
   panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card"),
   aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card"),
   photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photo"),
@@ -851,3 +858,4 @@ export const UserLoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 export type UserLoginFormData = z.infer<typeof UserLoginSchema>;
+
