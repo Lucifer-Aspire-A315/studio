@@ -16,20 +16,16 @@ interface UserData {
 
 interface AuthServerActionResponse {
   success: boolean;
-  message?: string;
+  message?: string; // Keep message optional for success cases where it might not be needed
   user?: UserData;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errors?: Record<string, any>;
+  // errors field removed to simplify error responses and rely on server logs
 }
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
 const SALT_ROUNDS = 10; // For bcrypt
 
 async function setSessionCookies(userData: UserData) {
-  // Ensure the cookie store is accessed in an async manner first.
-  // The cookie 'any-placeholder-cookie' doesn't need to exist.
-  // This call helps Next.js correctly handle the dynamic nature of cookies.
-  await cookies().get('any-placeholder-cookie');
+  await cookies().get('any-placeholder-cookie'); // "Warm up" cookie store
 
   const cookieOptions = {
     httpOnly: true,
@@ -39,7 +35,7 @@ async function setSessionCookies(userData: UserData) {
     sameSite: 'lax' as const,
   };
 
-  const sessionToken = `mock-secure-session-token-${userData.id}-${Date.now()}`; // Replace with real secure token generation
+  const sessionToken = `mock-secure-session-token-${userData.id}-${Date.now()}`; 
   cookies().set('session_token', sessionToken, cookieOptions);
   cookies().set('user_id', userData.id, cookieOptions);
   cookies().set('user_name', userData.fullName, cookieOptions);
@@ -48,8 +44,7 @@ async function setSessionCookies(userData: UserData) {
 }
 
 async function clearSessionCookies() {
-  // Ensure the cookie store is accessed in an async manner first.
-  await cookies().get('any-placeholder-cookie');
+  await cookies().get('any-placeholder-cookie'); // "Warm up" cookie store
 
   const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type'];
   cookieNames.forEach(name => {
@@ -61,6 +56,7 @@ export async function partnerSignUpAction(
   data: PartnerSignUpFormData
 ): Promise<AuthServerActionResponse> {
   try {
+    await cookies().get('any-placeholder-cookie');
     const partnersRef = collection(db, 'partners');
     const q = query(partnersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -69,7 +65,6 @@ export async function partnerSignUpAction(
       return {
         success: false,
         message: 'This email address is already registered as a partner.',
-        errors: { email: ['Email already in use.'] },
       };
     }
 
@@ -94,20 +89,19 @@ export async function partnerSignUpAction(
       type: 'partner',
     };
 
-    // Partners are pending approval, so don't set session cookies immediately.
-    // Session will be set upon login after approval.
-
     return {
       success: true,
       message: 'Partner sign-up successful! Your account is pending approval.',
-      user: newUser, // Still return user data for context, but not logged in yet
+      user: newUser, 
     };
   } catch (error: any) {
     console.error('Error during partner sign-up:', error);
+    const safeErrorMessage = (typeof error.message === 'string' && error.message)
+      ? error.message
+      : 'An unexpected error occurred during sign-up. Please try again.';
     return {
       success: false,
-      message: 'An unexpected error occurred during sign-up. Please try again.',
-      errors: { serverError: [error.message || 'Server error occurred'] },
+      message: safeErrorMessage,
     };
   }
 }
@@ -116,6 +110,7 @@ export async function partnerLoginAction(
   data: PartnerLoginFormData
 ): Promise<AuthServerActionResponse> {
   try {
+    await cookies().get('any-placeholder-cookie');
     const partnersRef = collection(db, 'partners');
     const q = query(partnersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -124,7 +119,6 @@ export async function partnerLoginAction(
       return {
         success: false,
         message: 'Invalid email or password.',
-        errors: { email: ['No partner account found with this email.'] },
       };
     }
 
@@ -137,7 +131,6 @@ export async function partnerLoginAction(
       return {
         success: false,
         message: 'Invalid email or password.',
-        errors: { password: ['Incorrect password.'] },
       };
     }
 
@@ -145,7 +138,6 @@ export async function partnerLoginAction(
         return {
             success: false,
             message: 'Your partner account is pending approval. Please contact support.',
-            errors: { form: ['Account not approved.'] },
         }
     }
 
@@ -165,10 +157,12 @@ export async function partnerLoginAction(
     };
   } catch (error: any) {
     console.error('Error during partner login:', error);
+    const safeErrorMessage = (typeof error.message === 'string' && error.message)
+      ? error.message
+      : 'An unexpected error occurred during login. Please try again.';
     return {
       success: false,
-      message: 'An unexpected error occurred during login. Please try again.',
-      errors: { serverError: [error.message || 'Server error occurred'] },
+      message: safeErrorMessage,
     };
   }
 }
@@ -177,6 +171,7 @@ export async function userSignUpAction(
   data: UserSignUpFormData
 ): Promise<AuthServerActionResponse> {
   try {
+    await cookies().get('any-placeholder-cookie');
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -185,7 +180,6 @@ export async function userSignUpAction(
       return {
         success: false,
         message: 'This email address is already registered.',
-        errors: { email: ['Email already in use.'] },
       };
     }
 
@@ -218,10 +212,12 @@ export async function userSignUpAction(
     };
   } catch (error: any) {
     console.error('Error during user sign-up:', error);
+    const safeErrorMessage = (typeof error.message === 'string' && error.message)
+      ? error.message
+      : 'An unexpected error occurred during sign-up. Please try again.';
     return {
       success: false,
-      message: 'An unexpected error occurred during sign-up. Please try again.',
-      errors: { serverError: [error.message || 'Server error occurred'] },
+      message: safeErrorMessage,
     };
   }
 }
@@ -230,6 +226,7 @@ export async function userLoginAction(
   data: UserLoginFormData
 ): Promise<AuthServerActionResponse> {
   try {
+    await cookies().get('any-placeholder-cookie');
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -238,12 +235,11 @@ export async function userLoginAction(
       return {
         success: false,
         message: 'Invalid email or password.',
-        errors: { email: ['No account found with this email.'] },
       };
     }
 
     const userDoc = querySnapshot.docs[0];
-    const userDataFromDb = userDoc.data(); // Renamed to avoid conflict with UserData interface
+    const userDataFromDb = userDoc.data(); 
 
     const passwordIsValid = await bcrypt.compare(data.password, userDataFromDb.password);
 
@@ -251,7 +247,6 @@ export async function userLoginAction(
       return {
         success: false,
         message: 'Invalid email or password.',
-        errors: { password: ['Incorrect password.'] },
       };
     }
 
@@ -271,10 +266,12 @@ export async function userLoginAction(
     };
   } catch (error: any) {
     console.error('Error during user login:', error);
+    const safeErrorMessage = (typeof error.message === 'string' && error.message)
+      ? error.message
+      : 'An unexpected error occurred during login. Please try again.';
     return {
       success: false,
-      message: 'An unexpected error occurred during login. Please try again.',
-      errors: { serverError: [error.message || 'Server error occurred'] },
+      message: safeErrorMessage,
     };
   }
 }
@@ -285,10 +282,12 @@ export async function logoutAction(): Promise<AuthServerActionResponse> {
     return { success: true, message: "Logged out successfully." };
   } catch (error: any) {
     console.error('Error during logout:', error);
+    const safeErrorMessage = (typeof error.message === 'string' && error.message)
+      ? error.message
+      : 'Logout failed due to a server error.';
     return { 
         success: false, 
-        message: 'Logout failed.',
-        errors: { serverError: [error.message || 'Server error occurred during logout'] },
+        message: safeErrorMessage,
     };
   }
 }
@@ -298,11 +297,12 @@ export async function checkSessionAction(): Promise<UserData | null> {
     const userId = cookies().get('user_id')?.value;
     const userName = cookies().get('user_name')?.value;
     const userEmail = cookies().get('user_email')?.value;
-    const userType = cookies().get('user_type')?.value as UserData['type'] | undefined;
+    const userTypeCookie = cookies().get('user_type')?.value;
+    const userType = (userTypeCookie === 'partner' || userTypeCookie === 'normal') ? userTypeCookie : undefined;
     const sessionToken = cookies().get('session_token')?.value;
 
+
     if (userId && userName && userEmail && userType && sessionToken) {
-      // In a real app, validate the sessionToken against a session store or decode/verify a JWT
       return {
         id: userId,
         fullName: userName,
@@ -316,5 +316,4 @@ export async function checkSessionAction(): Promise<UserData | null> {
     return null;
   }
 }
-
     

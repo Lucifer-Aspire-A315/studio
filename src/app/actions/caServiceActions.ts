@@ -15,17 +15,16 @@ import type {
 
 interface ServerActionResponse {
   success: boolean;
-  message: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errors?: Record<string, any>; 
+  message: string; // Ensure this is always a string
   applicationId?: string;
+  // errors field removed to simplify error responses
 }
 
 async function submitCAServiceApplication<T extends Record<string, any>>(
   data: T,
   serviceType: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  schema: ZodType<T, ZodTypeDef, T>
+  schema: ZodType<T, ZodTypeDef, T> // Schema remains for potential future use or type inference aid
 ): Promise<ServerActionResponse> {
   console.log(`[Server Action - CA Service] Received application for "${serviceType}".`);
 
@@ -33,21 +32,23 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
     const userId = cookies().get('user_id')?.value;
     const userEmail = cookies().get('user_email')?.value;
     const userFullName = cookies().get('user_name')?.value;
-    const userType = cookies().get('user_type')?.value as 'partner' | 'normal' | undefined;
+    const userTypeCookie = cookies().get('user_type')?.value;
+    const userType = userTypeCookie === 'partner' || userTypeCookie === 'normal' ? userTypeCookie : null;
+
 
     const applicationData = {
       userId: userId || null,
       userEmail: userEmail || null,
       userFullName: userFullName || null,
-      userType: userType || null,
+      userType: userType,
       serviceType,
-      formData: data, // Ensure this contains URLs, not File objects
+      formData: data, 
       status: 'submitted', 
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
 
-    // console.log(`[Server Action - CA Service] Attempting to save to Firestore:`, JSON.stringify(applicationData, null, 2));
+    console.log(`[Server Action - CA Service] Attempting to save to Firestore for service "${serviceType}".`);
 
     const docRef = await addDoc(collection(db, 'caServiceApplications'), applicationData);
     
@@ -67,13 +68,13 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
     if (error.code) console.error("Error Code:", error.code);
     if (error.details) console.error("Error Details:", error.details);
 
-    let errorMessage = `There was an error submitting your ${serviceType} application. Please try again.`;
-    // errorMessage += ` Server error: ${error.message || 'Internal server error.'}`;
+    const safeErrorMessage = (typeof error.message === 'string' && error.message)
+        ? error.message
+        : `There was an error submitting your ${serviceType} application. Please check server logs and try again.`;
     
     return {
       success: false,
-      message: errorMessage,
-      errors: { serverError: [error.message || 'Failed to save application to database due to an internal error.'] },
+      message: safeErrorMessage,
     };
   }
 }

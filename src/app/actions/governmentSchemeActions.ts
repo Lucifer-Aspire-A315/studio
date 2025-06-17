@@ -10,10 +10,9 @@ import type { GovernmentSchemeLoanApplicationFormData } from '@/lib/schemas';
 
 interface ServerActionResponse {
   success: boolean;
-  message: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errors?: Record<string, any>;
+  message: string; // Ensure this is always a string
   applicationId?: string;
+  // errors field removed to simplify error responses
 }
 
 export async function submitGovernmentSchemeLoanApplicationAction(
@@ -31,21 +30,23 @@ export async function submitGovernmentSchemeLoanApplicationAction(
     const userId = cookies().get('user_id')?.value;
     const userEmail = cookies().get('user_email')?.value;
     const userFullName = cookies().get('user_name')?.value;
-    const userType = cookies().get('user_type')?.value as 'partner' | 'normal' | undefined;
+    const userTypeCookie = cookies().get('user_type')?.value;
+    const userType = userTypeCookie === 'partner' || userTypeCookie === 'normal' ? userTypeCookie : null;
+
 
     const applicationData = {
       userId: userId || null,
       userEmail: userEmail || null,
       userFullName: userFullName || null,
-      userType: userType || null,
+      userType: userType,
       schemeName,
-      formData: data, // Ensure this contains URLs, not File objects
+      formData: data, 
       status: 'submitted',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
 
-    // console.log(`[Server Action - Gov Scheme] Attempting to save to Firestore:`, JSON.stringify(applicationData, null, 2));
+    console.log(`[Server Action - Gov Scheme] Attempting to save to Firestore for scheme "${schemeName}".`);
 
     const docRef = await addDoc(collection(db, 'governmentSchemeApplications'), applicationData);
     
@@ -65,13 +66,13 @@ export async function submitGovernmentSchemeLoanApplicationAction(
     if (error.code) console.error("Error Code:", error.code);
     if (error.details) console.error("Error Details:", error.details);
     
-    let errorMessage = 'There was an error submitting your application. Please try again.';
-    // errorMessage += ` Server error: ${error.message || 'Internal server error.'}`;
+    const safeErrorMessage = (typeof error.message === 'string' && error.message)
+        ? error.message
+        : `There was an error submitting your application for "${schemeName}". Please check server logs and try again.`;
     
     return {
       success: false,
-      message: errorMessage,
-      errors: { serverError: [error.message || 'Failed to save application to database due to an internal error.'] },
+      message: safeErrorMessage,
     };
   }
 }
