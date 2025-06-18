@@ -16,7 +16,7 @@ import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { submitAccountingBookkeepingAction } from '@/app/actions/caServiceActions';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AccountingBookkeepingFormProps {
   setCurrentPage: SetPageView;
@@ -105,7 +105,7 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
-  const { currentUser } = useAuth(); // Get current user
+  const { currentUser } = useAuth();
 
 
   const defaultValues: AccountingBookkeepingFormData = {
@@ -181,6 +181,7 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
               toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
               return { key, url: uploadResult.url };
             } else {
+              // This error message is now more detailed if it's a Firebase Storage permission issue
               throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
             }
           }
@@ -213,10 +214,15 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
         });
       }
     } catch (error: any) {
+       let description = error.message || "An error occurred while submitting the Accounting & Bookkeeping application.";
+       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
+       }
        toast({
         variant: "destructive",
         title: "Submission Error",
-        description: error.message || "An error occurred while submitting the Accounting & Bookkeeping application.",
+        description: description,
+        duration: 9000, // Longer duration for important error messages
       });
       console.error("Error submitting Accounting & Bookkeeping application:", error);
     } finally {

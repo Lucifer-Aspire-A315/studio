@@ -16,7 +16,7 @@ import { ArrowLeft, Loader2, Info, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FieldConfig {
   name: string;
@@ -42,10 +42,10 @@ interface FormFileInputPresentationProps {
   rhfName: string; 
   rhfRef: React.Ref<HTMLInputElement>;
   rhfOnBlur: () => void;
-  rhfOnChange: (file: File | null) => void; // This is the RHF's field.onChange
+  rhfOnChange: (file: File | null) => void;
   selectedFile: File | null | undefined;
   accept?: string;
-  setValue: (name: string, value: any, options?: Partial<{ shouldValidate: boolean, shouldDirty: boolean }>) => void; // Add setValue
+  setValue: (name: string, value: any, options?: Partial<{ shouldValidate: boolean, shouldDirty: boolean }>) => void;
 }
 
 const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
@@ -53,10 +53,10 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
   rhfName,
   rhfRef,
   rhfOnBlur,
-  rhfOnChange, // This is the RHF's field.onChange (aliased as rhfNativeOnChange in parent)
+  rhfOnChange,
   selectedFile,
   accept,
-  setValue, // Receive setValue
+  setValue,
 }) => {
   const { formItemId } = useFormField(); 
   return (
@@ -68,12 +68,11 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
         id={formItemId} 
         type="file"
         ref={rhfRef}
-        name={rhfName} // RHF name
-        onBlur={rhfOnBlur} // RHF onBlur
+        name={rhfName}
+        onBlur={rhfOnBlur}
         onChange={(e) => {
           const file = e.target.files?.[0] ?? null;
-          rhfOnChange(file); // Call RHF's onChange to update its internal state for the File object
-          // Explicitly call setValue to ensure the form state for 'handleSubmit' is updated with the File object
+          rhfOnChange(file); 
           setValue(rhfName, file, { shouldValidate: true, shouldDirty: true }); 
         }}
         accept={accept || ".pdf,.jpg,.jpeg,.png"}
@@ -116,7 +115,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
   const [isVerifyingPAN, setIsVerifyingPAN] = useState(false);
   const [isVerifyingAadhaar, setIsVerifyingAadhaar] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
-  const { currentUser } = useAuth(); // Get currentUser for client-side auth check
+  const { currentUser } = useAuth();
 
 
   const form = useForm<TData>({
@@ -139,7 +138,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
       return;
     }
 
-    const payloadForServer = { ...data }; // Start with a shallow copy
+    const payloadForServer = { ...data };
 
     console.log(`[GenericLoanForm - ${loanType}] Initial data from RHF for submission:`, JSON.parse(JSON.stringify(data)));
 
@@ -213,11 +212,10 @@ export function GenericLoanForm<TData extends Record<string, any>>({
       console.log(`[GenericLoanForm - ${loanType}] Data prepared for server action (URLs for files):`, JSON.parse(JSON.stringify(payloadForServer)));
       
       try {
-        const serializableCheck = JSON.parse(JSON.stringify(payloadForServer)); 
-        console.log(`[GenericLoanForm - ${loanType}] payloadForServer IS serializable before sending to server action. Payload:`, serializableCheck);
+        JSON.parse(JSON.stringify(payloadForServer)); 
       } catch (e: any) {
         console.error(`[GenericLoanForm - ${loanType}] payloadForServer IS NOT serializable AFTER file processing. Error:`, e.message, "Problematic Payload was:", payloadForServer);
-        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console for details." });
+        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console for details.", duration: 9000 });
         setIsSubmitting(false);
         return; 
       }
@@ -235,6 +233,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
           variant: "destructive",
           title: `${loanType} Application Failed`,
           description: result.message || "An unknown error occurred.",
+          duration: 9000,
         });
         if (result.errors) {
           Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
@@ -246,10 +245,15 @@ export function GenericLoanForm<TData extends Record<string, any>>({
         }
       }
     } catch (error: any) {
+      let description = error.message || `An error occurred while submitting the ${loanType.toLowerCase()} application.`;
+      if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+        description = `File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: ${error.message}`;
+      }
       toast({
         variant: "destructive",
         title: "Submission Error",
-        description: error.message || `An error occurred while submitting the ${loanType.toLowerCase()} application.`,
+        description: description,
+        duration: 9000, // Longer duration for important error messages
       });
       console.error(`Error submitting ${loanType} application:`, error);
     } finally {
@@ -289,11 +293,11 @@ export function GenericLoanForm<TData extends Record<string, any>>({
       } else {
         if (panField) setError(panField.name as any, { type: "manual", message: "PAN/Aadhaar validation failed." });
         if (aadhaarField) setError(aadhaarField.name as any, { type: "manual", message: result.validationDetails });
-        toast({ variant: "destructive", title: "ID Verification Failed", description: result.validationDetails });
+        toast({ variant: "destructive", title: "ID Verification Failed", description: result.validationDetails, duration: 9000 });
       }
     } catch (error) {
       console.error("Validation error:", error);
-      toast({ variant: "destructive", title: "Validation Error", description: "Could not validate ID details." });
+      toast({ variant: "destructive", title: "Validation Error", description: "Could not validate ID details.", duration: 9000 });
       if (panField) setError(panField.name as any, { type: "manual", message: "AI validation failed." });
       if (aadhaarField) setError(aadhaarField.name as any, { type: "manual", message: "AI validation failed." });
     } finally {

@@ -16,6 +16,7 @@ import type { SetPageView } from '@/app/page';
 import { Textarea } from '@/components/ui/textarea';
 import { submitItrFilingConsultationAction } from '@/app/actions/caServiceActions';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface ItrFilingConsultationFormProps {
   setCurrentPage: SetPageView;
@@ -96,6 +97,7 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth(); // Get currentUser
 
 
   const defaultValues: ItrFilingConsultationFormData = {
@@ -142,6 +144,17 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
 
   async function onSubmit(data: ItrFilingConsultationFormData) {
     setIsSubmitting(true);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const dataToSubmit = { ...data };
 
     try {
@@ -175,7 +188,7 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
       });
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
-      const result = await submitItrFilingConsultationAction(dataToSubmit); // Removed schema argument
+      const result = await submitItrFilingConsultationAction(dataToSubmit);
       if (result.success) {
         toast({
           title: "ITR Service Application Submitted!",
@@ -188,13 +201,19 @@ export function ItrFilingConsultationForm({ setCurrentPage }: ItrFilingConsultat
           variant: "destructive",
           title: "Application Failed",
           description: result.message || "An unknown error occurred.",
+          duration: 9000,
         });
       }
     } catch (error: any) {
+       let description = error.message || "An error occurred while submitting the ITR Filing & Consultation application.";
+       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
+       }
        toast({
         variant: "destructive",
         title: "Submission Error",
-        description: error.message || "An error occurred while submitting the ITR Filing & Consultation application.",
+        description: description,
+        duration: 9000, // Longer duration for important error messages
       });
       console.error("Error submitting ITR Filing & Consultation application:", error);
     } finally {

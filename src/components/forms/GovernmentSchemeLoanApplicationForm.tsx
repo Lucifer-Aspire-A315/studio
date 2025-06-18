@@ -16,6 +16,7 @@ import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { submitGovernmentSchemeLoanApplicationAction } from '@/app/actions/governmentSchemeActions';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface GovernmentSchemeLoanApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -83,6 +84,7 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth(); // Get currentUser
 
   const defaultValues: GovernmentSchemeLoanApplicationFormData = {
     applicantDetailsGov: {
@@ -140,6 +142,17 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
 
   async function onSubmit(data: GovernmentSchemeLoanApplicationFormData) {
     setIsSubmitting(true);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const dataToSubmit = { ...data };
     try {
        const documentUploadPromises = Object.entries(data.documentUploadsGov || {})
@@ -173,7 +186,7 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
       dataToSubmit.documentUploadsGov = updatedDocumentUploads as any;
 
 
-      const result = await submitGovernmentSchemeLoanApplicationAction(dataToSubmit, GovernmentSchemeLoanApplicationSchema);
+      const result = await submitGovernmentSchemeLoanApplicationAction(dataToSubmit);
       if (result.success) {
         toast({
           title: "Application Submitted!",
@@ -186,6 +199,7 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
           variant: "destructive",
           title: "Application Failed",
           description: result.message || "An unknown error occurred.",
+          duration: 9000,
         });
         if (result.errors) {
           Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
@@ -197,10 +211,15 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
         }
       }
     } catch (error: any) {
+       let description = error.message || "An error occurred while submitting the application.";
+       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
+       }
        toast({
         variant: "destructive",
         title: "Submission Error",
-        description: error.message || "An error occurred while submitting the application.",
+        description: description,
+        duration: 9000, // Longer duration for important error messages
       });
       console.error("Error submitting Government Scheme Loan application:", error);
     } finally {

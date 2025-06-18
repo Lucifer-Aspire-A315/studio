@@ -16,6 +16,7 @@ import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { submitGstServiceApplicationAction } from '@/app/actions/caServiceActions';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface GstServiceApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -101,6 +102,7 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth(); // Get currentUser
 
 
   const defaultValues: GstServiceApplicationFormData = {
@@ -146,6 +148,17 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
 
   async function onSubmit(data: GstServiceApplicationFormData) {
     setIsSubmitting(true);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const dataToSubmit = { ...data };
 
     try {
@@ -179,7 +192,7 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
       });
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
-      const result = await submitGstServiceApplicationAction(dataToSubmit); // Removed schema argument
+      const result = await submitGstServiceApplicationAction(dataToSubmit);
       if (result.success) {
         toast({
           title: "GST Service Application Submitted!",
@@ -192,13 +205,19 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
           variant: "destructive",
           title: "Application Failed",
           description: result.message || "An unknown error occurred.",
+          duration: 9000,
         });
       }
     } catch (error: any) {
+       let description = error.message || "An error occurred while submitting the GST Service application.";
+       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
+       }
        toast({
         variant: "destructive",
         title: "Submission Error",
-        description: error.message || "An error occurred while submitting the GST Service application.",
+        description: description,
+        duration: 9000, // Longer duration for important error messages
       });
       console.error("Error submitting GST Service application:", error);
     } finally {

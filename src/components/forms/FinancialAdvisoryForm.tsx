@@ -16,6 +16,7 @@ import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { submitFinancialAdvisoryAction } from '@/app/actions/caServiceActions';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface FinancialAdvisoryFormProps {
   setCurrentPage: SetPageView;
@@ -113,6 +114,7 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth(); // Get currentUser
 
 
   const defaultValues: FinancialAdvisoryFormData = {
@@ -175,6 +177,17 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
 
   async function onSubmit(data: FinancialAdvisoryFormData) {
     setIsSubmitting(true);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const dataToSubmit = { ...data };
 
     try {
@@ -209,7 +222,7 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
 
-      const result = await submitFinancialAdvisoryAction(dataToSubmit); // Removed schema argument
+      const result = await submitFinancialAdvisoryAction(dataToSubmit);
       if (result.success) {
         toast({
           title: "Service Application Submitted!",
@@ -222,13 +235,19 @@ export function FinancialAdvisoryForm({ setCurrentPage }: FinancialAdvisoryFormP
           variant: "destructive",
           title: "Application Failed",
           description: result.message || "An unknown error occurred.",
+          duration: 9000,
         });
       }
     } catch (error: any) {
+       let description = error.message || "An error occurred while submitting the Financial Advisory application.";
+       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
+       }
        toast({
         variant: "destructive",
         title: "Submission Error",
-        description: error.message || "An error occurred while submitting the Financial Advisory application.",
+        description: description,
+        duration: 9000, // Longer duration for important error messages
       });
       console.error("Error submitting Financial Advisory application:", error);
     } finally {
