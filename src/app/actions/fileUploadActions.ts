@@ -19,10 +19,19 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
   if (!file || !fileName) {
     return { success: false, error: 'No file or filename provided.' };
   }
+  
+  let userId: string | undefined;
+  try {
+    await cookies().get('priming-cookie-upload'); // Priming read
+    userId = cookies().get('user_id')?.value;
+  } catch (e) {
+    console.error("[FileUploadAction] Error reading cookies:", e);
+    return { success: false, error: 'Could not verify authentication status for file upload.' };
+  }
 
-  const userId = cookies().get('user_id')?.value;
 
   if (!userId) {
+    console.warn(`[FileUploadAction] User not authenticated for file upload. Cookie 'user_id' not found.`);
     return { success: false, error: 'User not authenticated for file upload.' };
   }
 
@@ -62,7 +71,7 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
     if (error.code) {
       switch (error.code) {
         case 'storage/unauthorized':
-          errorMessage = "Permission denied. You're not authorized to upload to this location.";
+          errorMessage = "Permission denied. You're not authorized to upload to this location. Check Firebase Storage rules.";
           break;
         case 'storage/canceled':
           errorMessage = 'Upload was canceled.';

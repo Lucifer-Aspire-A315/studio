@@ -9,6 +9,7 @@ interface ServerActionResponse {
   success: boolean;
   message: string; 
   applicationId?: string;
+  errors?: Record<string, string[]>; // For Zod validation errors
 }
 
 export async function submitLoanApplicationAction<T extends Record<string, any>>(
@@ -18,6 +19,7 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
   console.log(`[Server Action - ${loanType}] Received application.`);
 
   try {
+    await cookies().get('priming-cookie'); // Priming read
     const userId = cookies().get('user_id')?.value;
     const userEmail = cookies().get('user_email')?.value;
     const userFullName = cookies().get('user_name')?.value;

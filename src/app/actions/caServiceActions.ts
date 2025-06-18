@@ -27,6 +27,7 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
   console.log(`[Server Action - CA Service] Received application for "${serviceType}".`);
 
   try {
+    await cookies().get('priming-cookie'); // Priming read
     const userId = cookies().get('user_id')?.value;
     const userEmail = cookies().get('user_email')?.value;
     const userFullName = cookies().get('user_name')?.value;

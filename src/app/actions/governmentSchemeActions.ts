@@ -12,6 +12,7 @@ interface ServerActionResponse {
   success: boolean;
   message: string; 
   applicationId?: string;
+  errors?: Record<string, string[]>; // For Zod validation errors
 }
 
 export async function submitGovernmentSchemeLoanApplicationAction(
@@ -25,6 +26,7 @@ export async function submitGovernmentSchemeLoanApplicationAction(
   console.log(`[Server Action - Gov Scheme] Received application for "${schemeName}".`);
 
   try {
+    await cookies().get('priming-cookie'); // Priming read
     const userId = cookies().get('user_id')?.value;
     const userEmail = cookies().get('user_email')?.value;
     const userFullName = cookies().get('user_name')?.value;
