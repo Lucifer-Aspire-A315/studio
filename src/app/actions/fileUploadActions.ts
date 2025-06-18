@@ -13,6 +13,7 @@ interface FileUploadResponse {
 
 export async function uploadFileAction(formData: FormData): Promise<FileUploadResponse> {
   console.log("[FileUploadAction] Action initiated.");
+  await cookies().get('priming-cookie-upload'); // Priming read for cookies
 
   const file = formData.get('file') as File | null;
   const fileName = formData.get('fileName') as string | null;
@@ -22,7 +23,6 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
     return { success: false, error: 'No file or filename provided.' };
   }
 
-  // Attempt to get user_id cookie
   const userIdCookie = cookies().get('user_id');
   const userId = userIdCookie?.value;
 
@@ -30,7 +30,6 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
 
   if (!userId) {
     console.warn(`[FileUploadAction] Authentication check failed: 'user_id' cookie was not found or has no value.`);
-    // For debugging, let's also log all available cookies if userId is missing
     try {
         const allCookies = cookies().getAll();
         console.log("[FileUploadAction] All available cookies at time of auth failure:", allCookies.map(c => ({name: c.name, value: c.value ? `present (length: ${c.value.length})` : 'empty/null', path: c.path, domain: c.domain })));
@@ -44,7 +43,7 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
 
   try {
     const uniqueFileName = `${Date.now()}-${encodeURIComponent(fileName)}`;
-    const filePath = `uploads/${userId}/${uniqueFileName}`;
+    const filePath = `uploads/${userId}/${uniqueFileName}`; // Path includes userId
     const fileStorageRef = storageRef(storage, filePath);
     const arrayBuffer = await file.arrayBuffer();
 
@@ -69,7 +68,7 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
     if (error.code) {
       switch (error.code) {
         case 'storage/unauthorized':
-          errorMessage = "Permission denied by Firebase Storage. Please check your Firebase Storage rules to ensure authenticated users can write to their designated paths (e.g., /uploads/{userId}/{fileName}).";
+          errorMessage = `Permission denied by Firebase Storage for path 'uploads/${userId}/...'. This often happens when the client Firebase SDK is used from a server environment (like this Server Action) because 'request.auth' in your Storage rules will likely be null. If your Storage rules for writes include 'request.auth != null' or 'request.auth.uid == userId', these conditions will fail. Review your Firebase Storage rules. For server-side uploads from trusted code that has already authenticated the user (like this action checking cookies), you might need to adjust your rules to allow writes based on path, or consider using the Firebase Admin SDK for uploads, which bypasses user-facing rules. Ensure the path 'uploads/${userId}/' is writable under your current rules configuration.`;
           break;
         case 'storage/canceled':
           errorMessage = 'Upload was canceled.';
