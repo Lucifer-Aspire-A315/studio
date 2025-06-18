@@ -12,75 +12,73 @@ interface FileUploadResponse {
 }
 
 export async function uploadFileAction(formData: FormData): Promise<FileUploadResponse> {
+  console.log("[FileUploadAction] Action initiated.");
+
   const file = formData.get('file') as File | null;
   const fileName = formData.get('fileName') as string | null;
-  // const fileType = formData.get('fileType') as string | null; // Available if needed
 
   if (!file || !fileName) {
+    console.error("[FileUploadAction] Critical error: No file or filename provided in FormData.");
     return { success: false, error: 'No file or filename provided.' };
   }
-  
-  let userId: string | undefined;
-  try {
-    await cookies().get('priming-cookie-upload'); // Priming read
-    userId = cookies().get('user_id')?.value;
-  } catch (e) {
-    console.error("[FileUploadAction] Error reading cookies:", e);
-    return { success: false, error: 'Could not verify authentication status for file upload.' };
-  }
 
+  // Attempt to get user_id cookie
+  const userIdCookie = cookies().get('user_id');
+  const userId = userIdCookie?.value;
+
+  console.log(`[FileUploadAction] Attempted to read 'user_id' cookie. Found: ${userIdCookie ? "Cookie object exists" : "Cookie object MISSING"}, Value: ${userId || "Not Found/Empty"}`);
 
   if (!userId) {
-    console.warn(`[FileUploadAction] User not authenticated for file upload. Cookie 'user_id' not found.`);
-    return { success: false, error: 'User not authenticated for file upload.' };
+    console.warn(`[FileUploadAction] Authentication check failed: 'user_id' cookie was not found or has no value.`);
+    // For debugging, let's also log all available cookies if userId is missing
+    try {
+        const allCookies = cookies().getAll();
+        console.log("[FileUploadAction] All available cookies at time of auth failure:", allCookies.map(c => ({name: c.name, value: c.value ? `present (length: ${c.value.length})` : 'empty/null', path: c.path, domain: c.domain })));
+    } catch (e: any) {
+        console.error("[FileUploadAction] Could not log all cookies:", e.message);
+    }
+    return { success: false, error: 'User not authenticated for file upload. Session details missing.' };
   }
 
-  console.log(`[FileUploadAction] User ${userId} attempting to upload file: ${fileName} (Size: ${file.size} bytes)`);
+  console.log(`[FileUploadAction] User ${userId} attempting to upload file: ${fileName} (Size: ${file.size} bytes, Type: ${file.type})`);
 
   try {
-    // Create a unique path for the file in Firebase Storage
-    // e.g., uploads/user_abc123/timestamp-originalfilename.pdf
     const uniqueFileName = `${Date.now()}-${encodeURIComponent(fileName)}`;
     const filePath = `uploads/${userId}/${uniqueFileName}`;
-    
     const fileStorageRef = storageRef(storage, filePath);
-
-    // Convert File to ArrayBuffer for uploadBytesResumable
     const arrayBuffer = await file.arrayBuffer();
 
+    console.log(`[FileUploadAction] Uploading to Firebase Storage path: ${filePath}`);
     const uploadTask = uploadBytesResumable(fileStorageRef, arrayBuffer, {
-      contentType: file.type, // Pass content type for better handling in Storage
+      contentType: file.type,
     });
 
-    // Wait for the upload to complete
-    await uploadTask;
+    await uploadTask; // Wait for upload to complete
 
-    // Get the download URL
     const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-    
-    console.log(`[FileUploadAction] File uploaded successfully for user ${userId}. Storage Path: ${filePath}, Download URL: ${downloadUrl}`);
-    
+    console.log(`[FileUploadAction] File uploaded successfully for user ${userId}. URL: ${downloadUrl}`);
+
     return {
       success: true,
       url: downloadUrl,
     };
 
   } catch (error: any) {
-    console.error(`[FileUploadAction] Error uploading file for user ${userId}:`, error);
+    console.error(`[FileUploadAction] Firebase Storage upload error for user ${userId}, file ${fileName}:`, error.code, error.message, error.stack);
     let errorMessage = 'Failed to upload file due to a server error.';
     if (error.code) {
       switch (error.code) {
         case 'storage/unauthorized':
-          errorMessage = "Permission denied. You're not authorized to upload to this location. Check Firebase Storage rules.";
+          errorMessage = "Permission denied by Firebase Storage. Please check your Firebase Storage rules to ensure authenticated users can write to their designated paths (e.g., /uploads/{userId}/{fileName}).";
           break;
         case 'storage/canceled':
           errorMessage = 'Upload was canceled.';
           break;
         case 'storage/unknown':
-          errorMessage = 'An unknown error occurred during upload.';
+          errorMessage = 'An unknown error occurred during Firebase Storage upload.';
           break;
         default:
-          errorMessage = error.message || errorMessage;
+          errorMessage = `Storage error (${error.code}): ${error.message}` || errorMessage;
       }
     } else if (error.message) {
       errorMessage = error.message;
