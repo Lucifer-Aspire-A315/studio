@@ -48,10 +48,10 @@ async function setSessionCookies(userData: UserData) {
 
   const cookieOptions: CustomCookieSetOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true, // Required for SameSite=None; Cloud Workstations is HTTPS
     maxAge: SESSION_DURATION,
     path: '/',
-    sameSite: 'lax' as const,
+    sameSite: 'none' as const, // Set to 'none' as per browser feedback
   };
   console.log('[AuthActions - setSessionCookies] Effective cookie options:', cookieOptions);
 
@@ -90,9 +90,9 @@ async function clearSessionCookies() {
 
   const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type'];
   const clearOptions: CustomCookieSetOptions = {
-    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax' as const,
+    secure: true, // Required for SameSite=None; Cloud Workstations is HTTPS
+    sameSite: 'none' as const, // Set to 'none'
     path: '/',
     expires: new Date(0),
     maxAge: 0,
@@ -403,5 +403,7 @@ export async function checkSessionAction(): Promise<UserData | null> {
     return null;
   }
 }
+
+    
 
     
