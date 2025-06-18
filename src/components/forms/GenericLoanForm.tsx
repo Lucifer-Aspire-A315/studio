@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -15,6 +16,7 @@ import { ArrowLeft, Loader2, Info, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface FieldConfig {
   name: string;
@@ -114,6 +116,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
   const [isVerifyingPAN, setIsVerifyingPAN] = useState(false);
   const [isVerifyingAadhaar, setIsVerifyingAadhaar] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth(); // Get currentUser for client-side auth check
 
 
   const form = useForm<TData>({
@@ -125,6 +128,17 @@ export function GenericLoanForm<TData extends Record<string, any>>({
 
   async function onSubmit(data: TData) {
     setIsSubmitting(true);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const payloadForServer = { ...data }; // Start with a shallow copy
 
     console.log(`[GenericLoanForm - ${loanType}] Initial data from RHF for submission:`, JSON.parse(JSON.stringify(data)));
@@ -146,15 +160,14 @@ export function GenericLoanForm<TData extends Record<string, any>>({
         const documentFieldsConfig = sections.flatMap(s => s.fields).filter(f => f.name.startsWith(overallDocumentUploadsKey + "."));
         
         const fileUploadPromises: Promise<{ key: string, url: string } | null>[] = [];
-        // This object will store URLs for files that were successfully uploaded,
-        // and will retain any existing string values (presumably already URLs).
+        
         const serverReadyDocumentUploads: Record<string, string | undefined | null> = {};
 
         for (const fieldConfig of documentFieldsConfig) {
-          const fieldKeyInForm = fieldConfig.name; // e.g., "documentUploads.panCard"
-          const simpleKey = fieldKeyInForm.substring(overallDocumentUploadsKey.length + 1); // e.g., "panCard"
+          const fieldKeyInForm = fieldConfig.name; 
+          const simpleKey = fieldKeyInForm.substring(overallDocumentUploadsKey.length + 1); 
           
-          const fieldValue = getValues(fieldKeyInForm as any); // Get the LATEST value from RHF state
+          const fieldValue = getValues(fieldKeyInForm as any); 
 
           if (fieldValue instanceof File) {
             fileUploadPromises.push(
@@ -176,14 +189,11 @@ export function GenericLoanForm<TData extends Record<string, any>>({
               })()
             );
           } else if (typeof fieldValue === 'string' && fieldValue.startsWith('http')) {
-            // If it's already a URL string, keep it
             serverReadyDocumentUploads[simpleKey] = fieldValue;
           } else if (fieldValue === null || fieldValue === undefined) {
-            // Keep null or undefined for optional fields not filled
             serverReadyDocumentUploads[simpleKey] = fieldValue;
-          } else if (fieldValue) { // If it's not a File, not a URL, not null/undefined, but still truthy
+          } else if (fieldValue) { 
             console.warn(`[GenericLoanForm - ${loanType}] Unexpected type for document field ${fieldKeyInForm}: ${typeof fieldValue}. Value:`, fieldValue, ". Field will be omitted from final payload if not string URL.");
-             // Attempt to preserve if it was a string from defaultValues perhaps, otherwise omit
             if (typeof fieldValue === 'string') {
                  serverReadyDocumentUploads[simpleKey] = fieldValue;
             }
@@ -192,26 +202,24 @@ export function GenericLoanForm<TData extends Record<string, any>>({
         
         const uploadedDocuments = await Promise.all(fileUploadPromises);
         uploadedDocuments.forEach(doc => {
-          if (doc) { // doc is { key: string, url: string }
+          if (doc) { 
             serverReadyDocumentUploads[doc.key] = doc.url;
           }
         });
         
-        // Update the document uploads section in our payload copy
         payloadForServer[overallDocumentUploadsKey] = serverReadyDocumentUploads;
       }
       
       console.log(`[GenericLoanForm - ${loanType}] Data prepared for server action (URLs for files):`, JSON.parse(JSON.stringify(payloadForServer)));
       
-      // Client-side check for non-serializable data AFTER file processing
       try {
-        const serializableCheck = JSON.parse(JSON.stringify(payloadForServer)); // This will throw if not serializable
+        const serializableCheck = JSON.parse(JSON.stringify(payloadForServer)); 
         console.log(`[GenericLoanForm - ${loanType}] payloadForServer IS serializable before sending to server action. Payload:`, serializableCheck);
       } catch (e: any) {
         console.error(`[GenericLoanForm - ${loanType}] payloadForServer IS NOT serializable AFTER file processing. Error:`, e.message, "Problematic Payload was:", payloadForServer);
         toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console for details." });
         setIsSubmitting(false);
-        return; // Critical: if this fails, stop before calling server action
+        return; 
       }
 
       const result = await submitLoanApplicationAction(payloadForServer, loanType);
@@ -269,9 +277,6 @@ export function GenericLoanForm<TData extends Record<string, any>>({
       if (!panNumber || !aadhaarNumber || !panNumber.match(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/) || !aadhaarNumber.match(/^\d{12}$/)) {
         if (panField) clearErrors(panField.name as any); 
         if (aadhaarField) clearErrors(aadhaarField.name as any);
-        // Optionally, show a less intrusive message if one field is filled but the other isn't,
-        // or if formats are invalid before calling AI.
-        // For now, we let the AI call handle it or Zod validation catch it first.
         return;
       }
 
@@ -329,14 +334,13 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                                 rhfName={name}
                                 rhfRef={ref}
                                 rhfOnBlur={onBlur}
-                                rhfOnChange={(file: File | null) => { // This is the internal RHF onChange
-                                  rhfNativeOnChange(file); // Propagate to RHF's internal state
-                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); // Update local state for display
-                                  // setValue is passed to FormFileInputPresentation and called there
+                                rhfOnChange={(file: File | null) => { 
+                                  rhfNativeOnChange(file); 
+                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); 
                                 }}
                                 selectedFile={selectedFiles[name]}
                                 accept={fieldConfig.accept}
-                                setValue={setValue} // Pass setValue down
+                                setValue={setValue} 
                               />
                             );
                           }
@@ -380,7 +384,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                                   placeholder={fieldConfig.placeholder} 
                                   ref={ref}
                                   name={name}
-                                  value={value ?? ''} // Ensure value is controlled, defaulting to empty string if null/undefined
+                                  value={value ?? ''} 
                                   onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
                                   onChange={rhfNativeOnChange}
                                 />
@@ -414,4 +418,3 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     </section>
   );
 }
-
