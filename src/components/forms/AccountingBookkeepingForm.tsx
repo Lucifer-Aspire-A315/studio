@@ -16,6 +16,7 @@ import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
 import { submitAccountingBookkeepingAction } from '@/app/actions/caServiceActions';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface AccountingBookkeepingFormProps {
   setCurrentPage: SetPageView;
@@ -104,6 +105,7 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth(); // Get current user
 
 
   const defaultValues: AccountingBookkeepingFormData = {
@@ -151,6 +153,17 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
 
   async function onSubmit(data: AccountingBookkeepingFormData) {
     setIsSubmitting(true);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const dataToSubmit = { ...data };
 
     try {
@@ -184,7 +197,7 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
       });
       dataToSubmit.documentUploads = updatedDocumentUploads as any;
 
-      const result = await submitAccountingBookkeepingAction(dataToSubmit); // Removed schema argument
+      const result = await submitAccountingBookkeepingAction(dataToSubmit); 
       if (result.success) {
         toast({
           title: "Service Application Submitted!",
