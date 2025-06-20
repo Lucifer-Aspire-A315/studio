@@ -1,6 +1,25 @@
 
 import { z } from 'zod';
 
+// Helper for file validation
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ACCEPTED_DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+const ACCEPTED_EXCEL_TYPES = ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"];
+
+
+const fileSchema = (types: string[]) => z.instanceof(File, { message: "File is required." })
+  .refine(file => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+  .refine(file => types.includes(file.type), `Unsupported file type. Accepted: ${types.join(', ')}`)
+  .optional()
+  .nullable();
+
+const stringOrFileSchema = (types: string[]) => z.union([
+  z.string().url({ message: "Invalid URL." }).optional().nullable(),
+  fileSchema(types)
+]);
+
+
 export const HomeLoanApplicantDetailsSchema = z.object({
   name: z.string().min(1, "Name is required"),
   dob: z.string().min(1, "Date of Birth is required"),
@@ -59,34 +78,34 @@ export const ExistingLoansSchema = z.object({
 }).default({});
 
 export const HomeLoanDocumentUploadSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
-  photograph: z.string().optional().describe("Passport Size Photograph"),
-  incomeProof: z.string().optional().describe("Income Proof (Salary Slip / ITR)"),
-  bankStatement: z.string().optional().describe("Bank Statement (Last 6 Months)"),
-  propertyDocs: z.string().optional().describe("Property Documents / Sale Agreement"),
-  allotmentLetter: z.string().optional().describe("Allotment Letter (if any)"),
-  employmentProof: z.string().optional().describe("Employment/Business Proof"),
-  existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if applicable)"),
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card"),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card"),
+  photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photograph"),
+  incomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Income Proof (Salary Slip / ITR)"),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 6 Months)"),
+  propertyDocs: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Property Documents / Sale Agreement"),
+  allotmentLetter: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Allotment Letter (if any)").optional(),
+  employmentProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Employment/Business Proof"),
+  existingLoanStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Existing Loan Statement (if applicable)").optional(),
 });
 export type HomeLoanDocumentUploadFormData = z.infer<typeof HomeLoanDocumentUploadSchema>;
 
 export const HomeLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
   residentialAddress: ResidentialAddressSchema,
-  isPermanentAddressDifferent: z.boolean().optional().default(false),
+  isPermanentAddressDifferent: z.enum(["yes", "no"], { required_error: "Please specify if your permanent address is different." }),
   permanentAddress: ResidentialAddressSchema.optional(),
-  employmentIncome: EmploymentIncomeSchema,
+  employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }),
   loanPropertyDetails: LoanPropertyDetailsSchema,
   hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
   existingLoans: ExistingLoansSchema.optional(),
   documentUploads: HomeLoanDocumentUploadSchema.optional(),
 }).superRefine((data, ctx) => {
-  if (data.isPermanentAddressDifferent) {
+  if (data.isPermanentAddressDifferent === "yes") {
     if (!data.permanentAddress || !data.permanentAddress.fullAddress || data.permanentAddress.fullAddress.trim() === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Permanent Address is required.",
+        message: "Permanent Address is required if different.",
         path: ["permanentAddress", "fullAddress"]
       });
     }
@@ -96,7 +115,7 @@ export const HomeLoanApplicationSchema = z.object({
     if (!data.existingLoans) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "EMI and Bank Name are required if you have existing loans.", path: ["existingLoans", "emiAmount"] });
     } else {
-        if (data.existingLoans.emiAmount === undefined || data.existingLoans.emiAmount < 0) {
+        if (data.existingLoans.emiAmount === undefined || data.existingLoans.emiAmount <= 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Valid EMI is required if existing loans is 'Yes'",
@@ -110,22 +129,28 @@ export const HomeLoanApplicationSchema = z.object({
             path: ["existingLoans", "bankName"],
           });
         }
+         if (data.existingLoans.outstandingAmount === undefined || data.existingLoans.outstandingAmount < 0) { // Allow 0 for fully paid but still listed
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Valid outstanding amount is required if existing loans is 'Yes'",
+            path: ["existingLoans", "outstandingAmount"],
+          });
+        }
     }
   }
 });
-
 export type HomeLoanApplicationFormData = z.infer<typeof HomeLoanApplicationSchema>;
 
 
 // Personal Loan Schema
 export const PersonalLoanDocumentUploadSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
-  photograph: z.string().optional().describe("Passport Size Photograph"),
-  incomeProof: z.string().optional().describe("Income Proof (Salary Slip / ITR)"),
-  bankStatement: z.string().optional().describe("Bank Statement (Last 6 Months)"),
-  employmentProof: z.string().optional().describe("Employment/Business Proof"),
-  existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if any)"),
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card"),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card"),
+  photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photograph"),
+  incomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Income Proof (Salary Slip / ITR)"),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 6 Months)"),
+  employmentProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Employment/Business Proof"),
+  existingLoanStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Existing Loan Statement (if any)").optional(),
 });
 export type PersonalLoanDocumentUploadFormData = z.infer<typeof PersonalLoanDocumentUploadSchema>;
 
@@ -160,7 +185,7 @@ export const PersonalLoanApplicationSchema = z.object({
     if (!data.existingLoans) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "EMI and Bank Name are required if you have existing loans.", path: ["existingLoans", "emiAmount"] });
     } else {
-        if (data.existingLoans.emiAmount === undefined || data.existingLoans.emiAmount < 0) {
+        if (data.existingLoans.emiAmount === undefined || data.existingLoans.emiAmount <= 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Valid EMI is required if existing loans is 'Yes'",
@@ -235,7 +260,7 @@ const LoanDetailsForBusinessSchema = z.object({
     });
   }
   if (data.hasExistingLoans === "yes") {
-    if (data.existingLoanEMI === undefined || data.existingLoanEMI < 0) {
+    if (data.existingLoanEMI === undefined || data.existingLoanEMI <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Valid EMI is required if existing loans is 'Yes'",
@@ -253,16 +278,16 @@ const LoanDetailsForBusinessSchema = z.object({
 });
 
 export const DocumentUploadDetailsSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
-  applicantPhoto: z.string().optional().describe("Passport Size Photo"),
-  gstOrUdyamCertificate: z.string().optional().describe("GST Registration / Udyam Certificate"),
-  businessProof: z.string().optional().describe("Shop Act / Business Proof"),
-  bankStatement: z.string().optional().describe("Bank Statement (Last 6–12 Months)"),
-  itrLast2Years: z.string().optional().describe("ITR for Last 2 Years"),
-  balanceSheetAndPL: z.string().optional().describe("Balance Sheet & Profit/Loss Statement"),
-  existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if applicable)"),
-  machineryQuotation: z.string().optional().describe("Quotation (for Machinery Loan)"),
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card"),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card"),
+  applicantPhoto: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photo"),
+  gstOrUdyamCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("GST Registration / Udyam Certificate").optional(),
+  businessProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Shop Act / Business Proof"),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 6–12 Months)"),
+  itrLast2Years: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("ITR for Last 2 Years"),
+  balanceSheetAndPL: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Balance Sheet & Profit/Loss Statement"),
+  existingLoanStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Existing Loan Statement (if applicable)").optional(),
+  machineryQuotation: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Quotation (for Machinery Loan)").optional(),
 });
 export type DocumentUploadDetailsFormData = z.infer<typeof DocumentUploadDetailsSchema>;
 
@@ -302,7 +327,7 @@ const CreditCardPreferencesSchema = z.object({
         path: ["existingCreditCardIssuer"],
       });
     }
-    if (data.existingCreditCardLimit === undefined || data.existingCreditCardLimit < 0) {
+    if (data.existingCreditCardLimit === undefined || data.existingCreditCardLimit <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Valid credit limit is required if you have an existing card",
@@ -312,14 +337,14 @@ const CreditCardPreferencesSchema = z.object({
   }
 });
 
-const CreditCardDocumentUploadSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
-  photograph: z.string().optional().describe("Passport Size Photo"),
-  incomeProof: z.string().optional().describe("Income Proof (Salary Slip / ITR)"),
-  bankStatement: z.string().optional().describe("Bank Statement (Last 3–6 Months)"),
-  employmentProof: z.string().optional().describe("Employment/Business Proof"),
-  existingCreditCardStatement: z.string().optional().describe("Existing Credit Card Statement (if any)"),
+export const CreditCardDocumentUploadSchema = z.object({
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card"),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card"),
+  photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photo"),
+  incomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Income Proof (Salary Slip / ITR)"),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 3–6 Months)"),
+  employmentProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Employment/Business Proof"),
+  existingCreditCardStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Existing Credit Card Statement (if any)").optional(),
 });
 export type CreditCardDocumentUploadFormData = z.infer<typeof CreditCardDocumentUploadSchema>;
 
@@ -378,8 +403,8 @@ export const GovernmentSchemeBusinessInfoSchema = z.object({
 });
 
 export const GovernmentSchemeLoanDetailsSchema = z.object({
-  selectedScheme: z.string().min(1, "Loan scheme is required"), // This will be pre-filled
-  otherSchemeName: z.string().optional(), // This will be pre-filled if "other" was chosen
+  selectedScheme: z.string().min(1, "Loan scheme is required"),
+  otherSchemeName: z.string().optional(),
   loanAmountRequired: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
     z.number({ invalid_type_error: "Loan amount must be a number" }).min(1, "Loan Amount Required is required")
@@ -391,15 +416,15 @@ export const GovernmentSchemeLoanDetailsSchema = z.object({
 });
 
 export const GovernmentSchemeDocumentUploadSchema = z.object({
-  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
-  panCard: z.string().optional().describe("PAN Card"),
-  passportSizePhoto: z.string().optional().describe("Passport Size Photo"),
-  businessProof: z.string().optional().describe("Business Proof (Udyam / Registration)"),
-  bankStatement: z.string().optional().describe("Bank Statement (Last 6 Months)"),
-  casteCertificate: z.string().optional().describe("Caste Certificate (if applicable)"),
-  incomeCertificate: z.string().optional().describe("Income Certificate"),
-  projectReport: z.string().optional().describe("Project Report / Business Plan"),
-  existingLoanStatement: z.string().optional().describe("Existing Loan Statement (if any)"),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card"),
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card"),
+  passportSizePhoto: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photo"),
+  businessProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Business Proof (Udyam / Registration)").optional(),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 6 Months)"),
+  casteCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Caste Certificate (if applicable)").optional(),
+  incomeCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Income Certificate").optional(),
+  projectReport: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Project Report / Business Plan").optional(),
+  existingLoanStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Existing Loan Statement (if any)").optional(),
 });
 export type GovernmentSchemeDocumentUploadFormData = z.infer<typeof GovernmentSchemeDocumentUploadSchema>;
 
@@ -411,7 +436,6 @@ export const GovernmentSchemeLoanApplicationSchema = z.object({
   loanDetailsGov: GovernmentSchemeLoanDetailsSchema,
   documentUploadsGov: GovernmentSchemeDocumentUploadSchema.optional(),
 });
-
 export type GovernmentSchemeLoanApplicationFormData = z.infer<typeof GovernmentSchemeLoanApplicationSchema>;
 
 
@@ -452,26 +476,26 @@ export const GstServiceRequiredSchema = z.object({
       path: ["otherGstServiceDetail"],
     });
   }
-  const { otherGstServiceDetail, ...services } = data; // Exclude detail field for check
+  const { otherGstServiceDetail, ...services } = data;
   const oneSelected = Object.values(services).some(val => val === true);
   if (!oneSelected) {
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one GST service must be selected.",
-        path: ["newGstRegistration"], 
+        path: ["newGstRegistration"],
     });
   }
 });
 export type GstServiceRequiredFormData = z.infer<typeof GstServiceRequiredSchema>;
 
 export const GstDocumentUploadSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card of Applicant/Business"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card of Proprietor/Director"),
-  passportPhoto: z.string().optional().describe("Passport Size Photo (JPG/PNG)"),
-  businessProof: z.string().optional().describe("Business Proof (e.g., Shop Act/License)"),
-  addressProof: z.string().optional().describe("Electricity Bill / Rent Agreement (Address Proof)"),
-  bankDetails: z.string().optional().describe("Cancelled Cheque or Bank Passbook (1st page)"),
-  digitalSignature: z.string().optional().describe("Digital Signature (If available)"),
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card of Applicant/Business"),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card of Proprietor/Director"),
+  passportPhoto: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photo (JPG/PNG)"),
+  businessProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Business Proof (e.g., Shop Act/License)").optional(),
+  addressProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Electricity Bill / Rent Agreement (Address Proof)"),
+  bankDetails: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Cancelled Cheque or Bank Passbook (1st page)"),
+  digitalSignature: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Digital Signature (If available)").optional(),
 });
 export type GstDocumentUploadFormData = z.infer<typeof GstDocumentUploadSchema>;
 
@@ -517,22 +541,22 @@ export const IncomeSourceTypeSchema = z.object({
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one income source must be selected.",
-        path: ["salariedEmployee"], 
+        path: ["salariedEmployee"],
     });
   }
 });
 export type IncomeSourceTypeFormData = z.infer<typeof IncomeSourceTypeSchema>;
 
 export const ItrDocumentUploadSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
-  form16: z.string().optional().describe("Form 16 (if Salaried)"),
-  salarySlips: z.string().optional().describe("Salary Slips (if applicable)"),
-  bankStatement: z.string().optional().describe("Bank Statement (Full FY)"),
-  investmentProofs: z.string().optional().describe("Investment Proofs (LIC, PPF, 80C, etc.)"),
-  rentReceipts: z.string().optional().describe("Rent Receipts / HRA Proofs"),
-  capitalGainStatement: z.string().optional().describe("Capital Gain Statement (if any)"),
-  businessIncomeProof: z.string().optional().describe("Business Income Proof / ITR of Previous Year"),
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card"),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card"),
+  form16: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Form 16 (if Salaried)").optional(),
+  salarySlips: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Salary Slips (if applicable)").optional(),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Full FY)"),
+  investmentProofs: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Investment Proofs (LIC, PPF, 80C, etc.)").optional(),
+  rentReceipts: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Rent Receipts / HRA Proofs").optional(),
+  capitalGainStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Capital Gain Statement (if any)").optional(),
+  businessIncomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Business Income Proof / ITR of Previous Year").optional(),
 });
 export type ItrDocumentUploadFormData = z.infer<typeof ItrDocumentUploadSchema>;
 
@@ -588,21 +612,22 @@ export const AccountingServicesRequiredSchema = z.object({
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one service must be selected.",
-        path: ["bookkeeping"], 
+        path: ["bookkeeping"],
     });
   }
 });
 export type AccountingServicesRequiredFormData = z.infer<typeof AccountingServicesRequiredSchema>;
 
+const accountingExcelTypes = [...ACCEPTED_DOCUMENT_TYPES, ...ACCEPTED_EXCEL_TYPES];
 export const AccountingDocumentUploadSchema = z.object({
-  panCardBusinessOwner: z.string().optional().describe("PAN Card of Business/Owner"),
-  gstCertificate: z.string().optional().describe("GST Certificate (if available)"),
-  previousYearFinancials: z.string().optional().describe("Previous Year Financial Statements"),
-  bankStatement: z.string().optional().describe("Bank Statement (Last 6–12 Months)"),
-  invoices: z.string().optional().describe("Invoices (Sales & Purchase - PDF/Excel)"),
-  payrollData: z.string().optional().describe("Payroll Data (if applicable)"),
-  tdsTaxDetails: z.string().optional().describe("TDS & Tax Details (if any)"),
-  otherSupportingDocuments: z.string().optional().describe("Any Other Supporting Documents"),
+  panCardBusinessOwner: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card of Business/Owner"),
+  gstCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("GST Certificate (if available)").optional(),
+  previousYearFinancials: stringOrFileSchema(accountingExcelTypes).describe("Previous Year Financial Statements").optional(),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 6–12 Months)"),
+  invoices: stringOrFileSchema(accountingExcelTypes).describe("Invoices (Sales & Purchase - PDF/Excel)").optional(),
+  payrollData: stringOrFileSchema(accountingExcelTypes).describe("Payroll Data (if applicable)").optional(),
+  tdsTaxDetails: stringOrFileSchema(accountingExcelTypes).describe("TDS & Tax Details (if any)").optional(),
+  otherSupportingDocuments: stringOrFileSchema(accountingExcelTypes).describe("Any Other Supporting Documents").optional(),
 });
 export type AccountingDocumentUploadFormData = z.infer<typeof AccountingDocumentUploadSchema>;
 
@@ -660,12 +685,12 @@ export const IncorporationDirectorsPartnersSchema = z.object({
 export type IncorporationDirectorsPartnersFormData = z.infer<typeof IncorporationDirectorsPartnersSchema>;
 
 export const IncorporationDocumentUploadsSchema = z.object({
-  directorPanCard: z.string().optional().describe("PAN Card (for each director/partner)"),
-  directorAadhaarCard: z.string().optional().describe("Aadhaar Card (for each director/partner)"),
-  directorPhoto: z.string().optional().describe("Passport Size Photo (for each director/partner)"),
-  businessAddressProof: z.string().optional().describe("Electricity Bill / Rent Agreement (Business Address Proof)"),
-  directorBankStatement: z.string().optional().describe("Bank Statement (Last 1 month, for each director/partner)"),
-  dsc: z.string().optional().describe("Digital Signature Certificate (DSC, if available, for each director)"),
+  directorPanCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card (for each director/partner)"),
+  directorAadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card (for each director/partner)"),
+  directorPhoto: stringOrFileSchema(ACCEPTED_IMAGE_TYPES).describe("Passport Size Photo (for each director/partner)"),
+  businessAddressProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Electricity Bill / Rent Agreement (Business Address Proof)"),
+  directorBankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 1 month, for each director/partner)"),
+  dsc: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Digital Signature Certificate (DSC, if available, for each director)").optional(),
 });
 export type IncorporationDocumentUploadsFormData = z.infer<typeof IncorporationDocumentUploadsSchema>;
 
@@ -744,7 +769,7 @@ export const FinancialAdvisoryServicesRequiredSchema = z.object({
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "At least one advisory service must be selected.",
-        path: ["taxSavingPlan"], 
+        path: ["taxSavingPlan"],
     });
   }
 });
@@ -775,13 +800,13 @@ export const FinancialAdvisoryCurrentFinancialOverviewSchema = z.object({
 export type FinancialAdvisoryCurrentFinancialOverviewFormData = z.infer<typeof FinancialAdvisoryCurrentFinancialOverviewSchema>;
 
 export const FinancialAdvisoryDocumentUploadSchema = z.object({
-  panCard: z.string().optional().describe("PAN Card"),
-  aadhaarCard: z.string().optional().describe("Aadhaar Card"),
-  salarySlipsIncomeProof: z.string().optional().describe("Salary Slips / Income Proof"),
-  lastYearItrForm16: z.string().optional().describe("Last Year’s ITR or Form 16"),
-  bankStatement: z.string().optional().describe("Bank Statement (3–6 Months)"),
-  investmentProofs: z.string().optional().describe("Investment Proofs (Mutual Funds, LIC, etc.)"),
-  existingLoanEmiDetails: z.string().optional().describe("Existing Loan / EMI Details (if any)"),
+  panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card").optional(),
+  aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Aadhaar Card").optional(),
+  salarySlipsIncomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Salary Slips / Income Proof").optional(),
+  lastYearItrForm16: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Last Year’s ITR or Form 16").optional(),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (3–6 Months)").optional(),
+  investmentProofs: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Investment Proofs (Mutual Funds, LIC, etc.)").optional(),
+  existingLoanEmiDetails: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Existing Loan / EMI Details (if any)").optional(),
 });
 export type FinancialAdvisoryDocumentUploadFormData = z.infer<typeof FinancialAdvisoryDocumentUploadSchema>;
 
@@ -802,8 +827,35 @@ export const PartnerSignUpSchema = z.object({
   confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters long"),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
-  path: ["confirmPassword"], // Set the error on the confirmPassword field
+  path: ["confirmPassword"],
 });
 export type PartnerSignUpFormData = z.infer<typeof PartnerSignUpSchema>;
 
-    
+// Partner Login Schema
+export const PartnerLoginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+export type PartnerLoginFormData = z.infer<typeof PartnerLoginSchema>;
+
+
+// Normal User Sign Up Schema
+export const UserSignUpSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  email: z.string().email("Invalid email address"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+  confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters long"),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+export type UserSignUpFormData = z.infer<typeof UserSignUpSchema>;
+
+// Normal User Login Schema
+export const UserLoginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+export type UserLoginFormData = z.infer<typeof UserLoginSchema>;
+

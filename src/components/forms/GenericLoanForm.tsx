@@ -8,24 +8,27 @@ import type { ZodType, ZodTypeDef } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { validateIdentificationDetails, type ValidateIdentificationDetailsOutput } from '@/ai/flows/validate-identification-details';
 import { submitLoanApplicationAction } from '@/app/actions/loanActions';
-import { ArrowLeft, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Loader2, Info, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
+import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FieldConfig {
   name: string;
-  label: React.ReactNode; 
-  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio';
+  label: string; 
+  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file';
   placeholder?: string;
   options?: { value: string; label: string }[];
   isPAN?: boolean;
   isAadhaar?: boolean;
   prefix?: string; 
   colSpan?: 1 | 2;
+  accept?: string; 
 }
 
 interface SectionConfig {
@@ -33,6 +36,58 @@ interface SectionConfig {
   subtitle?: string;
   fields: FieldConfig[];
 }
+
+interface FormFileInputPresentationProps {
+  fieldLabel: string;
+  rhfName: string; 
+  rhfRef: React.Ref<HTMLInputElement>;
+  rhfOnBlur: () => void;
+  rhfOnChange: (file: File | null) => void;
+  selectedFile: File | null | undefined;
+  accept?: string;
+  setValue: (name: string, value: any, options?: Partial<{ shouldValidate: boolean, shouldDirty: boolean }>) => void;
+}
+
+const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
+  fieldLabel,
+  rhfName,
+  rhfRef,
+  rhfOnBlur,
+  rhfOnChange,
+  selectedFile,
+  accept,
+  setValue,
+}) => {
+  const { formItemId } = useFormField(); 
+  return (
+    <FormItem>
+      <FormLabel htmlFor={formItemId} className="flex items-center">
+        <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
+      </FormLabel>
+      <Input
+        id={formItemId} 
+        type="file"
+        ref={rhfRef}
+        name={rhfName}
+        onBlur={rhfOnBlur}
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          rhfOnChange(file); 
+          setValue(rhfName, file, { shouldValidate: true, shouldDirty: true }); 
+        }}
+        accept={accept || ".pdf,.jpg,.jpeg,.png"}
+        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+      />
+      {selectedFile && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+        </p>
+      )}
+      <FormMessage />
+    </FormItem>
+  );
+};
+
 
 interface GenericLoanFormProps<T extends Record<string, any>> {
   setCurrentPage: SetPageView;
@@ -45,7 +100,7 @@ interface GenericLoanFormProps<T extends Record<string, any>> {
   loanType: string; 
 }
 
-export function GenericLoanForm<T extends Record<string, any>>({ 
+export function GenericLoanForm<TData extends Record<string, any>>({ 
   setCurrentPage, 
   formTitle, 
   formSubtitle, 
@@ -54,53 +109,151 @@ export function GenericLoanForm<T extends Record<string, any>>({
   defaultValues, 
   sections,
   loanType,
-}: GenericLoanFormProps<T>) {
+}: GenericLoanFormProps<TData>) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifyingPAN, setIsVerifyingPAN] = useState(false);
   const [isVerifyingAadhaar, setIsVerifyingAadhaar] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth();
 
-  const form = useForm<T>({
+
+  const form = useForm<TData>({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
-  const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset } = form;
+  const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset, setValue } = form;
 
-  async function onSubmit(data: T) {
+  async function onSubmit(data: TData) {
     setIsSubmitting(true);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const payloadForServer = { ...data };
+
+    console.log(`[GenericLoanForm - ${loanType}] Initial data from RHF for submission:`, JSON.parse(JSON.stringify(data)));
+
     try {
-      const result = await submitLoanApplicationAction(data, loanType, schema);
+      const documentUploadSections = sections.filter(section => 
+        section.fields.some(field => field.type === 'file')
+      );
+
+      let overallDocumentUploadsKey: string | null = null;
+      if (documentUploadSections.length > 0 && documentUploadSections[0].fields.length > 0) {
+         const firstFileFieldName = documentUploadSections[0].fields.find(f => f.type === 'file')?.name;
+         if (firstFileFieldName) {
+            overallDocumentUploadsKey = firstFileFieldName.split('.')[0];
+         }
+      }
+      
+      if (overallDocumentUploadsKey && payloadForServer[overallDocumentUploadsKey] && typeof payloadForServer[overallDocumentUploadsKey] === 'object') {
+        const documentFieldsConfig = sections.flatMap(s => s.fields).filter(f => f.name.startsWith(overallDocumentUploadsKey + "."));
+        
+        const fileUploadPromises: Promise<{ key: string, url: string } | null>[] = [];
+        
+        const serverReadyDocumentUploads: Record<string, string | undefined | null> = {};
+
+        for (const fieldConfig of documentFieldsConfig) {
+          const fieldKeyInForm = fieldConfig.name; 
+          const simpleKey = fieldKeyInForm.substring(overallDocumentUploadsKey.length + 1); 
+          
+          const fieldValue = getValues(fieldKeyInForm as any); 
+
+          if (fieldValue instanceof File) {
+            fileUploadPromises.push(
+              (async () => {
+                console.log(`[GenericLoanForm - ${loanType}] Uploading file for key: ${simpleKey}, Name: ${fieldValue.name}, Size: ${fieldValue.size}`);
+                toast({ title: `Uploading ${simpleKey}...`, description: "Please wait." });
+                const formDataForUpload = new FormData();
+                formDataForUpload.append('file', fieldValue);
+                formDataForUpload.append('fileName', fieldValue.name);
+                formDataForUpload.append('fileType', fieldValue.type);
+                const uploadResult = await uploadFileAction(formDataForUpload);
+                if (uploadResult.success && uploadResult.url) {
+                  toast({ title: `${simpleKey} uploaded!`, description: `URL: ${uploadResult.url}` });
+                  return { key: simpleKey, url: uploadResult.url };
+                } else {
+                  console.error(`[GenericLoanForm - ${loanType}] Failed to upload ${simpleKey}: ${uploadResult.error}`);
+                  throw new Error(`Failed to upload ${simpleKey}: ${uploadResult.error}`);
+                }
+              })()
+            );
+          } else if (typeof fieldValue === 'string' && fieldValue.startsWith('http')) {
+            serverReadyDocumentUploads[simpleKey] = fieldValue;
+          } else if (fieldValue === null || fieldValue === undefined) {
+            serverReadyDocumentUploads[simpleKey] = fieldValue;
+          } else if (fieldValue) { 
+            console.warn(`[GenericLoanForm - ${loanType}] Unexpected type for document field ${fieldKeyInForm}: ${typeof fieldValue}. Value:`, fieldValue, ". Field will be omitted from final payload if not string URL.");
+            if (typeof fieldValue === 'string') {
+                 serverReadyDocumentUploads[simpleKey] = fieldValue;
+            }
+          }
+        }
+        
+        const uploadedDocuments = await Promise.all(fileUploadPromises);
+        uploadedDocuments.forEach(doc => {
+          if (doc) { 
+            serverReadyDocumentUploads[doc.key] = doc.url;
+          }
+        });
+        
+        payloadForServer[overallDocumentUploadsKey] = serverReadyDocumentUploads;
+      }
+      
+      console.log(`[GenericLoanForm - ${loanType}] Data prepared for server action (URLs for files):`, JSON.parse(JSON.stringify(payloadForServer)));
+      
+      try {
+        JSON.parse(JSON.stringify(payloadForServer)); 
+      } catch (e: any) {
+        console.error(`[GenericLoanForm - ${loanType}] payloadForServer IS NOT serializable AFTER file processing. Error:`, e.message, "Problematic Payload was:", payloadForServer);
+        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console for details.", duration: 9000 });
+        setIsSubmitting(false);
+        return; 
+      }
+
+      const result = await submitLoanApplicationAction(payloadForServer, loanType);
       if (result.success) {
         toast({
           title: `${loanType} Application Submitted!`,
           description: result.message,
         });
-        reset(); // Reset form on successful submission
-        // Optionally navigate away or clear form state further
-        // setCurrentPage('main'); // Example: navigate back home
+        reset(); 
+        setSelectedFiles({});
       } else {
         toast({
           variant: "destructive",
           title: `${loanType} Application Failed`,
           description: result.message || "An unknown error occurred.",
+          duration: 9000,
         });
         if (result.errors) {
-          // Handle field-specific errors if your server action returns them
           Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
             setError(fieldName as any, {
               type: 'manual',
-              // @ts-ignore
               message: (errorMessages as string[]).join(', '),
             });
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      let description = error.message || `An error occurred while submitting the ${loanType.toLowerCase()} application.`;
+      if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+        description = `File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: ${error.message}`;
+      }
       toast({
         variant: "destructive",
         title: "Submission Error",
-        description: `An error occurred while submitting the ${loanType.toLowerCase()} application.`,
+        description: description,
+        duration: 9000, // Longer duration for important error messages
       });
       console.error(`Error submitting ${loanType} application:`, error);
     } finally {
@@ -140,11 +293,11 @@ export function GenericLoanForm<T extends Record<string, any>>({
       } else {
         if (panField) setError(panField.name as any, { type: "manual", message: "PAN/Aadhaar validation failed." });
         if (aadhaarField) setError(aadhaarField.name as any, { type: "manual", message: result.validationDetails });
-        toast({ variant: "destructive", title: "ID Verification Failed", description: result.validationDetails });
+        toast({ variant: "destructive", title: "ID Verification Failed", description: result.validationDetails, duration: 9000 });
       }
     } catch (error) {
       console.error("Validation error:", error);
-      toast({ variant: "destructive", title: "Validation Error", description: "Could not validate ID details." });
+      toast({ variant: "destructive", title: "Validation Error", description: "Could not validate ID details.", duration: 9000 });
       if (panField) setError(panField.name as any, { type: "manual", message: "AI validation failed." });
       if (aadhaarField) setError(aadhaarField.name as any, { type: "manual", message: "AI validation failed." });
     } finally {
@@ -177,24 +330,40 @@ export function GenericLoanForm<T extends Record<string, any>>({
                       <FormField
                         control={control}
                         name={fieldConfig.name as any}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center">
-                              {fieldConfig.label}
-                              {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                              {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                            </FormLabel>
-                            <FormControl>
+                        render={({ field: { ref, name, onBlur, onChange: rhfNativeOnChange, value } }) => {
+                          if (fieldConfig.type === 'file') {
+                            return (
+                              <FormFileInputPresentation
+                                fieldLabel={fieldConfig.label}
+                                rhfName={name}
+                                rhfRef={ref}
+                                rhfOnBlur={onBlur}
+                                rhfOnChange={(file: File | null) => { 
+                                  rhfNativeOnChange(file); 
+                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); 
+                                }}
+                                selectedFile={selectedFiles[name]}
+                                accept={fieldConfig.accept}
+                                setValue={setValue} 
+                              />
+                            );
+                          }
+                          return (
+                            <FormItem>
+                              <FormLabel className="flex items-center">
+                                {fieldConfig.label}
+                                {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                              </FormLabel>
                               {fieldConfig.type === 'radio' ? (
                                 <RadioGroup
-                                  onValueChange={field.onChange}
-                                  // Pass field.value directly for RadioGroup as it handles undefined fine for defaultValue
-                                  defaultValue={field.value}
+                                  onValueChange={rhfNativeOnChange}
+                                  defaultValue={value}
                                   className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
                                 >
                                   {fieldConfig.options?.map(option => (
                                     <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                                      <FormControl><RadioGroupItem value={option.value} /></FormControl>
+                                      <RadioGroupItem value={option.value} />
                                       <FormLabel className="font-normal">{option.label}</FormLabel>
                                     </FormItem>
                                   ))}
@@ -205,12 +374,11 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                   <Input 
                                     type={fieldConfig.type} 
                                     placeholder={fieldConfig.placeholder} 
-                                    {...field}
-                                    value={field.value ?? ''} // Ensure value is always defined
-                                    onBlur={() => {
-                                      field.onBlur(); 
-                                      if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
-                                    }}
+                                    ref={ref}
+                                    name={name}
+                                    value={value ?? ''}
+                                    onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                                    onChange={rhfNativeOnChange}
                                     className="pl-7"
                                   />
                                 </div>
@@ -218,18 +386,17 @@ export function GenericLoanForm<T extends Record<string, any>>({
                                 <Input 
                                   type={fieldConfig.type} 
                                   placeholder={fieldConfig.placeholder} 
-                                  {...field} 
-                                  value={field.value ?? ''} // Ensure value is always defined
-                                  onBlur={() => {
-                                    field.onBlur(); 
-                                    if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name);
-                                  }}
+                                  ref={ref}
+                                  name={name}
+                                  value={value ?? ''} 
+                                  onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                                  onChange={rhfNativeOnChange}
                                 />
                               )}
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
                       />
                     </FormFieldWrapper>
                   ))}
@@ -255,4 +422,3 @@ export function GenericLoanForm<T extends Record<string, any>>({
     </section>
   );
 }
-

@@ -19,24 +19,49 @@ import { ItrFilingConsultationForm } from '@/components/forms/ItrFilingConsultat
 import { AccountingBookkeepingForm } from '@/components/forms/AccountingBookkeepingForm';
 import { CompanyIncorporationForm } from '@/components/forms/CompanyIncorporationForm';
 import { FinancialAdvisoryForm } from '@/components/forms/FinancialAdvisoryForm';
-import { PartnerLoginOptionsPage } from '@/components/sections/PartnerLoginOptionsPage';
 import { Skeleton } from '@/components/ui/skeleton'; 
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
-export type PageView = 'main' | 'homeLoan' | 'personalLoan' | 'businessLoan' | 'creditCard' | 'governmentSchemes' | 'governmentSchemeApplication' | 'caServices' | 'gstServiceForm' | 'itrFilingConsultationForm' | 'accountingBookkeepingForm' | 'companyIncorporationForm' | 'financialAdvisoryForm' | 'partnerLoginOptions';
+export interface UserData {
+  id: string;
+  fullName: string;
+  email: string;
+  type: 'partner' | 'normal'; 
+}
+
+export type PageView = 
+  'main' | 
+  'homeLoan' | 
+  'personalLoan' | 
+  'businessLoan' | 
+  'creditCard' | 
+  'governmentSchemes' | 
+  'governmentSchemeApplication' | 
+  'caServices' | 
+  'gstServiceForm' | 
+  'itrFilingConsultationForm' | 
+  'accountingBookkeepingForm' | 
+  'companyIncorporationForm' | 
+  'financialAdvisoryForm';
+
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
 export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
-
+// SetCurrentUser is no longer needed here as AuthContext will manage it.
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<PageView>('main');
   const [isClient, setIsClient] = useState(false);
   const [selectedGovernmentScheme, setSelectedGovernmentScheme] = useState<string | undefined>();
   const [otherGovernmentSchemeName, setOtherGovernmentSchemeName] = useState<string | undefined>();
-
+  
+  // currentUser and setCurrentUser are now managed by AuthContext
+  const { isLoading: isAuthLoading } = useAuth(); // Get loading state from AuthContext
 
   useEffect(() => {
     setIsClient(true);
+    // Session checking is now handled by AuthProvider
+
     const handleHashChange = () => {
       const hash = window.location.hash;
       if (hash === '#home' || hash === '#services' || hash === '#calculator' || hash === '#about') {
@@ -57,12 +82,10 @@ export default function Home() {
        }, 100);
     }
 
-
     return () => {
       window.removeEventListener('hashchange', handleHashChange, false);
     };
   }, [currentPage]);
-
 
   useEffect(() => {
     if (currentPage !== 'main') {
@@ -70,7 +93,7 @@ export default function Home() {
     }
   }, [currentPage]);
 
-  if (!isClient) {
+  if (!isClient || isAuthLoading) { // Also consider AuthContext loading state
     return (
       <div className="flex flex-col min-h-screen">
         <Skeleton className="h-16 w-full" />
@@ -96,7 +119,7 @@ export default function Home() {
               <div className="container mx-auto px-6 text-center">
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">About Us</h2>
                 <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-                  RN Fintech is committed to providing transparent, quick, and easy financial solutions. 
+                  RN Fintech is committed to providing transparent, quick, and easy financial solutions.
                   We leverage technology to simplify the loan application process and offer competitive rates.
                   Our mission is to empower individuals and businesses to achieve their financial aspirations.
                 </p>
@@ -123,18 +146,18 @@ export default function Home() {
       case 'creditCard':
         return <CreditCardApplicationForm setCurrentPage={setCurrentPage} />;
       case 'governmentSchemes':
-        return <GovernmentSchemesPage 
-                  setCurrentPage={setCurrentPage} 
+        return <GovernmentSchemesPage
+                  setCurrentPage={setCurrentPage}
                   setSelectedGovernmentScheme={setSelectedGovernmentScheme}
                   setOtherGovernmentSchemeName={setOtherGovernmentSchemeName}
                 />;
       case 'governmentSchemeApplication':
         if (!selectedGovernmentScheme) {
-          setCurrentPage('governmentSchemes'); // Fallback if scheme not selected
+          setCurrentPage('governmentSchemes'); 
           return <p>Please select a scheme first.</p>;
         }
-        return <GovernmentSchemeLoanApplicationForm 
-                  setCurrentPage={setCurrentPage} 
+        return <GovernmentSchemeLoanApplicationForm
+                  setCurrentPage={setCurrentPage}
                   selectedScheme={selectedGovernmentScheme}
                   otherSchemeName={otherGovernmentSchemeName}
                 />;
@@ -150,8 +173,6 @@ export default function Home() {
         return <CompanyIncorporationForm setCurrentPage={setCurrentPage} />;
       case 'financialAdvisoryForm':
         return <FinancialAdvisoryForm setCurrentPage={setCurrentPage} />;
-      case 'partnerLoginOptions':
-        return <PartnerLoginOptionsPage setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }
@@ -159,7 +180,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header setCurrentPage={setCurrentPage} />
+      <Header setCurrentPage={setCurrentPage} /> {/* Header will use AuthContext */}
       <main className="flex-grow">
         {renderPageContent()}
       </main>
@@ -167,4 +188,3 @@ export default function Home() {
     </div>
   );
 }
-

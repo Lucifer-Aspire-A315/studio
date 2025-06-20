@@ -9,15 +9,67 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, BookOpenCheck, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
+import { submitAccountingBookkeepingAction } from '@/app/actions/caServiceActions';
+import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AccountingBookkeepingFormProps {
   setCurrentPage: SetPageView;
 }
+
+interface _FormFileInputProps {
+  fieldLabel: React.ReactNode;
+  rhfName: string;
+  rhfRef: React.Ref<HTMLInputElement>;
+  rhfOnBlur: () => void;
+  rhfOnChange: (file: File | null) => void;
+  selectedFile: File | null | undefined;
+  accept?: string;
+}
+
+const _FormFileInput: React.FC<_FormFileInputProps> = ({
+  fieldLabel,
+  rhfRef,
+  rhfName,
+  rhfOnBlur,
+  rhfOnChange,
+  selectedFile,
+  accept,
+}) => {
+  const { formItemId } = useFormField();
+  return (
+    <FormItem>
+      <FormLabel htmlFor={formItemId} className="flex items-center">
+        <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
+      </FormLabel>
+      <Input
+        id={formItemId}
+        type="file"
+        ref={rhfRef}
+        name={rhfName}
+        onBlur={rhfOnBlur}
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          rhfOnChange(file);
+        }}
+        accept={accept}
+        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+      />
+      {selectedFile && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+        </p>
+      )}
+      <FormMessage />
+    </FormItem>
+  );
+};
+
 
 const businessTypeOptions = [
   { value: "proprietorship", label: "Proprietorship" },
@@ -38,7 +90,7 @@ const servicesRequiredOptions = [
 ] as const;
 
 
-const documentFields = [
+const documentFieldsConfig = [
     { name: "documentUploads.panCardBusinessOwner", label: "PAN Card of Business/Owner" },
     { name: "documentUploads.gstCertificate", label: "GST Certificate (if available)" },
     { name: "documentUploads.previousYearFinancials", label: "Previous Year Financial Statements" },
@@ -52,6 +104,9 @@ const documentFields = [
 export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeepingFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth();
+
 
   const defaultValues: AccountingBookkeepingFormData = {
     applicantDetails: {
@@ -75,14 +130,14 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
       otherAccountingServiceDetail: '',
     },
     documentUploads: {
-        panCardBusinessOwner: '',
-        gstCertificate: '',
-        previousYearFinancials: '',
-        bankStatement: '',
-        invoices: '',
-        payrollData: '',
-        tdsTaxDetails: '',
-        otherSupportingDocuments: '',
+        panCardBusinessOwner: undefined,
+        gstCertificate: undefined,
+        previousYearFinancials: undefined,
+        bankStatement: undefined,
+        invoices: undefined,
+        payrollData: undefined,
+        tdsTaxDetails: undefined,
+        otherSupportingDocuments: undefined,
     }
   };
 
@@ -91,20 +146,88 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
     defaultValues,
   });
 
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, reset, setError: setFormError, setValue } = form;
 
   const watchBusinessType = watch("applicantDetails.businessType");
   const watchOtherService = watch("servicesRequired.otherAccountingService");
 
   async function onSubmit(data: AccountingBookkeepingFormData) {
     setIsSubmitting(true);
-    console.log("Accounting & Bookkeeping Service Application Data:", data);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({
-      title: "Service Application Submitted!",
-      description: "Your application for Accounting & Bookkeeping services has been successfully submitted. We will contact you shortly.",
-    });
-    setIsSubmitting(false);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const dataToSubmit = { ...data };
+
+    try {
+      const documentUploadPromises = Object.entries(data.documentUploads || {})
+        .filter(([, file]) => file instanceof File)
+        .map(async ([key, file]) => {
+          if (file instanceof File) {
+            toast({ title: `Uploading ${key}...`, description: "Please wait." });
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name);
+            formData.append('fileType', file.type);
+            const uploadResult = await uploadFileAction(formData);
+            if (uploadResult.success && uploadResult.url) {
+              toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
+              return { key, url: uploadResult.url };
+            } else {
+              // This error message is now more detailed if it's a Firebase Storage permission issue
+              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
+            }
+          }
+          return null;
+        });
+
+      const uploadedDocuments = await Promise.all(documentUploadPromises);
+      
+      const updatedDocumentUploads = { ...dataToSubmit.documentUploads };
+      uploadedDocuments.forEach(doc => {
+        if (doc) {
+          (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
+        }
+      });
+      dataToSubmit.documentUploads = updatedDocumentUploads as any;
+
+      const result = await submitAccountingBookkeepingAction(dataToSubmit); 
+      if (result.success) {
+        toast({
+          title: "Service Application Submitted!",
+          description: result.message,
+        });
+        reset(); 
+        setSelectedFiles({});
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Application Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+      }
+    } catch (error: any) {
+       let description = error.message || "An error occurred while submitting the Accounting & Bookkeeping application.";
+       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
+       }
+       toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: description,
+        duration: 9000, // Longer duration for important error messages
+      });
+      console.error("Error submitting Accounting & Bookkeeping application:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -125,26 +248,26 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
               
               <FormSection title="Applicant Details">
-                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input type="tel" placeholder="10-digit mobile" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><FormControl><Input type="email" placeholder="example@mail.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.businessName" render={({ field }) => (<FormItem><FormLabel>Business Name</FormLabel><FormControl><Input placeholder="Your Company Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><Input placeholder="Full Name" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><Input type="tel" placeholder="10-digit mobile" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><Input type="email" placeholder="example@mail.com" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.businessName" render={({ field }) => (<FormItem><FormLabel>Business Name</FormLabel><Input placeholder="Your Company Name" {...field} /><FormMessage /></FormItem>)} />
                 <FormField control={control} name="applicantDetails.businessType" render={({ field }) => (
-                    <FormItem><FormLabel>Business Type</FormLabel><FormControl>
+                    <FormItem><FormLabel>Business Type</FormLabel>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-x-4 gap-y-2">
                             {businessTypeOptions.map(opt => (
                                 <FormItem key={opt.value} className="flex items-center space-x-2">
-                                    <FormControl><RadioGroupItem value={opt.value} /></FormControl>
+                                    <RadioGroupItem value={opt.value} />
                                     <FormLabel className="font-normal">{opt.label}</FormLabel>
                                 </FormItem>
                             ))}
-                        </RadioGroup></FormControl><FormMessage />
+                        </RadioGroup><FormMessage />
                     </FormItem>)} />
                 {watchBusinessType === "other" && (
-                  <FormField control={control} name="applicantDetails.otherBusinessTypeDetail" render={({ field }) => (<FormItem><FormLabel>Specify Other Business Type</FormLabel><FormControl><Input placeholder="Specify type" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                  <FormField control={control} name="applicantDetails.otherBusinessTypeDetail" render={({ field }) => (<FormItem><FormLabel>Specify Other Business Type</FormLabel><Input placeholder="Specify type" {...field} /><FormMessage /></FormItem>)} />
                 )}
-                <FormField control={control} name="applicantDetails.natureOfBusiness" render={({ field }) => (<FormItem><FormLabel>Nature of Business</FormLabel><FormControl><Input placeholder="e.g., Manufacturing, Retail, Service" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.cityAndState" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>City & State</FormLabel><FormControl><Input placeholder="e.g., Mumbai, Maharashtra" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.natureOfBusiness" render={({ field }) => (<FormItem><FormLabel>Nature of Business</FormLabel><Input placeholder="e.g., Manufacturing, Retail, Service" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.cityAndState" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>City & State</FormLabel><Input placeholder="e.g., Mumbai, Maharashtra" {...field} /><FormMessage /></FormItem>)} />
               </FormSection>
 
               <FormSection title="Services Required" subtitle="Select all that apply">
@@ -157,12 +280,7 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
                                 name={service.name}
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         <FormLabel className="font-normal leading-snug">
                                             {service.label}
                                         </FormLabel>
@@ -176,9 +294,7 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
                                 name="servicesRequired.otherAccountingServiceDetail"
                                 render={({ field }) => (
                                     <FormItem className="mt-2">
-                                        <FormLabel>Specify Other Service</FormLabel>
-                                        <FormControl><Input placeholder="Details for other service" {...field} /></FormControl>
-                                        <FormMessage />
+                                        <FormLabel>Specify Other Service</FormLabel><Input placeholder="Details for other service" {...field} /><FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -189,28 +305,25 @@ export function AccountingBookkeepingForm({ setCurrentPage }: AccountingBookkeep
               </FormSection>
 
               <FormSection title="Upload Required Documents" subtitle="Accepted File Types: PDF, Excel, JPG, PNG. Max File Size: 5 MB per document.">
-                {documentFields.map(docField => (
+                {documentFieldsConfig.map(docField => (
                   <FormFieldWrapper key={docField.name} className="md:col-span-2">
                     <FormField
                       control={control}
-                      name={docField.name as any}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center">
-                            <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {docField.label}
-                          </FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="text" 
-                              placeholder="Click to upload (filename placeholder)" 
-                              {...field} 
-                              readOnly 
-                              onClick={() => toast({title: "File Upload", description: "Actual file upload functionality is not yet implemented. This is a placeholder."})}
-                              className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      name={docField.name as keyof AccountingBookkeepingFormData['documentUploads']}
+                      render={({ field: { ref, name, onBlur, onChange: rhfOnChange } }) => (
+                        <_FormFileInput
+                          fieldLabel={docField.label}
+                          rhfName={name}
+                          rhfRef={ref}
+                          rhfOnBlur={onBlur}
+                          rhfOnChange={(file) => {
+                            rhfOnChange(file);
+                            setSelectedFiles(prev => ({ ...prev, [name]: file }));
+                            setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
+                          }}
+                          selectedFile={selectedFiles[name]}
+                          accept=".pdf,.xls,.xlsx,.jpg,.jpeg,.png"
+                        />
                       )}
                     />
                   </FormFieldWrapper>

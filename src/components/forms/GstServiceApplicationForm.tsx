@@ -9,15 +9,67 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ReceiptText, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView } from '@/app/page';
+import { submitGstServiceApplicationAction } from '@/app/actions/caServiceActions';
+import { uploadFileAction } from '@/app/actions/fileUploadActions';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface GstServiceApplicationFormProps {
   setCurrentPage: SetPageView;
 }
+
+interface _FormFileInputProps {
+  fieldLabel: React.ReactNode;
+  rhfName: string;
+  rhfRef: React.Ref<HTMLInputElement>;
+  rhfOnBlur: () => void;
+  rhfOnChange: (file: File | null) => void;
+  selectedFile: File | null | undefined;
+  accept?: string;
+}
+
+const _FormFileInput: React.FC<_FormFileInputProps> = ({
+  fieldLabel,
+  rhfRef,
+  rhfName,
+  rhfOnBlur,
+  rhfOnChange,
+  selectedFile,
+  accept,
+}) => {
+  const { formItemId } = useFormField();
+  return (
+    <FormItem>
+      <FormLabel htmlFor={formItemId} className="flex items-center">
+        <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
+      </FormLabel>
+      <Input
+        id={formItemId}
+        type="file"
+        ref={rhfRef}
+        name={rhfName}
+        onBlur={rhfOnBlur}
+        onChange={(e) => {
+          const file = e.target.files?.[0] ?? null;
+          rhfOnChange(file);
+        }}
+        accept={accept}
+        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
+      />
+      {selectedFile && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+        </p>
+      )}
+      <FormMessage />
+    </FormItem>
+  );
+};
+
 
 const businessTypeOptions = [
   { value: "proprietorship", label: "Proprietorship" },
@@ -36,7 +88,7 @@ const gstServiceOptions = [
 ] as const;
 
 
-const documentFields = [
+const documentFieldsConfig = [
     { name: "documentUploads.panCard", label: "PAN Card of Applicant/Business" },
     { name: "documentUploads.aadhaarCard", label: "Aadhaar Card of Proprietor/Director" },
     { name: "documentUploads.passportPhoto", label: "Passport Size Photo (JPG/PNG)" },
@@ -49,6 +101,9 @@ const documentFields = [
 export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicationFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
+  const { currentUser } = useAuth(); // Get currentUser
+
 
   const defaultValues: GstServiceApplicationFormData = {
     applicantDetails: {
@@ -71,13 +126,13 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
       otherGstServiceDetail: '',
     },
     documentUploads: {
-        panCard: '',
-        aadhaarCard: '',
-        passportPhoto: '',
-        businessProof: '',
-        addressProof: '',
-        bankDetails: '',
-        digitalSignature: '',
+        panCard: undefined,
+        aadhaarCard: undefined,
+        passportPhoto: undefined,
+        businessProof: undefined,
+        addressProof: undefined,
+        bankDetails: undefined,
+        digitalSignature: undefined,
     }
   };
 
@@ -86,21 +141,88 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
     defaultValues,
   });
 
-  const { control, handleSubmit, watch } = form;
+  const { control, handleSubmit, watch, reset, setError: setFormError, setValue } = form;
 
   const watchBusinessType = watch("applicantDetails.businessType");
   const watchOtherGstService = watch("gstServiceRequired.otherGstService");
 
   async function onSubmit(data: GstServiceApplicationFormData) {
     setIsSubmitting(true);
-    console.log("GST Service Application Data:", data);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    toast({
-      title: "GST Service Application Submitted!",
-      description: "Your application has been successfully submitted. We will contact you shortly.",
-    });
-    setIsSubmitting(false);
+
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to submit your application.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const dataToSubmit = { ...data };
+
+    try {
+      const documentUploadPromises = Object.entries(data.documentUploads || {})
+        .filter(([, file]) => file instanceof File)
+        .map(async ([key, file]) => {
+          if (file instanceof File) {
+            toast({ title: `Uploading ${key}...`, description: "Please wait." });
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileName', file.name);
+            formData.append('fileType', file.type);
+            const uploadResult = await uploadFileAction(formData);
+            if (uploadResult.success && uploadResult.url) {
+              toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
+              return { key, url: uploadResult.url };
+            } else {
+              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
+            }
+          }
+          return null;
+        });
+
+      const uploadedDocuments = await Promise.all(documentUploadPromises);
+      
+      const updatedDocumentUploads = { ...dataToSubmit.documentUploads };
+      uploadedDocuments.forEach(doc => {
+        if (doc) {
+          (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
+        }
+      });
+      dataToSubmit.documentUploads = updatedDocumentUploads as any;
+
+      const result = await submitGstServiceApplicationAction(dataToSubmit);
+      if (result.success) {
+        toast({
+          title: "GST Service Application Submitted!",
+          description: result.message,
+        });
+        reset(); 
+        setSelectedFiles({});
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Application Failed",
+          description: result.message || "An unknown error occurred.",
+          duration: 9000,
+        });
+      }
+    } catch (error: any) {
+       let description = error.message || "An error occurred while submitting the GST Service application.";
+       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
+           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
+       }
+       toast({
+        variant: "destructive",
+        title: "Submission Error",
+        description: description,
+        duration: 9000, // Longer duration for important error messages
+      });
+      console.error("Error submitting GST Service application:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -121,26 +243,26 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
               
               <FormSection title="Applicant Details">
-                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input type="tel" placeholder="10-digit mobile" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Email ID</FormLabel><FormControl><Input type="email" placeholder="example@mail.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.businessName" render={({ field }) => (<FormItem><FormLabel>Business Name (if any)</FormLabel><FormControl><Input placeholder="Your Company Name" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><Input placeholder="Full Name" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><Input type="tel" placeholder="10-digit mobile" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Email ID</FormLabel><Input type="email" placeholder="example@mail.com" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.businessName" render={({ field }) => (<FormItem><FormLabel>Business Name (if any)</FormLabel><Input placeholder="Your Company Name" {...field} /><FormMessage /></FormItem>)} />
                 <FormField control={control} name="applicantDetails.businessType" render={({ field }) => (
-                    <FormItem><FormLabel>Business Type</FormLabel><FormControl>
+                    <FormItem><FormLabel>Business Type</FormLabel>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-x-4 gap-y-2">
                             {businessTypeOptions.map(opt => (
                                 <FormItem key={opt.value} className="flex items-center space-x-2">
-                                    <FormControl><RadioGroupItem value={opt.value} /></FormControl>
+                                    <RadioGroupItem value={opt.value} />
                                     <FormLabel className="font-normal">{opt.label}</FormLabel>
                                 </FormItem>
                             ))}
-                        </RadioGroup></FormControl><FormMessage />
+                        </RadioGroup><FormMessage />
                     </FormItem>)} />
                 {watchBusinessType === "other" && (
-                  <FormField control={control} name="applicantDetails.otherBusinessTypeDetail" render={({ field }) => (<FormItem><FormLabel>Specify Other Business Type</FormLabel><FormControl><Input placeholder="Specify type" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                  <FormField control={control} name="applicantDetails.otherBusinessTypeDetail" render={({ field }) => (<FormItem><FormLabel>Specify Other Business Type</FormLabel><Input placeholder="Specify type" {...field} /><FormMessage /></FormItem>)} />
                 )}
-                <FormField control={control} name="applicantDetails.natureOfBusiness" render={({ field }) => (<FormItem><FormLabel>Nature of Business</FormLabel><FormControl><Input placeholder="e.g., Manufacturing, Retail" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.stateAndCity" render={({ field }) => (<FormItem><FormLabel>State & City</FormLabel><FormControl><Input placeholder="e.g., Maharashtra, Mumbai" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.natureOfBusiness" render={({ field }) => (<FormItem><FormLabel>Nature of Business</FormLabel><Input placeholder="e.g., Manufacturing, Retail" {...field} /><FormMessage /></FormItem>)} />
+                <FormField control={control} name="applicantDetails.stateAndCity" render={({ field }) => (<FormItem><FormLabel>State & City</FormLabel><Input placeholder="e.g., Maharashtra, Mumbai" {...field} /><FormMessage /></FormItem>)} />
               </FormSection>
 
               <FormSection title="GST Service Required">
@@ -153,12 +275,7 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
                                 name={service.name}
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         <FormLabel className="font-normal leading-snug">
                                             {service.label}
                                         </FormLabel>
@@ -172,9 +289,7 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
                                 name="gstServiceRequired.otherGstServiceDetail"
                                 render={({ field }) => (
                                     <FormItem className="mt-2">
-                                        <FormLabel>Specify Other GST Service</FormLabel>
-                                        <FormControl><Input placeholder="Details for other service" {...field} /></FormControl>
-                                        <FormMessage />
+                                        <FormLabel>Specify Other GST Service</FormLabel><Input placeholder="Details for other service" {...field} /><FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -185,28 +300,25 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
               </FormSection>
 
               <FormSection title="Upload Required Documents" subtitle="Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.">
-                {documentFields.map(docField => (
+                {documentFieldsConfig.map(docField => (
                   <FormFieldWrapper key={docField.name} className="md:col-span-2">
                     <FormField
                       control={control}
-                      name={docField.name as any}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center">
-                            <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {docField.label}
-                          </FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="text" 
-                              placeholder="Click to upload (filename placeholder)" 
-                              {...field} 
-                              readOnly 
-                              onClick={() => toast({title: "File Upload", description: "Actual file upload functionality is not yet implemented. This is a placeholder."})}
-                              className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      name={docField.name as keyof GstServiceApplicationFormData['documentUploads']}
+                      render={({ field: { ref, name, onBlur, onChange: rhfOnChange } }) => (
+                        <_FormFileInput
+                          fieldLabel={docField.label}
+                          rhfName={name}
+                          rhfRef={ref}
+                          rhfOnBlur={onBlur}
+                          rhfOnChange={(file) => {
+                            rhfOnChange(file);
+                            setSelectedFiles(prev => ({ ...prev, [name]: file }));
+                            setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
+                          }}
+                          selectedFile={selectedFiles[name]}
+                          accept=".pdf,.jpg,.jpeg,.png"
+                        />
                       )}
                     />
                   </FormFieldWrapper>
