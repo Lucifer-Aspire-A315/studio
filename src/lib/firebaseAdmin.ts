@@ -2,15 +2,15 @@
 import admin from 'firebase-admin';
 
 // Ensure that NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is available.
-// It's good practice to have this in your .env file.
 const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 let serviceAccountPath: string | undefined = undefined;
 
 console.log('[FirebaseAdmin] Reading environment variables for Admin SDK initialization...');
+console.log(`[FirebaseAdmin] NODE_ENV: ${process.env.NODE_ENV}`);
 
 if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  console.log(`[FirebaseAdmin] Found GOOGLE_APPLICATION_CREDENTIALS: ${serviceAccountPath}`);
+  console.log(`[FirebaseAdmin] Found GOOGLE_APPLICATION_CREDENTIALS: '${serviceAccountPath}' (ensure this path is correct and the file is accessible).`);
 } else {
   console.error('[FirebaseAdmin] CRITICAL FAILURE: GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET. Firebase Admin SDK cannot initialize without it for most environments.');
 }
@@ -39,7 +39,7 @@ if (!admin.apps.length) {
     // If GOOGLE_APPLICATION_CREDENTIALS is not set or points to an invalid file,
     // this initializeApp call will likely throw an error.
     admin.initializeApp(appOptions);
-    console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully.');
+    console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully. Active apps:', admin.apps.length);
   } catch (error: any) {
     console.error('--------------------------------------------------------------------');
     console.error('[FirebaseAdmin] CRITICAL ERROR initializing Firebase Admin SDK:');
@@ -47,15 +47,16 @@ if (!admin.apps.length) {
     if (error.code) {
       console.error('Error Code:', error.code);
     }
-    console.error("Error Stack:", error.stack); // Log the full stack trace
+    console.error("Error Stack (full):", error.stack); // Log the full stack trace
     console.error(
-      '[FirebaseAdmin] Ensure your environment is correctly configured with service account credentials. ' +
-      '1. The GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the ABSOLUTE path of your service account key JSON file. ' +
-      '   Check for typos in the path and ensure the file exists and is readable. ' +
-      '   For Windows paths in .env files, use forward slashes (e.g., "C:/path/to/key.json") or double backslashes (e.g., "C:\\\\path\\\\to\\\\key.json"). ' +
-      '2. The service account key JSON file itself must be valid and not corrupted. ' +
-      '3. Ensure NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is set in your .env file if the Admin SDK cannot infer it (e.g., your-project-id.appspot.com). ' +
-      '4. If deploying, ensure the runtime environment has these variables set and the service account has necessary IAM permissions (like "Storage Object Admin").'
+      '[FirebaseAdmin] PLEASE CHECK THE FOLLOWING:\n' +
+      `1. GOOGLE_APPLICATION_CREDENTIALS: Is it set in your .env.local file? Current value read by server: '${process.env.GOOGLE_APPLICATION_CREDENTIALS || 'NOT SET'}'\n` +
+      '   - Does this path point to your service account key JSON file? (Use forward slashes for paths, e.g., "C:/path/to/key.json")\n' +
+      '   - Does the JSON file actually exist at that path and is it readable by the Node.js process?\n' +
+      '   - Is the JSON file itself valid (not corrupted)?\n' +
+      `2. NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Is it set in your .env.local? Current value: '${storageBucket || 'NOT SET'}' (e.g., 'your-project-id.appspot.com')\n` +
+      '3. Restart your Next.js development server (npm run dev) after making any changes to .env.local.\n' +
+      '4. If deploying, ensure these environment variables are set correctly in your hosting provider\'s settings.'
     );
     if (error.message && error.message.includes('Could not load the default credentials')) {
         console.error('[FirebaseAdmin] Specific Hint: The SDK could not load default credentials. This usually means GOOGLE_APPLICATION_CREDENTIALS is not set, the path is wrong, or the file is invalid.');
@@ -63,8 +64,8 @@ if (!admin.apps.length) {
     if (error.message && error.message.includes('The "credential" argument must be a Credential object')) {
         console.error('[FirebaseAdmin] Specific Hint: This might happen if GOOGLE_APPLICATION_CREDENTIALS points to an invalid file or is not set, and the SDK cannot find other suitable credentials.');
     }
-     if (error.message && error.message.includes('ENOENT')) {
-        console.error(`[FirebaseAdmin] Specific Hint: 'ENOENT' (Error NO ENTry or Error NO ENTity) often means the file path specified in GOOGLE_APPLICATION_CREDENTIALS ('${serviceAccountPath}') was not found. Double-check the path.`);
+     if (error.message && error.message.includes('ENOENT')) { // Error NO ENTity or Error NO ENTry
+        console.error(`[FirebaseAdmin] Specific Hint: 'ENOENT' often means the file path specified in GOOGLE_APPLICATION_CREDENTIALS ('${serviceAccountPath || 'path not read' }') was not found or is not accessible. Double-check the path and file permissions.`);
     }
     console.error('--------------------------------------------------------------------');
   }
@@ -75,14 +76,15 @@ if (!admin.apps.length) {
 let adminDb: admin.firestore.Firestore | null = null;
 let adminStorage: admin.storage.Storage | null = null;
 
-if (admin.apps.length > 0 && admin.apps[0]) { // Check if the first app exists
+if (admin.apps.length > 0 && admin.apps[0]) {
   try {
     adminDb = admin.firestore(admin.apps[0]); // Get firestore from the specific app
     adminStorage = admin.storage(admin.apps[0]); // Get storage from the specific app
     if (adminDb && adminStorage) {
         console.log('[FirebaseAdmin] Firestore and Storage instances obtained successfully from the initialized app.');
     } else {
-        console.error('[FirebaseAdmin] FAILED to obtain Firestore and/or Storage instances even though an admin app exists. adminDb:', adminDb, 'adminStorage:', adminStorage);
+        if (!adminDb) console.error('[FirebaseAdmin] FAILED to obtain Firestore instance.');
+        if (!adminStorage) console.error('[FirebaseAdmin] FAILED to obtain Storage instance.');
     }
   } catch (error: any) {
     console.error('[FirebaseAdmin] Error getting Firestore/Storage instance from an initialized app:', error.message, error.stack);
