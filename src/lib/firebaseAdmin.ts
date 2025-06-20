@@ -2,96 +2,86 @@
 import admin from 'firebase-admin';
 
 // Ensure that NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is available.
-const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-let serviceAccountPath: string | undefined = undefined;
+const storageBucketEnv = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+const gaeCredentialsEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
-console.log('[FirebaseAdmin] Reading environment variables for Admin SDK initialization...');
-console.log(`[FirebaseAdmin] NODE_ENV: ${process.env.NODE_ENV}`);
+console.log('--------------------------------------------------------------------');
+console.log('[FirebaseAdmin] Initializing Firebase Admin SDK...');
+console.log(`[FirebaseAdmin] Current NODE_ENV: ${process.env.NODE_ENV}`);
 
-if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  console.log(`[FirebaseAdmin] Found GOOGLE_APPLICATION_CREDENTIALS: '${serviceAccountPath}' (ensure this path is correct and the file is accessible).`);
+if (gaeCredentialsEnv) {
+  console.log(`[FirebaseAdmin] Found GOOGLE_APPLICATION_CREDENTIALS: '${gaeCredentialsEnv}'`);
+  console.log(`[FirebaseAdmin] Ensure this path is ABSOLUTE, uses forward slashes (e.g., "C:/path/to/key.json"), and the file is accessible and valid.`);
 } else {
-  console.error('[FirebaseAdmin] CRITICAL FAILURE: GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET. Firebase Admin SDK cannot initialize without it for most environments.');
+  console.error('[FirebaseAdmin] CRITICAL FAILURE: GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET.');
+  console.error('[FirebaseAdmin] The Admin SDK needs this to authenticate, especially for local development or non-Google Cloud environments.');
+  console.error('[FirebaseAdmin] Please set it in your .env.local file.');
 }
 
-if (!storageBucket) {
+if (!storageBucketEnv) {
   console.warn(
     '[FirebaseAdmin] WARNING: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is not set in environment variables. ' +
-    'Firebase Admin SDK Storage operations might require it to be explicitly set during initialization ' +
-    'if not automatically inferred by the environment (e.g., outside Google Cloud). ' +
+    'This is required for the Admin SDK to know which storage bucket to use. ' +
     'Please set it in your .env.local file (e.g., NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com).'
   );
 } else {
-  console.log(`[FirebaseAdmin] Found NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${storageBucket}`);
+  console.log(`[FirebaseAdmin] Found NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${storageBucketEnv}`);
 }
 
-if (!admin.apps.length) {
-  console.log('[FirebaseAdmin] No Firebase Admin app initialized yet. Attempting initialization...');
-  try {
-    const appOptions: admin.AppOptions = {};
-    if (storageBucket) {
-      appOptions.storageBucket = storageBucket;
-    }
-
-    // The Firebase Admin SDK will automatically look for GOOGLE_APPLICATION_CREDENTIALS
-    // if no credential option is explicitly passed to initializeApp.
-    // If GOOGLE_APPLICATION_CREDENTIALS is not set or points to an invalid file,
-    // this initializeApp call will likely throw an error.
-    admin.initializeApp(appOptions);
-    console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully. Active apps:', admin.apps.length);
-  } catch (error: any) {
-    console.error('--------------------------------------------------------------------');
-    console.error('[FirebaseAdmin] CRITICAL ERROR initializing Firebase Admin SDK:');
-    console.error('Error Message:', error.message);
-    if (error.code) {
-      console.error('Error Code:', error.code);
-    }
-    console.error("Error Stack (full):", error.stack); // Log the full stack trace
-    console.error(
-      '[FirebaseAdmin] PLEASE CHECK THE FOLLOWING:\n' +
-      `1. GOOGLE_APPLICATION_CREDENTIALS: Is it set in your .env.local file? Current value read by server: '${process.env.GOOGLE_APPLICATION_CREDENTIALS || 'NOT SET'}'\n` +
-      '   - Does this path point to your service account key JSON file? (Use forward slashes for paths, e.g., "C:/path/to/key.json")\n' +
-      '   - Does the JSON file actually exist at that path and is it readable by the Node.js process?\n' +
-      '   - Is the JSON file itself valid (not corrupted)?\n' +
-      `2. NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Is it set in your .env.local? Current value: '${storageBucket || 'NOT SET'}' (e.g., 'your-project-id.appspot.com')\n` +
-      '3. Restart your Next.js development server (npm run dev) after making any changes to .env.local.\n' +
-      '4. If deploying, ensure these environment variables are set correctly in your hosting provider\'s settings.'
-    );
-    if (error.message && error.message.includes('Could not load the default credentials')) {
-        console.error('[FirebaseAdmin] Specific Hint: The SDK could not load default credentials. This usually means GOOGLE_APPLICATION_CREDENTIALS is not set, the path is wrong, or the file is invalid.');
-    }
-    if (error.message && error.message.includes('The "credential" argument must be a Credential object')) {
-        console.error('[FirebaseAdmin] Specific Hint: This might happen if GOOGLE_APPLICATION_CREDENTIALS points to an invalid file or is not set, and the SDK cannot find other suitable credentials.');
-    }
-     if (error.message && error.message.includes('ENOENT')) { // Error NO ENTity or Error NO ENTry
-        console.error(`[FirebaseAdmin] Specific Hint: 'ENOENT' often means the file path specified in GOOGLE_APPLICATION_CREDENTIALS ('${serviceAccountPath || 'path not read' }') was not found or is not accessible. Double-check the path and file permissions.`);
-    }
-    console.error('--------------------------------------------------------------------');
-  }
-} else {
-  console.log('[FirebaseAdmin] Firebase Admin SDK app was already initialized. Found active apps:', admin.apps.length);
-}
-
+let adminApp: admin.app.App | undefined = undefined;
 let adminDb: admin.firestore.Firestore | null = null;
 let adminStorage: admin.storage.Storage | null = null;
 
-if (admin.apps.length > 0 && admin.apps[0]) {
+if (admin.apps.length === 0) {
+  console.log('[FirebaseAdmin] No Firebase Admin app initialized yet. Attempting initialization...');
+  if (gaeCredentialsEnv && storageBucketEnv) {
+    try {
+      adminApp = admin.initializeApp({
+        credential: admin.credential.applicationDefault(), // This will use GOOGLE_APPLICATION_CREDENTIALS
+        storageBucket: storageBucketEnv,
+      });
+      console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully via admin.initializeApp().');
+    } catch (error: any) {
+      console.error('--------------------------------------------------------------------');
+      console.error('[FirebaseAdmin] CRITICAL ERROR during admin.initializeApp():');
+      console.error('Error Message:', error.message);
+      if (error.code) {
+        console.error('Error Code:', error.code);
+      }
+      console.error("Error Stack (full):", error.stack);
+      console.error(
+        '[FirebaseAdmin] TROUBLESHOOTING TIPS:\n' +
+        `1. GOOGLE_APPLICATION_CREDENTIALS: Is the path '${gaeCredentialsEnv}' correct? Does the file exist? Is it a valid JSON key file?\n` +
+        `2. NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Is '${storageBucketEnv}' the correct bucket name?\n` +
+        '3. Have you restarted your Next.js development server (npm run dev) after changing .env.local?\n' +
+        '4. If on Windows, ensure paths use forward slashes (e.g., "C:/path/to/key.json").'
+      );
+      console.error('--------------------------------------------------------------------');
+    }
+  } else {
+    console.error('[FirebaseAdmin] SKIPPING INITIALIZATION: Missing GOOGLE_APPLICATION_CREDENTIALS or NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET.');
+  }
+} else {
+  console.log('[FirebaseAdmin] Firebase Admin SDK app was already initialized. Using existing app.');
+  adminApp = admin.apps[0]; // Use the first initialized app
+}
+
+if (adminApp) {
   try {
-    adminDb = admin.firestore(admin.apps[0]); // Get firestore from the specific app
-    adminStorage = admin.storage(admin.apps[0]); // Get storage from the specific app
+    adminDb = admin.firestore(adminApp);
+    adminStorage = admin.storage(adminApp);
     if (adminDb && adminStorage) {
         console.log('[FirebaseAdmin] Firestore and Storage instances obtained successfully from the initialized app.');
     } else {
-        if (!adminDb) console.error('[FirebaseAdmin] FAILED to obtain Firestore instance.');
-        if (!adminStorage) console.error('[FirebaseAdmin] FAILED to obtain Storage instance.');
+        if (!adminDb) console.error('[FirebaseAdmin] FAILED to obtain Firestore instance from app.');
+        if (!adminStorage) console.error('[FirebaseAdmin] FAILED to obtain Storage instance from app.');
     }
   } catch (error: any) {
-    console.error('[FirebaseAdmin] Error getting Firestore/Storage instance from an initialized app:', error.message, error.stack);
+    console.error('[FirebaseAdmin] Error obtaining Firestore/Storage instance from an initialized app:', error.message, error.stack);
   }
 } else {
-    console.error('[FirebaseAdmin] CRITICAL: No active Firebase Admin app found after initialization attempt. Firestore and Storage instances will be null.');
+    console.error('[FirebaseAdmin] CRITICAL: No active Firebase Admin app available. Firestore and Storage instances will be null.');
 }
-
+console.log('--------------------------------------------------------------------');
 
 export { admin, adminDb, adminStorage };
