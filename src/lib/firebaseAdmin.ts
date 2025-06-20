@@ -40,8 +40,8 @@ if (admin.apps.length === 0) {
   if (gaeCredentialsEnv && storageBucketEnv) {
     try {
       adminApp = admin.initializeApp({
-        credential: admin.credential.applicationDefault(), // This will use GOOGLE_APPLICATION_CREDENTIALS
-        storageBucket: storageBucketEnv, // Make sure this is your-project-id.appspot.com
+        credential: admin.credential.applicationDefault(), 
+        storageBucket: storageBucketEnv, 
       });
       console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully via admin.initializeApp().');
     } catch (error: any) {
@@ -64,11 +64,14 @@ if (admin.apps.length === 0) {
       console.error('--------------------------------------------------------------------');
     }
   } else {
-    console.error('[FirebaseAdmin] SKIPPING INITIALIZATION: Missing GOOGLE_APPLICATION_CREDENTIALS or NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, or both. Please check your .env.local file.');
+    let missingVars = [];
+    if (!gaeCredentialsEnv) missingVars.push("GOOGLE_APPLICATION_CREDENTIALS");
+    if (!storageBucketEnv) missingVars.push("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET");
+    console.error(`[FirebaseAdmin] SKIPPING INITIALIZATION: Missing required environment variable(s): ${missingVars.join(', ')}. Please check your .env.local file.`);
   }
 } else {
   console.log('[FirebaseAdmin] Firebase Admin SDK app was already initialized. Using existing app.');
-  adminApp = admin.apps[0]; // Use the first initialized app
+  adminApp = admin.apps[0]; 
 }
 
 if (adminApp) {
