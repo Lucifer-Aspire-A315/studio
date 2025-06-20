@@ -11,21 +11,24 @@ console.log(`[FirebaseAdmin] Current NODE_ENV: ${process.env.NODE_ENV}`);
 
 if (gaeCredentialsEnv) {
   console.log(`[FirebaseAdmin] Found GOOGLE_APPLICATION_CREDENTIALS: '${gaeCredentialsEnv}'`);
-  console.log(`[FirebaseAdmin] Ensure this path is ABSOLUTE, uses forward slashes (e.g., "C:/path/to/key.json"), and the file is accessible and valid.`);
+  console.log(`[FirebaseAdmin] Ensure this path is ABSOLUTE, uses forward slashes (e.g., "C:/path/to/key.json" or "/path/to/key.json"), and the file is accessible and valid.`);
 } else {
   console.error('[FirebaseAdmin] CRITICAL FAILURE: GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET.');
   console.error('[FirebaseAdmin] The Admin SDK needs this to authenticate, especially for local development or non-Google Cloud environments.');
-  console.error('[FirebaseAdmin] Please set it in your .env.local file.');
+  console.error('[FirebaseAdmin] Please set it in your .env.local file to the ABSOLUTE path of your service account JSON key.');
 }
 
 if (!storageBucketEnv) {
   console.warn(
     '[FirebaseAdmin] WARNING: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is not set in environment variables. ' +
     'This is required for the Admin SDK to know which storage bucket to use. ' +
-    'Please set it in your .env.local file (e.g., NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com).'
+    'Please set it in your .env.local file (e.g., NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com). Without it, Admin Storage might fail.'
   );
 } else {
   console.log(`[FirebaseAdmin] Found NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${storageBucketEnv}`);
+  if (!storageBucketEnv.endsWith('.appspot.com')) {
+    console.warn(`[FirebaseAdmin] WARNING: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET value "${storageBucketEnv}" does not look like a standard Firebase bucket name (expected format: your-project-id.appspot.com). Please verify.`);
+  }
 }
 
 let adminApp: admin.app.App | undefined = undefined;
@@ -38,7 +41,7 @@ if (admin.apps.length === 0) {
     try {
       adminApp = admin.initializeApp({
         credential: admin.credential.applicationDefault(), // This will use GOOGLE_APPLICATION_CREDENTIALS
-        storageBucket: storageBucketEnv,
+        storageBucket: storageBucketEnv, // Make sure this is your-project-id.appspot.com
       });
       console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully via admin.initializeApp().');
     } catch (error: any) {
@@ -51,15 +54,17 @@ if (admin.apps.length === 0) {
       console.error("Error Stack (full):", error.stack);
       console.error(
         '[FirebaseAdmin] TROUBLESHOOTING TIPS:\n' +
-        `1. GOOGLE_APPLICATION_CREDENTIALS: Is the path '${gaeCredentialsEnv}' correct? Does the file exist? Is it a valid JSON key file?\n` +
-        `2. NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Is '${storageBucketEnv}' the correct bucket name?\n` +
+        `1. GOOGLE_APPLICATION_CREDENTIALS: Is the path '${gaeCredentialsEnv}' correct? Does the file exist at this EXACT path? Is it a valid JSON key file?\n` +
+        `   - For Windows, use forward slashes in .env.local: "C:/path/to/your/key.json".\n` +
+        `   - Ensure there are no typos or extra characters in the path.\n` +
+        `2. NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Is '${storageBucketEnv}' the correct bucket name (format: your-project-id.appspot.com)?\n` +
         '3. Have you restarted your Next.js development server (npm run dev) after changing .env.local?\n' +
-        '4. If on Windows, ensure paths use forward slashes (e.g., "C:/path/to/key.json").'
+        '4. Is the service account key JSON file itself valid and not corrupted?'
       );
       console.error('--------------------------------------------------------------------');
     }
   } else {
-    console.error('[FirebaseAdmin] SKIPPING INITIALIZATION: Missing GOOGLE_APPLICATION_CREDENTIALS or NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET.');
+    console.error('[FirebaseAdmin] SKIPPING INITIALIZATION: Missing GOOGLE_APPLICATION_CREDENTIALS or NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, or both. Please check your .env.local file.');
   }
 } else {
   console.log('[FirebaseAdmin] Firebase Admin SDK app was already initialized. Using existing app.');

@@ -39,8 +39,8 @@ const SALT_ROUNDS = 10; // For bcrypt
 async function setSessionCookies(userData: UserData) {
   console.log(`[AuthActions - setSessionCookies] Attempting for user: ${userData.email}. NODE_ENV: ${process.env.NODE_ENV}`);
   try {
-    await cookies().get('any-placeholder-cookie-for-set-prime-get');
-    const initialCookies = cookies().getAll();
+    await cookies().get('any-placeholder-cookie-for-set-prime-get'); // Ensure store is primed
+    const initialCookies = await cookies().getAll(); // Await to ensure store is resolved
     console.log('[AuthActions - setSessionCookies] Initial cookies readable by server action before set:', initialCookies.map(c => ({ name: c.name, valueLength: c.value?.length })));
   } catch (e: any) {
     console.error('[AuthActions - setSessionCookies] Error during robust priming cookie read:', e.message);
@@ -48,10 +48,10 @@ async function setSessionCookies(userData: UserData) {
 
   const cookieOptions: CustomCookieSetOptions = {
     httpOnly: true,
-    secure: true, // Required for SameSite=None; Cloud Workstations is HTTPS
+    secure: true,
     maxAge: SESSION_DURATION,
     path: '/',
-    sameSite: 'none' as const, // Set to 'none' as per browser feedback
+    sameSite: 'none' as const,
   };
   console.log('[AuthActions - setSessionCookies] Effective cookie options:', cookieOptions);
 
@@ -70,7 +70,7 @@ async function setSessionCookies(userData: UserData) {
     console.log(`[AuthActions - setSessionCookies] Attempted to set user_type: ${userData.type}`);
     console.log('[AuthActions - setSessionCookies] All cookie set attempts finished.');
 
-    const finalCookies = cookies().getAll();
+    const finalCookies = await cookies().getAll(); // Await to ensure store is resolved
     console.log('[AuthActions - setSessionCookies] Cookies readable by server action immediately after set attempts:', finalCookies.map(c => ({ name: c.name, valueLength: c.value?.length, options: c })));
 
   } catch (error: any) {
@@ -81,8 +81,8 @@ async function setSessionCookies(userData: UserData) {
 async function clearSessionCookies() {
   console.log(`[AuthActions - clearSessionCookies] Attempting. NODE_ENV: ${process.env.NODE_ENV}`);
    try {
-    await cookies().get('any-placeholder-cookie-for-clear-prime-get');
-    const initialCookies = cookies().getAll();
+    await cookies().get('any-placeholder-cookie-for-clear-prime-get'); // Ensure store is primed
+    const initialCookies = await cookies().getAll(); // Await to ensure store is resolved
     console.log('[AuthActions - clearSessionCookies] Initial cookies readable by server action before clear:', initialCookies.map(c => ({ name: c.name, valueLength: c.value?.length })));
   } catch (e: any) {
     console.error('[AuthActions - clearSessionCookies] Error during robust priming cookie read:', e.message);
@@ -91,8 +91,8 @@ async function clearSessionCookies() {
   const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type'];
   const clearOptions: CustomCookieSetOptions = {
     httpOnly: true,
-    secure: true, // Required for SameSite=None; Cloud Workstations is HTTPS
-    sameSite: 'none' as const, // Set to 'none'
+    secure: true,
+    sameSite: 'none' as const,
     path: '/',
     expires: new Date(0),
     maxAge: 0,
@@ -106,7 +106,7 @@ async function clearSessionCookies() {
     });
     console.log('[AuthActions - clearSessionCookies] All cookie clear attempts finished.');
 
-    const finalCookies = cookies().getAll();
+    const finalCookies = await cookies().getAll(); // Await to ensure store is resolved
     console.log('[AuthActions - clearSessionCookies] Cookies readable by server action immediately after clear attempts:', finalCookies.map(c => ({ name: c.name, valueLength: c.value?.length, options: c })));
 
   } catch (error: any) {
@@ -119,7 +119,7 @@ export async function partnerSignUpAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - partnerSignUpAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-partner-signup');
+    await cookies().get('priming-cookie-partner-signup'); // Ensure store is primed
     const partnersRef = collection(db, 'partners');
     const q = query(partnersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -178,7 +178,7 @@ export async function partnerLoginAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - partnerLoginAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-partner-login');
+    await cookies().get('priming-cookie-partner-login'); // Ensure store is primed
     const partnersRef = collection(db, 'partners');
     const q = query(partnersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -244,7 +244,7 @@ export async function userSignUpAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - userSignUpAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-user-signup');
+    await cookies().get('priming-cookie-user-signup'); // Ensure store is primed
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -303,7 +303,7 @@ export async function userLoginAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - userLoginAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-user-login');
+    await cookies().get('priming-cookie-user-login'); // Ensure store is primed
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -380,14 +380,21 @@ export async function logoutAction(): Promise<AuthServerActionResponse> {
 
 export async function checkSessionAction(): Promise<UserData | null> {
   try {
-    await cookies().get('priming-cookie-for-check-session');
+    // The first await cookies().get() call will prime the store
+    // No need for a separate 'priming-cookie-for-check-session' if we await subsequent gets.
+    
+    const userIdCookie = await cookies().get('user_id');
+    const userNameCookie = await cookies().get('user_name');
+    const userEmailCookie = await cookies().get('user_email');
+    const userTypeCookieVal = await cookies().get('user_type');
+    const sessionTokenCookie = await cookies().get('session_token');
 
-    const userId = cookies().get('user_id')?.value;
-    const userName = cookies().get('user_name')?.value;
-    const userEmail = cookies().get('user_email')?.value;
-    const userTypeCookie = cookies().get('user_type')?.value;
-    const userType = (userTypeCookie === 'partner' || userTypeCookie === 'normal') ? userTypeCookie : undefined;
-    const sessionToken = cookies().get('session_token')?.value;
+    const userId = userIdCookie?.value;
+    const userName = userNameCookie?.value;
+    const userEmail = userEmailCookie?.value;
+    const userType = (userTypeCookieVal?.value === 'partner' || userTypeCookieVal?.value === 'normal') ? userTypeCookieVal.value : undefined;
+    const sessionToken = sessionTokenCookie?.value;
+
 
     if (userId && userName && userEmail && userType && sessionToken) {
       return {
@@ -403,7 +410,6 @@ export async function checkSessionAction(): Promise<UserData | null> {
     return null;
   }
 }
-
     
 
     
