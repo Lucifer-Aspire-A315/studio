@@ -3,19 +3,21 @@ import admin from 'firebase-admin';
 
 // Ensure that NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET is available.
 const storageBucketEnv = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-const gaeCredentialsEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const gaeCredentialsPathEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccountKeyJsonEnv = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_JSON;
 
 console.log('--------------------------------------------------------------------');
 console.log('[FirebaseAdmin] Initializing Firebase Admin SDK...');
 console.log(`[FirebaseAdmin] Current NODE_ENV: ${process.env.NODE_ENV}`);
 
-if (gaeCredentialsEnv) {
-  console.log(`[FirebaseAdmin] Found GOOGLE_APPLICATION_CREDENTIALS: '${gaeCredentialsEnv}'`);
+if (gaeCredentialsPathEnv) {
+  console.log(`[FirebaseAdmin] Found GOOGLE_APPLICATION_CREDENTIALS (path): '${gaeCredentialsPathEnv}'`);
   console.log(`[FirebaseAdmin] Ensure this path is ABSOLUTE, uses forward slashes (e.g., "C:/path/to/key.json" or "/path/to/key.json"), and the file is accessible and valid.`);
+} else if (serviceAccountKeyJsonEnv) {
+  console.log('[FirebaseAdmin] Found FIREBASE_SERVICE_ACCOUNT_KEY_JSON (direct JSON content). This will be used if path-based init fails or is not set.');
 } else {
-  console.error('[FirebaseAdmin] CRITICAL FAILURE: GOOGLE_APPLICATION_CREDENTIALS environment variable is NOT SET.');
-  console.error('[FirebaseAdmin] The Admin SDK needs this to authenticate, especially for local development or non-Google Cloud environments.');
-  console.error('[FirebaseAdmin] Please set it in your .env.local file to the ABSOLUTE path of your service account JSON key.');
+  console.error('[FirebaseAdmin] CRITICAL FAILURE: NEITHER GOOGLE_APPLICATION_CREDENTIALS (file path) NOR FIREBASE_SERVICE_ACCOUNT_KEY_JSON (direct JSON content) environment variable is set.');
+  console.error('[FirebaseAdmin] The Admin SDK needs one of these to authenticate.');
 }
 
 if (!storageBucketEnv) {
@@ -37,13 +39,34 @@ let adminStorage: admin.storage.Storage | null = null;
 
 if (admin.apps.length === 0) {
   console.log('[FirebaseAdmin] No Firebase Admin app initialized yet. Attempting initialization...');
-  if (gaeCredentialsEnv && storageBucketEnv) {
+  if ((gaeCredentialsPathEnv || serviceAccountKeyJsonEnv) && storageBucketEnv) {
     try {
-      adminApp = admin.initializeApp({
-        credential: admin.credential.applicationDefault(), 
-        storageBucket: storageBucketEnv, 
-      });
-      console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully via admin.initializeApp().');
+      let credential;
+      if (gaeCredentialsPathEnv) {
+        console.log('[FirebaseAdmin] Attempting initialization with GOOGLE_APPLICATION_CREDENTIALS (file path).');
+        credential = admin.credential.applicationDefault(); // Tries to load from GOOGLE_APPLICATION_CREDENTIALS path
+      } else if (serviceAccountKeyJsonEnv) {
+        console.log('[FirebaseAdmin] GOOGLE_APPLICATION_CREDENTIALS (file path) not found or invalid, attempting initialization with FIREBASE_SERVICE_ACCOUNT_KEY_JSON (direct JSON content).');
+        try {
+          const serviceAccount = JSON.parse(serviceAccountKeyJsonEnv);
+          credential = admin.credential.cert(serviceAccount);
+        } catch (e: any) {
+          console.error('[FirebaseAdmin] CRITICAL ERROR parsing FIREBASE_SERVICE_ACCOUNT_KEY_JSON:', e.message);
+          throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY_JSON: ${e.message}`);
+        }
+      }
+
+      if (credential) {
+        adminApp = admin.initializeApp({
+          credential,
+          storageBucket: storageBucketEnv,
+        });
+        console.log('[FirebaseAdmin] SUCCESS: Firebase Admin SDK initialized successfully via admin.initializeApp().');
+      } else {
+         // This case should ideally be caught by the top-level check for gaeCredentialsPathEnv or serviceAccountKeyJsonEnv
+        console.error('[FirebaseAdmin] CRITICAL FAILURE: No valid credential method found (neither path nor direct JSON).');
+      }
+
     } catch (error: any) {
       console.error('--------------------------------------------------------------------');
       console.error('[FirebaseAdmin] CRITICAL ERROR during admin.initializeApp():');
@@ -54,24 +77,24 @@ if (admin.apps.length === 0) {
       console.error("Error Stack (full):", error.stack);
       console.error(
         '[FirebaseAdmin] TROUBLESHOOTING TIPS:\n' +
-        `1. GOOGLE_APPLICATION_CREDENTIALS: Is the path '${gaeCredentialsEnv}' correct? Does the file exist at this EXACT path? Is it a valid JSON key file?\n` +
+        `1. GOOGLE_APPLICATION_CREDENTIALS (file path): If used, is the path '${gaeCredentialsPathEnv || 'not set'}' correct? Does the file exist? Is it a valid JSON key file?\n` +
         `   - For Windows, use forward slashes in .env.local: "C:/path/to/your/key.json".\n` +
-        `   - Ensure there are no typos or extra characters in the path.\n` +
-        `2. NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Is '${storageBucketEnv}' the correct bucket name (format: your-project-id.appspot.com)?\n` +
-        '3. Have you restarted your Next.js development server (npm run dev) after changing .env.local?\n' +
-        '4. Is the service account key JSON file itself valid and not corrupted?'
+        `2. FIREBASE_SERVICE_ACCOUNT_KEY_JSON (direct content): If used, is the JSON content valid? Is it properly set in the environment variable?\n`+
+        `3. NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Is '${storageBucketEnv || 'not set'}' the correct bucket name (format: your-project-id.appspot.com)?\n` +
+        '4. Have you restarted your Next.js development server (npm run dev) after changing .env.local or environment variables?\n' +
+        '5. Is the service account key JSON file itself valid and not corrupted (whether used via path or direct content)?'
       );
       console.error('--------------------------------------------------------------------');
     }
   } else {
     let missingVars = [];
-    if (!gaeCredentialsEnv) missingVars.push("GOOGLE_APPLICATION_CREDENTIALS");
+    if (!gaeCredentialsPathEnv && !serviceAccountKeyJsonEnv) missingVars.push("GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT_KEY_JSON");
     if (!storageBucketEnv) missingVars.push("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET");
-    console.error(`[FirebaseAdmin] SKIPPING INITIALIZATION: Missing required environment variable(s): ${missingVars.join(', ')}. Please check your .env.local file.`);
+    console.error(`[FirebaseAdmin] SKIPPING INITIALIZATION: Missing required environment variable(s): ${missingVars.join(', ')}. Please check your .env.local file or environment settings.`);
   }
 } else {
   console.log('[FirebaseAdmin] Firebase Admin SDK app was already initialized. Using existing app.');
-  adminApp = admin.apps[0]; 
+  adminApp = admin.apps[0];
 }
 
 if (adminApp) {
@@ -93,3 +116,5 @@ if (adminApp) {
 console.log('--------------------------------------------------------------------');
 
 export { admin, adminDb, adminStorage };
+
+    
