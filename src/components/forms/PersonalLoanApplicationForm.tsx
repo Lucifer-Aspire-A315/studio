@@ -6,6 +6,7 @@ import { User } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { PersonalLoanApplicationSchema, type PersonalLoanApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
+import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface PersonalLoanApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -20,7 +21,7 @@ const personalLoanSections = [
       { name: "applicantDetails.dob", label: "Date of Birth", type: "date" },
       { name: "applicantDetails.mobile", label: "Mobile Number", type: "tel", placeholder: "10-digit mobile" },
       { name: "applicantDetails.email", label: "Email ID", type: "email", placeholder: "example@mail.com" },
-      { name: "applicantDetails.residentialAddress", label: "Current Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
+      { name: "applicantDetails.residentialAddress", label: "Current Address", type: "textarea", placeholder: "Enter your current full address", colSpan: 2 },
       { name: "applicantDetails.pan", label: "PAN Number", type: "text", placeholder: "ABCDE1234F", isPAN: true },
       { name: "applicantDetails.aadhaar", label: "Aadhaar Number", type: "text", placeholder: "123456789012", isAadhaar: true },
     ]
@@ -120,7 +121,8 @@ export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanAppl
       schema={PersonalLoanApplicationSchema}
       defaultValues={defaultValues}
       sections={personalLoanSections}
-      loanType="Personal Loan"
+      submitAction={(data) => submitLoanApplicationAction(data, 'Personal Loan')}
+      submitButtonText="Submit Personal Loan Application"
     />
   );
 }

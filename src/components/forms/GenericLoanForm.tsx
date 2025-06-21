@@ -11,17 +11,19 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { validateIdentificationDetails, type ValidateIdentificationDetailsOutput } from '@/ai/flows/validate-identification-details';
-import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 import { ArrowLeft, Loader2, Info, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
-import type { SetPageView } from '@/app/page';
+import type { PageView, SetPageView } from '@/app/page';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
 import { useAuth } from '@/contexts/AuthContext';
+import { Textarea } from '../ui/textarea';
+
+// --- TYPE DEFINITIONS ---
 
 interface FieldConfig {
   name: string;
-  label: string; 
-  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file';
+  label: React.ReactNode; 
+  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'radio' | 'file' | 'textarea';
   placeholder?: string;
   options?: { value: string; label: string }[];
   isPAN?: boolean;
@@ -29,7 +31,8 @@ interface FieldConfig {
   prefix?: string; 
   colSpan?: 1 | 2;
   accept?: string;
-  dependsOn?: { field: string; value: string };
+  dependsOn?: { field: string; value: any };
+  rows?: number;
 }
 
 interface SectionConfig {
@@ -38,26 +41,40 @@ interface SectionConfig {
   fields: FieldConfig[];
 }
 
+interface ServerActionResponse {
+  success: boolean;
+  message: string; 
+  applicationId?: string;
+  errors?: Record<string, string[]>;
+}
+
+interface GenericLoanFormProps<T extends Record<string, any>> {
+  setCurrentPage: SetPageView;
+  backPage?: PageView;
+  formTitle: string;
+  formSubtitle?: string;
+  formIcon?: React.ReactNode;
+  schema: ZodType<T, ZodTypeDef, T>;
+  defaultValues: T;
+  sections: SectionConfig[];
+  submitAction: (data: T) => Promise<ServerActionResponse>;
+  submitButtonText?: string;
+}
+
+// --- FILE INPUT COMPONENT ---
+
 interface FormFileInputPresentationProps {
-  fieldLabel: string;
+  fieldLabel: React.ReactNode;
   rhfName: string; 
   rhfRef: React.Ref<HTMLInputElement>;
   rhfOnBlur: () => void;
   rhfOnChange: (file: File | null) => void;
   selectedFile: File | null | undefined;
   accept?: string;
-  setValue: (name: string, value: any, options?: Partial<{ shouldValidate: boolean, shouldDirty: boolean }>) => void;
 }
 
 const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
-  fieldLabel,
-  rhfName,
-  rhfRef,
-  rhfOnBlur,
-  rhfOnChange,
-  selectedFile,
-  accept,
-  setValue,
+  fieldLabel, rhfName, rhfRef, rhfOnBlur, rhfOnChange, selectedFile, accept
 }) => {
   const { formItemId } = useFormField(); 
   return (
@@ -66,16 +83,9 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
         <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
       </FormLabel>
       <Input
-        id={formItemId} 
-        type="file"
-        ref={rhfRef}
-        name={rhfName}
+        id={formItemId} type="file" ref={rhfRef} name={rhfName}
         onBlur={rhfOnBlur}
-        onChange={(e) => {
-          const file = e.target.files?.[0] ?? null;
-          rhfOnChange(file); 
-          setValue(rhfName, file, { shouldValidate: true, shouldDirty: true }); 
-        }}
+        onChange={(e) => rhfOnChange(e.target.files?.[0] ?? null)}
         accept={accept || ".pdf,.jpg,.jpeg,.png"}
         className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
       />
@@ -90,26 +100,19 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
 };
 
 
-interface GenericLoanFormProps<T extends Record<string, any>> {
-  setCurrentPage: SetPageView;
-  formTitle: string;
-  formSubtitle?: string;
-  formIcon?: React.ReactNode;
-  schema: ZodType<T, ZodTypeDef, T>;
-  defaultValues: T;
-  sections: SectionConfig[];
-  loanType: string; 
-}
+// --- GENERIC FORM COMPONENT ---
 
 export function GenericLoanForm<TData extends Record<string, any>>({ 
   setCurrentPage, 
+  backPage = 'main',
   formTitle, 
   formSubtitle, 
   formIcon,
   schema, 
   defaultValues, 
   sections,
-  loanType,
+  submitAction,
+  submitButtonText = "Submit Application"
 }: GenericLoanFormProps<TData>) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,145 +121,85 @@ export function GenericLoanForm<TData extends Record<string, any>>({
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
   const { currentUser } = useAuth();
 
-
   const form = useForm<TData>({
     resolver: zodResolver(schema),
     defaultValues,
+    mode: 'onTouched',
   });
 
   const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset, setValue, watch } = form;
+  
+  const getNestedValue = (obj: any, path: string) => path.split('.').reduce((o, i) => (o ? o[i] : undefined), obj);
+  
+  const getFirstDocumentUploadsKey = (): string | null => {
+    for (const section of sections) {
+        for (const field of section.fields) {
+            if (field.type === 'file') {
+                return field.name.split('.')[0];
+            }
+        }
+    }
+    return null;
+  };
+
 
   async function onSubmit(data: TData) {
     setIsSubmitting(true);
 
     if (!currentUser) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Required",
-        description: "Please log in to submit your application.",
-      });
+      toast({ variant: "destructive", title: "Authentication Required", description: "Please log in to submit your application." });
       setIsSubmitting(false);
       return;
     }
 
-    const payloadForServer = { ...data };
-
-    console.log(`[GenericLoanForm - ${loanType}] Initial data from RHF for submission:`, JSON.parse(JSON.stringify(data)));
+    const payloadForServer = JSON.parse(JSON.stringify(data));
 
     try {
-      const documentUploadSections = sections.filter(section => 
-        section.fields.some(field => field.type === 'file')
-      );
-
-      let overallDocumentUploadsKey: string | null = null;
-      if (documentUploadSections.length > 0 && documentUploadSections[0].fields.length > 0) {
-         const firstFileFieldName = documentUploadSections[0].fields.find(f => f.type === 'file')?.name;
-         if (firstFileFieldName) {
-            overallDocumentUploadsKey = firstFileFieldName.split('.')[0];
-         }
-      }
+      const documentUploadsKey = getFirstDocumentUploadsKey();
       
-      if (overallDocumentUploadsKey && payloadForServer[overallDocumentUploadsKey] && typeof payloadForServer[overallDocumentUploadsKey] === 'object') {
-        const documentFieldsConfig = sections.flatMap(s => s.fields).filter(f => f.name.startsWith(overallDocumentUploadsKey + "."));
-        
-        const fileUploadPromises: Promise<{ key: string, url: string } | null>[] = [];
-        
-        const serverReadyDocumentUploads: Record<string, string | undefined | null> = {};
-
-        for (const fieldConfig of documentFieldsConfig) {
-          const fieldKeyInForm = fieldConfig.name; 
-          const simpleKey = fieldKeyInForm.substring(overallDocumentUploadsKey.length + 1); 
-          
-          const fieldValue = getValues(fieldKeyInForm as any); 
-
-          if (fieldValue instanceof File) {
-            fileUploadPromises.push(
-              (async () => {
-                console.log(`[GenericLoanForm - ${loanType}] Uploading file for key: ${simpleKey}, Name: ${fieldValue.name}, Size: ${fieldValue.size}`);
-                toast({ title: `Uploading ${simpleKey}...`, description: "Please wait." });
-                const formDataForUpload = new FormData();
-                formDataForUpload.append('file', fieldValue);
-                formDataForUpload.append('fileName', fieldValue.name);
-                formDataForUpload.append('fileType', fieldValue.type);
-                const uploadResult = await uploadFileAction(formDataForUpload);
-                if (uploadResult.success && uploadResult.url) {
-                  toast({ title: `${simpleKey} uploaded!`, description: `URL: ${uploadResult.url}` });
-                  return { key: simpleKey, url: uploadResult.url };
-                } else {
-                  console.error(`[GenericLoanForm - ${loanType}] Failed to upload ${simpleKey}: ${uploadResult.error}`);
-                  throw new Error(`Failed to upload ${simpleKey}: ${uploadResult.error}`);
-                }
-              })()
-            );
-          } else if (typeof fieldValue === 'string' && fieldValue.startsWith('http')) {
-            serverReadyDocumentUploads[simpleKey] = fieldValue;
-          } else if (fieldValue === null || fieldValue === undefined) {
-            serverReadyDocumentUploads[simpleKey] = fieldValue;
-          } else if (fieldValue) { 
-            console.warn(`[GenericLoanForm - ${loanType}] Unexpected type for document field ${fieldKeyInForm}: ${typeof fieldValue}. Value:`, fieldValue, ". Field will be omitted from final payload if not string URL.");
-            if (typeof fieldValue === 'string') {
-                 serverReadyDocumentUploads[simpleKey] = fieldValue;
+      if (documentUploadsKey && payloadForServer[documentUploadsKey] && typeof payloadForServer[documentUploadsKey] === 'object') {
+        const uploadPromises = Object.entries(data[documentUploadsKey] as Record<string, any>)
+          .filter(([, file]) => file instanceof File)
+          .map(async ([key, file]) => {
+            if (file instanceof File) {
+              toast({ title: `Uploading ${key}...`, description: "Please wait." });
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('fileName', file.name);
+              const uploadResult = await uploadFileAction(formData);
+              if (uploadResult.success && uploadResult.url) {
+                return { key, url: uploadResult.url };
+              }
+              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
             }
-          }
-        }
+            return null;
+          });
         
-        const uploadedDocuments = await Promise.all(fileUploadPromises);
+        const uploadedDocuments = await Promise.all(uploadPromises);
+        
         uploadedDocuments.forEach(doc => {
-          if (doc) { 
-            serverReadyDocumentUploads[doc.key] = doc.url;
-          }
+            if (doc) {
+                payloadForServer[documentUploadsKey][doc.key] = doc.url;
+            }
         });
-        
-        payloadForServer[overallDocumentUploadsKey] = serverReadyDocumentUploads;
       }
       
-      console.log(`[GenericLoanForm - ${loanType}] Data prepared for server action (URLs for files):`, JSON.parse(JSON.stringify(payloadForServer)));
-      
-      try {
-        JSON.parse(JSON.stringify(payloadForServer)); 
-      } catch (e: any) {
-        console.error(`[GenericLoanForm - ${loanType}] payloadForServer IS NOT serializable AFTER file processing. Error:`, e.message, "Problematic Payload was:", payloadForServer);
-        toast({ variant: "destructive", title: "Client Data Error", description: "Form data contains non-serializable fields after upload. Check console for details.", duration: 9000 });
-        setIsSubmitting(false);
-        return; 
-      }
+      const result = await submitAction(payloadForServer);
 
-      const result = await submitLoanApplicationAction(payloadForServer, loanType);
       if (result.success) {
-        toast({
-          title: `${loanType} Application Submitted!`,
-          description: result.message,
-        });
+        toast({ title: "Application Submitted!", description: result.message });
         reset(); 
         setSelectedFiles({});
       } else {
-        toast({
-          variant: "destructive",
-          title: `${loanType} Application Failed`,
-          description: result.message || "An unknown error occurred.",
-          duration: 9000,
-        });
+        toast({ variant: "destructive", title: "Application Failed", description: result.message || "An unknown error occurred.", duration: 9000 });
         if (result.errors) {
           Object.entries(result.errors).forEach(([fieldName, errorMessages]) => {
-            setError(fieldName as any, {
-              type: 'manual',
-              message: (errorMessages as string[]).join(', '),
-            });
+            setError(fieldName as any, { type: 'manual', message: (errorMessages as string[]).join(', ') });
           });
         }
       }
     } catch (error: any) {
-      let description = error.message || `An error occurred while submitting the ${loanType.toLowerCase()} application.`;
-      if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
-        description = `File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: ${error.message}`;
-      }
-      toast({
-        variant: "destructive",
-        title: "Submission Error",
-        description: description,
-        duration: 9000, // Longer duration for important error messages
-      });
-      console.error(`Error submitting ${loanType} application:`, error);
+      toast({ variant: "destructive", title: "Submission Error", description: error.message || "An unexpected error occurred.", duration: 9000 });
     } finally {
       setIsSubmitting(false);
     }
@@ -307,11 +250,87 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     }
   };
 
+  const renderField = (fieldConfig: FieldConfig) => {
+    return (
+      <FormField key={fieldConfig.name} control={control} name={fieldConfig.name as any}
+        render={({ field }) => {
+          switch (fieldConfig.type) {
+            case 'file':
+              return (
+                <FormFileInputPresentation
+                  fieldLabel={fieldConfig.label}
+                  rhfName={field.name}
+                  rhfRef={field.ref}
+                  rhfOnBlur={field.onBlur}
+                  rhfOnChange={(file: File | null) => {
+                    setValue(field.name as any, file, { shouldValidate: true, shouldDirty: true });
+                    setSelectedFiles(prev => ({ ...prev, [field.name]: file }));
+                  }}
+                  selectedFile={selectedFiles[field.name]}
+                  accept={fieldConfig.accept}
+                />
+              );
+            case 'radio':
+              return (
+                <FormItem>
+                  <FormLabel>{fieldConfig.label}</FormLabel>
+                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-x-4 gap-y-2">
+                    {fieldConfig.options?.map(opt => (
+                      <FormItem key={opt.value} className="flex items-center space-x-2">
+                        <RadioGroupItem value={opt.value} />
+                        <FormLabel className="font-normal">{opt.label}</FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                  <FormMessage />
+                </FormItem>
+              );
+            case 'textarea':
+                return (
+                    <FormItem>
+                        <FormLabel>{fieldConfig.label}</FormLabel>
+                        <Textarea placeholder={fieldConfig.placeholder} {...field} rows={fieldConfig.rows || 3} />
+                        <FormMessage />
+                    </FormItem>
+                );
+            default:
+              return (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                      {fieldConfig.label}
+                      {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                      {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                  </FormLabel>
+                   {fieldConfig.prefix ? (
+                      <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">{fieldConfig.prefix}</span>
+                      <Input 
+                          type={fieldConfig.type} placeholder={fieldConfig.placeholder} {...field}
+                          value={field.value ?? ''}
+                          onBlur={() => { field.onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                          className="pl-7"
+                      />
+                      </div>
+                  ) : (
+                      <Input 
+                        type={fieldConfig.type} placeholder={fieldConfig.placeholder} {...field}
+                        value={field.value ?? ''} 
+                        onBlur={() => { field.onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                      />
+                  )}
+                  <FormMessage />
+                </FormItem>
+              );
+          }
+        }}
+      />
+    );
+  };
 
   return (
     <section className="bg-secondary py-12 md:py-20">
       <div className="container mx-auto px-4 sm:px-6">
-        <Button variant="ghost" onClick={() => setCurrentPage('main')} className="inline-flex items-center mb-8 text-muted-foreground hover:text-primary">
+        <Button variant="ghost" onClick={() => setCurrentPage(backPage)} className="inline-flex items-center mb-8 text-muted-foreground hover:text-primary">
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Home
         </Button>
@@ -329,100 +348,26 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                 return sections.map((section, sectionIdx) => {
                   const isSectionVisible = section.fields.some(field => {
                     if (!field.dependsOn) return true;
-                    const watchedValue = watch(field.dependsOn.field as any);
+                    const watchedValue = getNestedValue(watch(), field.dependsOn.field);
                     return watchedValue === field.dependsOn.value;
                   });
 
-                  if (!isSectionVisible) {
-                    return null;
-                  }
+                  if (!isSectionVisible) return null;
 
                   visibleSectionCounter++;
-                  const sectionTitle = `${visibleSectionCounter}. ${section.title.replace(/^\d+\.\s*/, '')}`;
+                  const sectionTitle = `${visibleSectionCounter}. ${section.title}`;
 
                   return (
                     <FormSection key={sectionIdx} title={sectionTitle} subtitle={section.subtitle}>
-                      {section.fields.map((fieldConfig) => {
+                      {section.fields.map(fieldConfig => {
                         if (fieldConfig.dependsOn) {
-                            const watchedValue = watch(fieldConfig.dependsOn.field as any);
-                            if (watchedValue !== fieldConfig.dependsOn.value) {
-                                return null;
-                            }
+                          const watchedValue = getNestedValue(watch(), fieldConfig.dependsOn.field);
+                          if (watchedValue !== fieldConfig.dependsOn.value) return null;
                         }
                         return (
-                            <FormFieldWrapper key={fieldConfig.name} className={fieldConfig.colSpan === 2 ? 'md:col-span-2' : ''}>
-                            <FormField
-                                control={control}
-                                name={fieldConfig.name as any}
-                                render={({ field: { ref, name, onBlur, onChange: rhfNativeOnChange, value } }) => {
-                                if (fieldConfig.type === 'file') {
-                                    return (
-                                    <FormFileInputPresentation
-                                        fieldLabel={fieldConfig.label}
-                                        rhfName={name}
-                                        rhfRef={ref}
-                                        rhfOnBlur={onBlur}
-                                        rhfOnChange={(file: File | null) => { 
-                                        rhfNativeOnChange(file); 
-                                        setSelectedFiles(prev => ({ ...prev, [name]: file })); 
-                                        }}
-                                        selectedFile={selectedFiles[name]}
-                                        accept={fieldConfig.accept}
-                                        setValue={setValue} 
-                                    />
-                                    );
-                                }
-                                return (
-                                    <FormItem>
-                                    <FormLabel className="flex items-center">
-                                        {fieldConfig.label}
-                                        {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                                        {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                                    </FormLabel>
-                                    {fieldConfig.type === 'radio' ? (
-                                        <RadioGroup
-                                        onValueChange={rhfNativeOnChange}
-                                        defaultValue={value}
-                                        className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
-                                        >
-                                        {fieldConfig.options?.map(option => (
-                                            <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                                            <RadioGroupItem value={option.value} />
-                                            <FormLabel className="font-normal">{option.label}</FormLabel>
-                                            </FormItem>
-                                        ))}
-                                        </RadioGroup>
-                                    ) : fieldConfig.prefix ? (
-                                        <div className="relative">
-                                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">{fieldConfig.prefix}</span>
-                                        <Input 
-                                            type={fieldConfig.type} 
-                                            placeholder={fieldConfig.placeholder} 
-                                            ref={ref}
-                                            name={name}
-                                            value={value ?? ''}
-                                            onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
-                                            onChange={rhfNativeOnChange}
-                                            className="pl-7"
-                                        />
-                                        </div>
-                                    ) : (
-                                        <Input 
-                                        type={fieldConfig.type} 
-                                        placeholder={fieldConfig.placeholder} 
-                                        ref={ref}
-                                        name={name}
-                                        value={value ?? ''} 
-                                        onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
-                                        onChange={rhfNativeOnChange}
-                                        />
-                                    )}
-                                    <FormMessage />
-                                    </FormItem>
-                                );
-                                }}
-                            />
-                            </FormFieldWrapper>
+                          <FormFieldWrapper key={fieldConfig.name} className={fieldConfig.colSpan === 2 ? 'md:col-span-2' : ''}>
+                            {renderField(fieldConfig)}
+                          </FormFieldWrapper>
                         );
                       })}
                     </FormSection>
@@ -439,7 +384,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
 
               <div className="mt-8 pt-6 border-t border-border">
                 <Button type="submit" className="w-full cta-button" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : `Submit ${loanType} Application`}
+                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : submitButtonText}
                 </Button>
               </div>
             </form>

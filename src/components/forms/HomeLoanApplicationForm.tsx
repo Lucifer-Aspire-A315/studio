@@ -6,6 +6,7 @@ import { Home as HomeIcon } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { HomeLoanApplicationSchema, type HomeLoanApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
+import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface HomeLoanApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -28,7 +29,7 @@ const homeLoanSections = [
     title: "Address Details",
     subtitle: "पते की जानकारी",
     fields: [
-      { name: "addressDetails.residentialAddress", label: "Current Residential Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
+      { name: "addressDetails.residentialAddress", label: "Current Residential Address", type: "textarea", placeholder: "Enter your current full address", colSpan: 2 },
       { 
         name: "addressDetails.isPermanentAddressSame", 
         label: "Is Permanent Address same as Current Address?", 
@@ -36,7 +37,7 @@ const homeLoanSections = [
         options: [{value: "yes", label: "Yes"}, {value: "no", label: "No"}], 
         colSpan: 2
       },
-      { name: "addressDetails.permanentAddress", label: "Permanent Address (if different)", type: "text", placeholder: "Enter your permanent full address", colSpan: 2, dependsOn: { field: "addressDetails.isPermanentAddressSame", value: "no" } },
+      { name: "addressDetails.permanentAddress", label: "Permanent Address (if different)", type: "textarea", placeholder: "Enter your permanent full address", colSpan: 2, dependsOn: { field: "addressDetails.isPermanentAddressSame", value: "no" } },
     ]
   },
   {
@@ -147,7 +148,8 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
       schema={HomeLoanApplicationSchema}
       defaultValues={defaultValues}
       sections={homeLoanSections}
-      loanType="Home Loan"
+      submitAction={(data) => submitLoanApplicationAction(data, 'Home Loan')}
+      submitButtonText="Submit Home Loan Application"
     />
   );
 }

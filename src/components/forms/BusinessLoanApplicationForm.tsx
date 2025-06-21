@@ -6,6 +6,7 @@ import { Briefcase } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { BusinessLoanApplicationSchema, type BusinessLoanApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
+import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface BusinessLoanApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -26,7 +27,7 @@ const businessLoanSections = [
       { name: "businessDetails.otherBusinessType", label: "If Other, specify type (अन्य प्रकार निर्दिष्ट करें)", type: "text", placeholder: "Specify other type", dependsOn: { field: "businessDetails.businessType", value: "other"} },
       { name: "businessDetails.natureOfBusiness", label: "Nature of Business (कारोबार का प्रकार)", type: "text", placeholder: "e.g., Manufacturing, Retail" },
       { name: "businessDetails.businessStartYear", label: "Business Start Year (व्यवसाय शुरू होने का वर्ष)", type: "number", placeholder: "YYYY" },
-      { name: "businessDetails.businessAddress", label: "Business Address", type: "text", placeholder: "Full business address", colSpan: 2 },
+      { name: "businessDetails.businessAddress", label: "Business Address", type: "textarea", placeholder: "Full business address", colSpan: 2 },
       { name: "businessDetails.annualTurnover", label: "Annual Turnover (₹)", type: "number", placeholder: "e.g., 5000000", prefix: "₹" },
       { name: "businessDetails.profitAfterTax", label: "Profit After Tax (कर के बाद लाभ)", type: "number", placeholder: "e.g., 500000", prefix: "₹" },
     ]
@@ -134,7 +135,8 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
       schema={BusinessLoanApplicationSchema}
       defaultValues={defaultValues}
       sections={businessLoanSections}
-      loanType="Business Loan"
+      submitAction={(data) => submitLoanApplicationAction(data, 'Business Loan')}
+      submitButtonText="Submit Business Loan Application"
     />
   );
 }

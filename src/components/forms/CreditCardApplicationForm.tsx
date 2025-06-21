@@ -6,6 +6,7 @@ import { CreditCardIcon } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { CreditCardApplicationSchema, type CreditCardApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
+import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface CreditCardApplicationFormProps {
   setCurrentPage: SetPageView;
@@ -22,7 +23,7 @@ const creditCardSections = [
       { name: "applicantDetails.email", label: "Email ID", type: "email", placeholder: "example@mail.com" },
       { name: "applicantDetails.pan", label: "PAN Number", type: "text", placeholder: "ABCDE1234F", isPAN: true },
       { name: "applicantDetails.aadhaar", label: "Aadhaar Number", type: "text", placeholder: "123456789012", isAadhaar: true },
-      { name: "applicantDetails.residentialAddress", label: "Residential Address", type: "text", placeholder: "Full residential address", colSpan: 2 },
+      { name: "applicantDetails.residentialAddress", label: "Residential Address", type: "textarea", placeholder: "Full residential address", colSpan: 2 },
       { name: "applicantDetails.city", label: "City", type: "text", placeholder: "City" },
       { name: "applicantDetails.pincode", label: "Pincode", type: "text", placeholder: "6-digit Pincode" },
     ]
@@ -69,7 +70,7 @@ const creditCardSections = [
   }
 ];
 
-export function CreditCardApplicationForm({ setCurrentPage }: SetPageView) {
+export function CreditCardApplicationForm({ setCurrentPage }: { setCurrentPage: SetPageView }) {
   const defaultValues: CreditCardApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '', residentialAddress: '', city: '', pincode: '' },
     employmentIncome: { 
@@ -105,7 +106,8 @@ export function CreditCardApplicationForm({ setCurrentPage }: SetPageView) {
       schema={CreditCardApplicationSchema}
       defaultValues={defaultValues}
       sections={creditCardSections}
-      loanType="Credit Card"
+      submitAction={(data) => submitLoanApplicationAction(data, 'Credit Card')}
+      submitButtonText="Submit Credit Card Application"
     />
   );
 }
