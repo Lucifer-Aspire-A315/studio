@@ -347,7 +347,6 @@ export function GenericLoanForm<TData extends Record<string, any>>({
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
               {(() => {
-                let visibleSectionCounter = 0;
                 return sections.map((section, sectionIdx) => {
                   const isSectionVisible = section.fields.some(field => {
                     if (!field.dependsOn) return true;
@@ -357,11 +356,8 @@ export function GenericLoanForm<TData extends Record<string, any>>({
 
                   if (!isSectionVisible) return null;
 
-                  visibleSectionCounter++;
-                  const sectionTitle = `${section.title}`;
-
                   return (
-                    <FormSection key={sectionIdx} title={sectionTitle} subtitle={section.subtitle}>
+                    <FormSection key={sectionIdx} title={section.title} subtitle={section.subtitle}>
                       {section.fields.map(fieldConfig => {
                         if (fieldConfig.dependsOn) {
                           const watchedValue = getNestedValue(watch(), fieldConfig.dependsOn.field);
