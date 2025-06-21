@@ -48,11 +48,11 @@ const personalLoanSections = [
           {value: "home_renovation", label: "Home Renovation"},
           {value: "other", label: "Other"}
         ], colSpan: 2 },
-      { name: "loanDetails.otherPurposeOfLoan", label: "If Other, specify purpose", type: "text", placeholder: "Specify other purpose" },
+      { name: "loanDetails.otherPurposeOfLoan", label: "If Other, specify purpose", type: "text", placeholder: "Specify other purpose", dependsOn: { field: "loanDetails.purposeOfLoan", value: "other" } },
       { name: "loanDetails.loanTenureRequired", label: "Preferred Loan Tenure (in Months)", type: "number", placeholder: "e.g., 36" },
       { name: "loanDetails.hasExistingLoans", label: "Any Existing Loans?", type: "radio", options: [{value: "yes", label: "Yes"}, {value: "no", label: "No"}], colSpan: 2 },
-      { name: "existingLoans.emiAmount", label: "If Yes, EMI (₹)", type: "number", placeholder: "EMI amount", prefix: "₹" },
-      { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text", placeholder: "Bank Name" },
+      { name: "existingLoans.emiAmount", label: "If Yes, EMI (₹)", type: "number", placeholder: "EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text", placeholder: "Bank Name", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
     ]
   },
   {
@@ -117,4 +117,3 @@ export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanAppl
     />
   );
 }
-

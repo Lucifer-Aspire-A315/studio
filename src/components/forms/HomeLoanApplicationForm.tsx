@@ -36,7 +36,7 @@ const homeLoanSections = [
         options: [{value: "no", label: "No"}, {value: "yes", label: "Yes"}], 
         colSpan: 2 as const 
       },
-      { name: "permanentAddress.fullAddress", label: "Permanent Address (if different)", type: "text" as const, placeholder: "Enter your permanent full address", colSpan: 2 as const },
+      { name: "permanentAddress.fullAddress", label: "Permanent Address (if different)", type: "text" as const, placeholder: "Enter your permanent full address", colSpan: 2 as const, dependsOn: { field: "isPermanentAddressDifferent", value: "yes" } },
     ]
   },
   {
@@ -75,9 +75,9 @@ const homeLoanSections = [
     subtitle: "मौजूदा ऋण की जानकारी",
     fields: [
       { name: "hasExistingLoans", label: "Any Existing Loans?", type: "radio" as const, options: [{value: "no", label: "No"}, {value: "yes", label: "Yes"}], colSpan: 2 as const },
-      { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text" as const, placeholder: "Bank Name" },
-      { name: "existingLoans.outstandingAmount", label: "If Yes, Outstanding Amount (₹)", type: "number" as const, placeholder: "Outstanding amount", prefix: "₹" },
-      { name: "existingLoans.emiAmount", label: "If Yes, EMI Amount (₹)", type: "number" as const, placeholder: "EMI amount", prefix: "₹" },
+      { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text" as const, placeholder: "Bank Name", dependsOn: { field: "hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.outstandingAmount", label: "If Yes, Outstanding Amount (₹)", type: "number" as const, placeholder: "Outstanding amount", prefix: "₹", dependsOn: { field: "hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.emiAmount", label: "If Yes, EMI Amount (₹)", type: "number" as const, placeholder: "EMI amount", prefix: "₹", dependsOn: { field: "hasExistingLoans", value: "yes" } },
     ]
   },
   {

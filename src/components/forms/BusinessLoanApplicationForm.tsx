@@ -23,7 +23,7 @@ const businessLoanSections = [
           {value: "pvt_ltd", label: "Pvt. Ltd. Company"},
           {value: "other", label: "Other"}
         ], colSpan: 2 },
-      { name: "businessDetails.otherBusinessType", label: "If Other, specify type (अन्य प्रकार निर्दिष्ट करें)", type: "text", placeholder: "Specify other type" },
+      { name: "businessDetails.otherBusinessType", label: "If Other, specify type (अन्य प्रकार निर्दिष्ट करें)", type: "text", placeholder: "Specify other type", dependsOn: { field: "businessDetails.businessType", value: "other"} },
       { name: "businessDetails.natureOfBusiness", label: "Nature of Business (कारोबार का प्रकार)", type: "text", placeholder: "e.g., Manufacturing, Retail" },
       { name: "businessDetails.businessStartYear", label: "Business Start Year (व्यवसाय शुरू होने का वर्ष)", type: "number", placeholder: "YYYY" },
       { name: "businessDetails.businessAddress", label: "Business Address", type: "text", placeholder: "Full business address", colSpan: 2 },
@@ -55,10 +55,10 @@ const businessLoanSections = [
           {value: "business_expansion", label: "Business Expansion"},
           {value: "other", label: "Other"}
         ], colSpan: 2 },
-      { name: "loanDetails.otherPurposeOfLoan", label: "If Other, specify purpose (अन्य उद्देश्य निर्दिष्ट करें)", type: "text", placeholder: "Specify other purpose" },
+      { name: "loanDetails.otherPurposeOfLoan", label: "If Other, specify purpose (अन्य उद्देश्य निर्दिष्ट करें)", type: "text", placeholder: "Specify other purpose", dependsOn: { field: "loanDetails.purposeOfLoan", value: "other" } },
       { name: "loanDetails.hasExistingLoans", label: "Any Existing Loans? (क्या कोई वर्तमान लोन है?)", type: "radio", options: [{value: "yes", label: "Yes (हाँ)"}, {value: "no", label: "No (नहीं)"}], colSpan: 2 },
-      { name: "loanDetails.existingLoanEMI", label: "If Yes, EMI (ईएमआई)", type: "number", placeholder: "EMI amount", prefix: "₹" },
-      { name: "loanDetails.existingLoanBankName", label: "If Yes, Bank Name (बैंक का नाम)", type: "text", placeholder: "Bank Name" },
+      { name: "loanDetails.existingLoanEMI", label: "If Yes, EMI (ईएमआई)", type: "number", placeholder: "EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+      { name: "loanDetails.existingLoanBankName", label: "If Yes, Bank Name (बैंक का नाम)", type: "text", placeholder: "Bank Name", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
     ]
   },
   {

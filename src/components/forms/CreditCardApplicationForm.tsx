@@ -48,10 +48,10 @@ const creditCardSections = [
           {value: "business", label: "Business Credit Card"},
           {value: "other", label: "Other"}
         ], colSpan: 2 },
-      { name: "creditCardPreferences.otherPreferredCardType", label: "If Other, specify type", type: "text", placeholder: "Specify other card type" },
+      { name: "creditCardPreferences.otherPreferredCardType", label: "If Other, specify type", type: "text", placeholder: "Specify other card type", dependsOn: { field: "creditCardPreferences.preferredCardType", value: "other" } },
       { name: "creditCardPreferences.hasExistingCreditCard", label: "Existing Credit Card?", type: "radio", options: [{value: "yes", label: "Yes"}, {value: "no", label: "No"}], colSpan: 2 },
-      { name: "creditCardPreferences.existingCreditCardIssuer", label: "If Yes, Issuer", type: "text", placeholder: "Card Issuer Name" },
-      { name: "creditCardPreferences.existingCreditCardLimit", label: "If Yes, Limit (₹)", type: "number", placeholder: "e.g., 50000", prefix: "₹" },
+      { name: "creditCardPreferences.existingCreditCardIssuer", label: "If Yes, Issuer", type: "text", placeholder: "Card Issuer Name", dependsOn: { field: "creditCardPreferences.hasExistingCreditCard", value: "yes" } },
+      { name: "creditCardPreferences.existingCreditCardLimit", label: "If Yes, Limit (₹)", type: "number", placeholder: "e.g., 50000", prefix: "₹", dependsOn: { field: "creditCardPreferences.hasExistingCreditCard", value: "yes" } },
     ]
   },
   {

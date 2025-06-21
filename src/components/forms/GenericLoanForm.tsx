@@ -28,7 +28,8 @@ interface FieldConfig {
   isAadhaar?: boolean;
   prefix?: string; 
   colSpan?: 1 | 2;
-  accept?: string; 
+  accept?: string;
+  dependsOn?: { field: string; value: string };
 }
 
 interface SectionConfig {
@@ -123,7 +124,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     defaultValues,
   });
 
-  const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset, setValue } = form;
+  const { control, handleSubmit, getValues, setError, clearErrors, trigger, reset, setValue, watch } = form;
 
   async function onSubmit(data: TData) {
     setIsSubmitting(true);
@@ -325,81 +326,89 @@ export function GenericLoanForm<TData extends Record<string, any>>({
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
               {sections.map((section, sectionIdx) => (
                 <FormSection key={sectionIdx} title={section.title} subtitle={section.subtitle}>
-                  {section.fields.map((fieldConfig) => (
-                    <FormFieldWrapper key={fieldConfig.name} className={fieldConfig.colSpan === 2 ? 'md:col-span-2' : ''}>
-                      <FormField
-                        control={control}
-                        name={fieldConfig.name as any}
-                        render={({ field: { ref, name, onBlur, onChange: rhfNativeOnChange, value } }) => {
-                          if (fieldConfig.type === 'file') {
+                  {section.fields.map((fieldConfig) => {
+                    if (fieldConfig.dependsOn) {
+                        const watchedValue = watch(fieldConfig.dependsOn.field as any);
+                        if (watchedValue !== fieldConfig.dependsOn.value) {
+                            return null;
+                        }
+                    }
+                    return (
+                        <FormFieldWrapper key={fieldConfig.name} className={fieldConfig.colSpan === 2 ? 'md:col-span-2' : ''}>
+                        <FormField
+                            control={control}
+                            name={fieldConfig.name as any}
+                            render={({ field: { ref, name, onBlur, onChange: rhfNativeOnChange, value } }) => {
+                            if (fieldConfig.type === 'file') {
+                                return (
+                                <FormFileInputPresentation
+                                    fieldLabel={fieldConfig.label}
+                                    rhfName={name}
+                                    rhfRef={ref}
+                                    rhfOnBlur={onBlur}
+                                    rhfOnChange={(file: File | null) => { 
+                                    rhfNativeOnChange(file); 
+                                    setSelectedFiles(prev => ({ ...prev, [name]: file })); 
+                                    }}
+                                    selectedFile={selectedFiles[name]}
+                                    accept={fieldConfig.accept}
+                                    setValue={setValue} 
+                                />
+                                );
+                            }
                             return (
-                              <FormFileInputPresentation
-                                fieldLabel={fieldConfig.label}
-                                rhfName={name}
-                                rhfRef={ref}
-                                rhfOnBlur={onBlur}
-                                rhfOnChange={(file: File | null) => { 
-                                  rhfNativeOnChange(file); 
-                                  setSelectedFiles(prev => ({ ...prev, [name]: file })); 
-                                }}
-                                selectedFile={selectedFiles[name]}
-                                accept={fieldConfig.accept}
-                                setValue={setValue} 
-                              />
-                            );
-                          }
-                          return (
-                            <FormItem>
-                              <FormLabel className="flex items-center">
-                                {fieldConfig.label}
-                                {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                                {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                              </FormLabel>
-                              {fieldConfig.type === 'radio' ? (
-                                <RadioGroup
-                                  onValueChange={rhfNativeOnChange}
-                                  defaultValue={value}
-                                  className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
-                                >
-                                  {fieldConfig.options?.map(option => (
-                                    <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                                      <RadioGroupItem value={option.value} />
-                                      <FormLabel className="font-normal">{option.label}</FormLabel>
-                                    </FormItem>
-                                  ))}
-                                </RadioGroup>
-                              ) : fieldConfig.prefix ? (
-                                <div className="relative">
-                                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">{fieldConfig.prefix}</span>
-                                  <Input 
+                                <FormItem>
+                                <FormLabel className="flex items-center">
+                                    {fieldConfig.label}
+                                    {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                    {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                </FormLabel>
+                                {fieldConfig.type === 'radio' ? (
+                                    <RadioGroup
+                                    onValueChange={rhfNativeOnChange}
+                                    defaultValue={value}
+                                    className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
+                                    >
+                                    {fieldConfig.options?.map(option => (
+                                        <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
+                                        <RadioGroupItem value={option.value} />
+                                        <FormLabel className="font-normal">{option.label}</FormLabel>
+                                        </FormItem>
+                                    ))}
+                                    </RadioGroup>
+                                ) : fieldConfig.prefix ? (
+                                    <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">{fieldConfig.prefix}</span>
+                                    <Input 
+                                        type={fieldConfig.type} 
+                                        placeholder={fieldConfig.placeholder} 
+                                        ref={ref}
+                                        name={name}
+                                        value={value ?? ''}
+                                        onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                                        onChange={rhfNativeOnChange}
+                                        className="pl-7"
+                                    />
+                                    </div>
+                                ) : (
+                                    <Input 
                                     type={fieldConfig.type} 
                                     placeholder={fieldConfig.placeholder} 
                                     ref={ref}
                                     name={name}
-                                    value={value ?? ''}
+                                    value={value ?? ''} 
                                     onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
                                     onChange={rhfNativeOnChange}
-                                    className="pl-7"
-                                  />
-                                </div>
-                              ) : (
-                                <Input 
-                                  type={fieldConfig.type} 
-                                  placeholder={fieldConfig.placeholder} 
-                                  ref={ref}
-                                  name={name}
-                                  value={value ?? ''} 
-                                  onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
-                                  onChange={rhfNativeOnChange}
-                                />
-                              )}
-                              <FormMessage />
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    </FormFieldWrapper>
-                  ))}
+                                    />
+                                )}
+                                <FormMessage />
+                                </FormItem>
+                            );
+                            }}
+                        />
+                        </FormFieldWrapper>
+                    );
+                  })}
                 </FormSection>
               ))}
               
