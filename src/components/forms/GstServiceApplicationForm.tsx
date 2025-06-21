@@ -1,110 +1,64 @@
 
 "use client";
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react';
 import { GstServiceApplicationSchema, type GstServiceApplicationFormData } from '@/lib/schemas';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ReceiptText, Loader2, UploadCloud } from 'lucide-react';
-import { FormSection, FormFieldWrapper } from './FormSection';
+import { ReceiptText } from 'lucide-react';
 import type { SetPageView } from '@/app/page';
 import { submitGstServiceApplicationAction } from '@/app/actions/caServiceActions';
-import { uploadFileAction } from '@/app/actions/fileUploadActions';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { GenericCAServiceForm } from './GenericCAServiceForm';
 
 interface GstServiceApplicationFormProps {
   setCurrentPage: SetPageView;
 }
 
-interface _FormFileInputProps {
-  fieldLabel: React.ReactNode;
-  rhfName: string;
-  rhfRef: React.Ref<HTMLInputElement>;
-  rhfOnBlur: () => void;
-  rhfOnChange: (file: File | null) => void;
-  selectedFile: File | null | undefined;
-  accept?: string;
-}
-
-const _FormFileInput: React.FC<_FormFileInputProps> = ({
-  fieldLabel,
-  rhfRef,
-  rhfName,
-  rhfOnBlur,
-  rhfOnChange,
-  selectedFile,
-  accept,
-}) => {
-  const { formItemId } = useFormField();
-  return (
-    <FormItem>
-      <FormLabel htmlFor={formItemId} className="flex items-center">
-        <UploadCloud className="w-5 h-5 mr-2 inline-block text-muted-foreground" /> {fieldLabel}
-      </FormLabel>
-      <Input
-        id={formItemId}
-        type="file"
-        ref={rhfRef}
-        name={rhfName}
-        onBlur={rhfOnBlur}
-        onChange={(e) => {
-          const file = e.target.files?.[0] ?? null;
-          rhfOnChange(file);
-        }}
-        accept={accept}
-        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700"
-      />
-      {selectedFile && (
-        <p className="text-xs text-muted-foreground mt-1">
-          Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
-        </p>
-      )}
-      <FormMessage />
-    </FormItem>
-  );
-};
-
-
-const businessTypeOptions = [
-  { value: "proprietorship", label: "Proprietorship" },
-  { value: "partnership", label: "Partnership" },
-  { value: "pvt_ltd", label: "Pvt Ltd" },
-  { value: "other", label: "Other" }
-];
-
-const gstServiceOptions = [
-  { name: "gstServiceRequired.newGstRegistration", label: "New GST Registration" },
-  { name: "gstServiceRequired.gstReturnFiling", label: "GST Return Filing (Monthly/Quarterly)" },
-  { name: "gstServiceRequired.gstCancellationAmendment", label: "GST Cancellation / Amendment" },
-  { name: "gstServiceRequired.gstAudit", label: "GST Audit" },
-  { name: "gstServiceRequired.gstNoticeHandling", label: "GST Notice Handling" },
-  { name: "gstServiceRequired.otherGstService", label: "Other" },
-] as const;
-
-
-const documentFieldsConfig = [
-    { name: "documentUploads.panCard", label: "PAN Card of Applicant/Business" },
-    { name: "documentUploads.aadhaarCard", label: "Aadhaar Card of Proprietor/Director" },
-    { name: "documentUploads.passportPhoto", label: "Passport Size Photo (JPG/PNG)" },
-    { name: "documentUploads.businessProof", label: "Business Proof (e.g., Shop Act/License)" },
-    { name: "documentUploads.addressProof", label: "Electricity Bill / Rent Agreement (Address Proof)" },
-    { name: "documentUploads.bankDetails", label: "Cancelled Cheque or Bank Passbook (1st page)" },
-    { name: "documentUploads.digitalSignature", label: "Digital Signature (If available)" },
+const gstServiceSections = [
+    {
+        title: "Applicant Details",
+        fields: [
+            { name: "applicantDetails.fullName", label: "Full Name", type: "text", placeholder: "Full Name" },
+            { name: "applicantDetails.mobileNumber", label: "Mobile Number", type: "tel", placeholder: "10-digit mobile" },
+            { name: "applicantDetails.emailId", label: "Email ID", type: "email", placeholder: "example@mail.com", colSpan: 2 },
+            { name: "applicantDetails.businessName", label: "Business Name (if any)", type: "text", placeholder: "Your Company Name" },
+            { name: "applicantDetails.businessType", label: "Business Type", type: "radio", options: [
+                { value: "proprietorship", label: "Proprietorship" },
+                { value: "partnership", label: "Partnership" },
+                { value: "pvt_ltd", label: "Pvt Ltd" },
+                { value: "other", label: "Other" }
+            ]},
+            { name: "applicantDetails.otherBusinessTypeDetail", label: "Specify Other Business Type", type: "text", placeholder: "Specify type", dependsOn: { field: "applicantDetails.businessType", value: "other" } },
+            { name: "applicantDetails.natureOfBusiness", label: "Nature of Business", type: "text", placeholder: "e.g., Manufacturing, Retail" },
+            { name: "applicantDetails.stateAndCity", label: "State & City", type: "text", placeholder: "e.g., Maharashtra, Mumbai" },
+        ]
+    },
+    {
+        title: "GST Service Required",
+        fields: [
+            { name: "gstServiceRequired.newGstRegistration", label: "New GST Registration", type: "checkbox", colSpan: 2 },
+            { name: "gstServiceRequired.gstReturnFiling", label: "GST Return Filing (Monthly/Quarterly)", type: "checkbox", colSpan: 2 },
+            { name: "gstServiceRequired.gstCancellationAmendment", label: "GST Cancellation / Amendment", type: "checkbox", colSpan: 2 },
+            { name: "gstServiceRequired.gstAudit", label: "GST Audit", type: "checkbox", colSpan: 2 },
+            { name: "gstServiceRequired.gstNoticeHandling", label: "GST Notice Handling", type: "checkbox", colSpan: 2 },
+            { name: "gstServiceRequired.otherGstService", label: "Other", type: "checkbox", colSpan: 2 },
+            { name: "gstServiceRequired.otherGstServiceDetail", label: "Specify Other GST Service", type: "text", placeholder: "Details for other service", colSpan: 2, dependsOn: { field: "gstServiceRequired.otherGstService", value: true } },
+        ]
+    },
+    {
+        title: "Upload Required Documents",
+        subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
+        fields: [
+            { name: "documentUploads.panCard", label: "PAN Card of Applicant/Business", type: "file", colSpan: 2 },
+            { name: "documentUploads.aadhaarCard", label: "Aadhaar Card of Proprietor/Director", type: "file", colSpan: 2 },
+            { name: "documentUploads.passportPhoto", label: "Passport Size Photo (JPG/PNG)", type: "file", colSpan: 2 },
+            { name: "documentUploads.businessProof", label: "Business Proof (e.g., Shop Act/License)", type: "file", colSpan: 2 },
+            { name: "documentUploads.addressProof", label: "Electricity Bill / Rent Agreement (Address Proof)", type: "file", colSpan: 2 },
+            { name: "documentUploads.bankDetails", label: "Cancelled Cheque or Bank Passbook (1st page)", type: "file", colSpan: 2 },
+            { name: "documentUploads.digitalSignature", label: "Digital Signature (If available)", type: "file", colSpan: 2 },
+        ]
+    }
 ];
 
 export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicationFormProps) {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
-  const { currentUser } = useAuth(); // Get currentUser
-
-
   const defaultValues: GstServiceApplicationFormData = {
     applicantDetails: {
       fullName: '',
@@ -136,204 +90,17 @@ export function GstServiceApplicationForm({ setCurrentPage }: GstServiceApplicat
     }
   };
 
-  const form = useForm<GstServiceApplicationFormData>({
-    resolver: zodResolver(GstServiceApplicationSchema),
-    defaultValues,
-  });
-
-  const { control, handleSubmit, watch, reset, setError: setFormError, setValue } = form;
-
-  const watchBusinessType = watch("applicantDetails.businessType");
-  const watchOtherGstService = watch("gstServiceRequired.otherGstService");
-
-  async function onSubmit(data: GstServiceApplicationFormData) {
-    setIsSubmitting(true);
-
-    if (!currentUser) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Required",
-        description: "Please log in to submit your application.",
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    const dataToSubmit = { ...data };
-
-    try {
-      const documentUploadPromises = Object.entries(data.documentUploads || {})
-        .filter(([, file]) => file instanceof File)
-        .map(async ([key, file]) => {
-          if (file instanceof File) {
-            toast({ title: `Uploading ${key}...`, description: "Please wait." });
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('fileName', file.name);
-            formData.append('fileType', file.type);
-            const uploadResult = await uploadFileAction(formData);
-            if (uploadResult.success && uploadResult.url) {
-              toast({ title: `${key} uploaded!`, description: `URL: ${uploadResult.url}` });
-              return { key, url: uploadResult.url };
-            } else {
-              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
-            }
-          }
-          return null;
-        });
-
-      const uploadedDocuments = await Promise.all(documentUploadPromises);
-      
-      const updatedDocumentUploads = { ...dataToSubmit.documentUploads };
-      uploadedDocuments.forEach(doc => {
-        if (doc) {
-          (updatedDocumentUploads as Record<string, string | undefined | File | null>)[doc.key] = doc.url;
-        }
-      });
-      dataToSubmit.documentUploads = updatedDocumentUploads as any;
-
-      const result = await submitGstServiceApplicationAction(dataToSubmit);
-      if (result.success) {
-        toast({
-          title: "GST Service Application Submitted!",
-          description: result.message,
-        });
-        reset(); 
-        setSelectedFiles({});
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Application Failed",
-          description: result.message || "An unknown error occurred.",
-          duration: 9000,
-        });
-      }
-    } catch (error: any) {
-       let description = error.message || "An error occurred while submitting the GST Service application.";
-       if (error.message && typeof error.message === 'string' && error.message.includes("Permission denied by Firebase Storage")) {
-           description = "File upload failed: Permission denied by Firebase Storage. Please check your Firebase Storage rules in the Firebase Console. Ensure rules allow writes to user-specific paths (e.g., /uploads/{userId}/filename) when 'request.auth' might be null for server-side client SDK uploads. Consider using Firebase Admin SDK for server uploads for more robust security. Original error: " + error.message;
-       }
-       toast({
-        variant: "destructive",
-        title: "Submission Error",
-        description: description,
-        duration: 9000, // Longer duration for important error messages
-      });
-      console.error("Error submitting GST Service application:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   return (
-    <section className="bg-secondary py-12 md:py-20">
-      <div className="container mx-auto px-4 sm:px-6">
-        <Button variant="ghost" onClick={() => setCurrentPage('caServices')} className="inline-flex items-center mb-8 text-muted-foreground hover:text-primary">
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to CA Services
-        </Button>
-        <div className="max-w-4xl mx-auto bg-card p-6 md:p-10 rounded-2xl shadow-xl">
-          <div className="text-center mb-8">
-            <ReceiptText className="w-12 h-12 mx-auto text-primary mb-2" />
-            <h2 className="text-3xl font-bold text-card-foreground">GST Service Application Form</h2>
-            <p className="text-muted-foreground mt-1">Please fill in the details below to apply for GST related services.</p>
-          </div>
-          
-          <Form {...form}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-              
-              <FormSection title="Applicant Details">
-                <FormField control={control} name="applicantDetails.fullName" render={({ field }) => (<FormItem><FormLabel>Full Name</FormLabel><Input placeholder="Full Name" {...field} /><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><Input type="tel" placeholder="10-digit mobile" {...field} /><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.emailId" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Email ID</FormLabel><Input type="email" placeholder="example@mail.com" {...field} /><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.businessName" render={({ field }) => (<FormItem><FormLabel>Business Name (if any)</FormLabel><Input placeholder="Your Company Name" {...field} /><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.businessType" render={({ field }) => (
-                    <FormItem><FormLabel>Business Type</FormLabel>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-x-4 gap-y-2">
-                            {businessTypeOptions.map(opt => (
-                                <FormItem key={opt.value} className="flex items-center space-x-2">
-                                    <RadioGroupItem value={opt.value} />
-                                    <FormLabel className="font-normal">{opt.label}</FormLabel>
-                                </FormItem>
-                            ))}
-                        </RadioGroup><FormMessage />
-                    </FormItem>)} />
-                {watchBusinessType === "other" && (
-                  <FormField control={control} name="applicantDetails.otherBusinessTypeDetail" render={({ field }) => (<FormItem><FormLabel>Specify Other Business Type</FormLabel><Input placeholder="Specify type" {...field} /><FormMessage /></FormItem>)} />
-                )}
-                <FormField control={control} name="applicantDetails.natureOfBusiness" render={({ field }) => (<FormItem><FormLabel>Nature of Business</FormLabel><Input placeholder="e.g., Manufacturing, Retail" {...field} /><FormMessage /></FormItem>)} />
-                <FormField control={control} name="applicantDetails.stateAndCity" render={({ field }) => (<FormItem><FormLabel>State & City</FormLabel><Input placeholder="e.g., Maharashtra, Mumbai" {...field} /><FormMessage /></FormItem>)} />
-              </FormSection>
-
-              <FormSection title="GST Service Required">
-                <FormFieldWrapper className="md:col-span-2">
-                    <div className="space-y-3">
-                        {gstServiceOptions.map(service => (
-                            <FormField
-                                key={service.name}
-                                control={control}
-                                name={service.name}
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                        <FormLabel className="font-normal leading-snug">
-                                            {service.label}
-                                        </FormLabel>
-                                    </FormItem>
-                                )}
-                            />
-                        ))}
-                        {watchOtherGstService && (
-                            <FormField
-                                control={control}
-                                name="gstServiceRequired.otherGstServiceDetail"
-                                render={({ field }) => (
-                                    <FormItem className="mt-2">
-                                        <FormLabel>Specify Other GST Service</FormLabel><Input placeholder="Details for other service" {...field} /><FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        )}
-                        <FormMessage>{form.formState.errors.gstServiceRequired?.root?.message}</FormMessage>
-                    </div>
-                </FormFieldWrapper>
-              </FormSection>
-
-              <FormSection title="Upload Required Documents" subtitle="Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.">
-                {documentFieldsConfig.map(docField => (
-                  <FormFieldWrapper key={docField.name} className="md:col-span-2">
-                    <FormField
-                      control={control}
-                      name={docField.name as keyof GstServiceApplicationFormData['documentUploads']}
-                      render={({ field: { ref, name, onBlur, onChange: rhfOnChange } }) => (
-                        <_FormFileInput
-                          fieldLabel={docField.label}
-                          rhfName={name}
-                          rhfRef={ref}
-                          rhfOnBlur={onBlur}
-                          rhfOnChange={(file) => {
-                            rhfOnChange(file);
-                            setSelectedFiles(prev => ({ ...prev, [name]: file }));
-                            setValue(name as any, file, { shouldValidate: true, shouldDirty: true });
-                          }}
-                          selectedFile={selectedFiles[name]}
-                          accept=".pdf,.jpg,.jpeg,.png"
-                        />
-                      )}
-                    />
-                  </FormFieldWrapper>
-                ))}
-              </FormSection>
-              
-              <div className="mt-10 pt-6 border-t border-border dark:border-gray-700">
-                <Button type="submit" className="w-full cta-button" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : 'Submit Application'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
-      </div>
-    </section>
+    <GenericCAServiceForm
+      setCurrentPage={setCurrentPage}
+      backPage="caServices"
+      formTitle="GST Service Application Form"
+      formSubtitle="Please fill in the details below to apply for GST related services."
+      formIcon={<ReceiptText className="w-12 h-12 mx-auto text-primary mb-2" />}
+      schema={GstServiceApplicationSchema}
+      defaultValues={defaultValues}
+      sections={gstServiceSections}
+      submitAction={submitGstServiceApplicationAction}
+    />
   );
 }
