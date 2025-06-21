@@ -30,10 +30,12 @@ export default async function ApplicationDetailsPage({ params, searchParams }: A
     <div className="flex flex-col min-h-screen bg-secondary">
       <Header />
       <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
-        <ApplicationDetailsView 
-            applicationData={applicationData}
-            title="Application Details"
-            subtitle={`Viewing details for application ID: ${id}`}
+        <ApplicationDetailsView
+          applicationId={id}
+          applicationData={applicationData}
+          title="Application Details"
+          subtitle={`Viewing details for application ID: ${id}`}
+          isAdmin={false}
         />
       </main>
       <Footer />

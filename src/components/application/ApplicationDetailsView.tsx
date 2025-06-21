@@ -1,17 +1,24 @@
 'use client';
 
+import React, { useState, useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { updateApplicationStatus } from '@/app/actions/adminActions';
+import { useToast } from '@/hooks/use-toast';
+import type { UserApplication } from '@/lib/types';
 
 interface ApplicationDetailsViewProps {
+  applicationId: string;
   applicationData: any;
   title: string;
   subtitle: string;
+  isAdmin?: boolean;
 }
 
 // Helper to format keys for display (e.g., 'fullName' -> 'Full Name')
@@ -34,21 +41,19 @@ const renderValue = (value: any) => {
         href={value}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-primary hover:underline font-medium"
+        className="text-primary hover:underline font-medium break-all"
       >
         {fileName || "View Uploaded File"}
       </Link>
     );
   }
-  // Use a more reliable regex to detect ISO date strings
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
       try {
-          return format(new Date(value), 'PPp'); // Format as date if it looks like one
+          return format(new Date(value), 'PPp');
       } catch {
-          return value; // Fallback to string if formatting fails
+          return value;
       }
   }
-  // This will handle unconverted Firestore timestamp objects { seconds: ..., nanoseconds: ... }
   if (value && typeof value.seconds === 'number' && typeof value.nanoseconds === 'number') {
     try {
       const date = new Date(value.seconds * 1000 + value.nanoseconds / 1000000);
@@ -66,7 +71,6 @@ const renderValue = (value: any) => {
 
 // Recursive component to render nested objects and values
 const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any }) => {
-  // Prevent recursive rendering for timestamp-like objects
   if (typeof itemValue === 'object' && itemValue !== null && !Array.isArray(itemValue) && 'seconds' in itemValue && 'nanoseconds' in itemValue) {
      return (
         <div className="flex flex-col">
@@ -80,11 +84,11 @@ const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any })
     return (
       <div className="col-span-1 md:col-span-2">
         <h4 className="text-md font-semibold text-foreground mt-4 mb-2 border-b pb-1">{formatKey(itemKey)}</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pl-4">
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pl-4">
           {Object.entries(itemValue).map(([key, value]) => (
             <DetailItem key={key} itemKey={key} itemValue={value} />
           ))}
-        </div>
+        </dl>
       </div>
     );
   }
@@ -97,9 +101,14 @@ const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any })
   );
 };
 
+const availableStatuses = ['Submitted', 'In Review', 'Approved', 'Rejected'];
 
-export function ApplicationDetailsView({ applicationData, title, subtitle }: ApplicationDetailsViewProps) {
+export function ApplicationDetailsView({ applicationId, applicationData, title, subtitle, isAdmin = false }: ApplicationDetailsViewProps) {
     const router = useRouter();
+    const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+    const [currentStatus, setCurrentStatus] = useState<string>(applicationData?.status || '');
+    const [selectedStatus, setSelectedStatus] = useState<string>(applicationData?.status || '');
 
     if (!applicationData) {
         return (
@@ -117,16 +126,39 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
             </Card>
         );
     }
-  
-  // Destructure to separate meta fields from form data
+
+    const handleUpdateStatus = () => {
+        if (!selectedStatus || selectedStatus === currentStatus) return;
+
+        startTransition(async () => {
+            const result = await updateApplicationStatus(
+                applicationId, 
+                applicationData.serviceCategory as UserApplication['serviceCategory'], 
+                selectedStatus
+            );
+            if (result.success) {
+                toast({
+                    title: "Status Updated",
+                    description: result.message,
+                });
+                setCurrentStatus(selectedStatus);
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Update Failed",
+                    description: result.message,
+                });
+            }
+        });
+    };
+
   const {
       createdAt,
-      updatedAt, // This will be ignored
+      updatedAt,
       submittedBy,
       ...restOfData
   } = applicationData;
   
-  // Flatten top-level simple properties and group nested objects from the rest of the data
   const topLevelDetails: [string, any][] = [];
   const formSections: [string, any][] = [];
 
@@ -149,7 +181,29 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
         <CardDescription>{subtitle}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Render main form data first */}
+        
+        {isAdmin && (
+            <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-foreground mb-3">Admin Actions</h4>
+                <div className="flex items-center space-x-4">
+                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableStatuses.map(status => (
+                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={handleUpdateStatus} disabled={isPending || selectedStatus === currentStatus}>
+                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Update Status
+                    </Button>
+                </div>
+            </div>
+        )}
+
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             {topLevelDetails.map(([key, value]) => (
                 <DetailItem key={key} itemKey={key} itemValue={value} />
@@ -163,7 +217,6 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
             </div>
         ))}
         
-        {/* Render meta-data like submittedBy and createdAt at the bottom */}
         <div key="metaDataSection">
             <Separator className="my-4" />
              <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
