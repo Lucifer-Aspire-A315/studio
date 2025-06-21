@@ -40,7 +40,8 @@ const renderValue = (value: any) => {
       </Link>
     );
   }
-  if (typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('T')) {
+  // Use a more reliable regex to detect ISO date strings
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
       try {
           return format(new Date(value), 'PPp'); // Format as date if it looks like one
       } catch {
@@ -97,11 +98,24 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
         );
     }
   
+  // Destructure to control rendering order and hide certain fields
+  const {
+      createdAt,
+      updatedAt, // This will be ignored
+      submittedBy,
+      ...restOfData
+  } = applicationData;
+  
   // Flatten top-level simple properties and group nested objects
   const topLevelDetails: [string, any][] = [];
   const formSections: [string, any][] = [];
 
-  Object.entries(applicationData).forEach(([key, value]) => {
+  // Manually add 'Submitted On' to the top of the details
+  if (createdAt) {
+      topLevelDetails.push(['Submitted On', createdAt]);
+  }
+  
+  Object.entries(restOfData).forEach(([key, value]) => {
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           formSections.push([key, value]);
       } else {
@@ -132,6 +146,13 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
                 <DetailItem itemKey={sectionKey} itemValue={sectionValue} />
             </div>
         ))}
+        
+        {submittedBy && (
+            <div key="submittedBySection">
+                <Separator className="my-4" />
+                <DetailItem itemKey="Submitted By" itemValue={submittedBy} />
+            </div>
+        )}
       </CardContent>
     </Card>
   );
