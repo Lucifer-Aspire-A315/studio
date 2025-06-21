@@ -13,7 +13,7 @@ interface CreditCardApplicationFormProps {
 
 const creditCardSections = [
   {
-    title: "1. Applicant Information",
+    title: "Applicant Information",
     subtitle: "व्यक्तिगत जानकारी",
     fields: [
       { name: "applicantDetails.name", label: "Full Name", type: "text", placeholder: "Full Name" },
@@ -28,7 +28,7 @@ const creditCardSections = [
     ]
   },
   {
-    title: "2. Employment / Income Details",
+    title: "Employment / Income Details",
     subtitle: "रोजगार और आय की जानकारी",
     fields: [
       { name: "employmentIncome.employmentType", label: "Occupation Type", type: "radio", options: [{value: "salaried", label: "Salaried"}, {value: "self-employed", label: "Self-Employed / Business"}], colSpan: 2},
@@ -38,7 +38,7 @@ const creditCardSections = [
     ]
   },
   {
-    title: "3. Credit Card Preferences",
+    title: "Credit Card Preferences",
     subtitle: "क्रेडिट कार्ड प्राथमिकताएं",
     fields: [
       { name: "creditCardPreferences.preferredCardType", label: "Preferred Card Type", type: "radio", options: [
@@ -55,7 +55,7 @@ const creditCardSections = [
     ]
   },
   {
-    title: "4. Upload Required Documents",
+    title: "Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
     fields: [
       { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
@@ -69,7 +69,7 @@ const creditCardSections = [
   }
 ];
 
-export function CreditCardApplicationForm({ setCurrentPage }: CreditCardApplicationFormProps) {
+export function CreditCardApplicationForm({ setCurrentPage }: SetPageView) {
   const defaultValues: CreditCardApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '', residentialAddress: '', city: '', pincode: '' },
     employmentIncome: { 

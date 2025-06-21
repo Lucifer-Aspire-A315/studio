@@ -13,7 +13,7 @@ interface HomeLoanApplicationFormProps {
 
 const homeLoanSections = [
   {
-    title: "1. Applicant Information",
+    title: "Applicant Information",
     subtitle: "व्यक्तिगत जानकारी",
     fields: [
       { name: "applicantDetails.name", label: "Full Name", type: "text", placeholder: "Full Name" },
@@ -25,7 +25,7 @@ const homeLoanSections = [
     ]
   },
   {
-    title: "2. Address Details",
+    title: "Address Details",
     subtitle: "पते की जानकारी",
     fields: [
       { name: "addressDetails.residentialAddress", label: "Current Residential Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
@@ -40,7 +40,7 @@ const homeLoanSections = [
     ]
   },
   {
-    title: "3. Employment / Income Details",
+    title: "Employment / Income Details",
     subtitle: "रोजगार और आय की जानकारी",
     fields: [
       { name: "employmentIncome.employmentType", label: "Occupation Type", type: "radio", options: [{value: "salaried", label: "Salaried"}, {value: "self-employed", label: "Self-Employed / Business"}], colSpan: 2},
@@ -50,7 +50,7 @@ const homeLoanSections = [
     ]
   },
   {
-    title: "4. Loan & Property Details",
+    title: "Loan & Property Details",
     subtitle: "ऋण और संपत्ति की जानकारी",
     fields: [
       { name: "loanPropertyDetails.loanAmountRequired", label: "Loan Amount Required (₹)", type: "number", placeholder: "e.g., 2500000", prefix: "₹" },
@@ -72,7 +72,7 @@ const homeLoanSections = [
     ]
   },
   {
-    title: "5. Existing Loan Details",
+    title: "Existing Loan Details",
     subtitle: "मौजूदा ऋण की जानकारी",
     fields: [
       { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text", placeholder: "Bank Name", dependsOn: { field: "loanPropertyDetails.hasExistingLoans", value: "yes" } },
@@ -81,7 +81,7 @@ const homeLoanSections = [
     ]
   },
   {
-    title: "6. Upload Required Documents",
+    title: "Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.",
     fields: [
       { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },

@@ -324,105 +324,111 @@ export function GenericLoanForm<TData extends Record<string, any>>({
           
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-              {sections.map((section, sectionIdx) => {
-                const isSectionVisible = section.fields.some(field => {
-                  if (!field.dependsOn) return true;
-                  const watchedValue = watch(field.dependsOn.field as any);
-                  return watchedValue === field.dependsOn.value;
+              {(() => {
+                let visibleSectionCounter = 0;
+                return sections.map((section, sectionIdx) => {
+                  const isSectionVisible = section.fields.some(field => {
+                    if (!field.dependsOn) return true;
+                    const watchedValue = watch(field.dependsOn.field as any);
+                    return watchedValue === field.dependsOn.value;
+                  });
+
+                  if (!isSectionVisible) {
+                    return null;
+                  }
+
+                  visibleSectionCounter++;
+                  const sectionTitle = `${visibleSectionCounter}. ${section.title.replace(/^\d+\.\s*/, '')}`;
+
+                  return (
+                    <FormSection key={sectionIdx} title={sectionTitle} subtitle={section.subtitle}>
+                      {section.fields.map((fieldConfig) => {
+                        if (fieldConfig.dependsOn) {
+                            const watchedValue = watch(fieldConfig.dependsOn.field as any);
+                            if (watchedValue !== fieldConfig.dependsOn.value) {
+                                return null;
+                            }
+                        }
+                        return (
+                            <FormFieldWrapper key={fieldConfig.name} className={fieldConfig.colSpan === 2 ? 'md:col-span-2' : ''}>
+                            <FormField
+                                control={control}
+                                name={fieldConfig.name as any}
+                                render={({ field: { ref, name, onBlur, onChange: rhfNativeOnChange, value } }) => {
+                                if (fieldConfig.type === 'file') {
+                                    return (
+                                    <FormFileInputPresentation
+                                        fieldLabel={fieldConfig.label}
+                                        rhfName={name}
+                                        rhfRef={ref}
+                                        rhfOnBlur={onBlur}
+                                        rhfOnChange={(file: File | null) => { 
+                                        rhfNativeOnChange(file); 
+                                        setSelectedFiles(prev => ({ ...prev, [name]: file })); 
+                                        }}
+                                        selectedFile={selectedFiles[name]}
+                                        accept={fieldConfig.accept}
+                                        setValue={setValue} 
+                                    />
+                                    );
+                                }
+                                return (
+                                    <FormItem>
+                                    <FormLabel className="flex items-center">
+                                        {fieldConfig.label}
+                                        {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                        {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                    </FormLabel>
+                                    {fieldConfig.type === 'radio' ? (
+                                        <RadioGroup
+                                        onValueChange={rhfNativeOnChange}
+                                        defaultValue={value}
+                                        className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
+                                        >
+                                        {fieldConfig.options?.map(option => (
+                                            <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
+                                            <RadioGroupItem value={option.value} />
+                                            <FormLabel className="font-normal">{option.label}</FormLabel>
+                                            </FormItem>
+                                        ))}
+                                        </RadioGroup>
+                                    ) : fieldConfig.prefix ? (
+                                        <div className="relative">
+                                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">{fieldConfig.prefix}</span>
+                                        <Input 
+                                            type={fieldConfig.type} 
+                                            placeholder={fieldConfig.placeholder} 
+                                            ref={ref}
+                                            name={name}
+                                            value={value ?? ''}
+                                            onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                                            onChange={rhfNativeOnChange}
+                                            className="pl-7"
+                                        />
+                                        </div>
+                                    ) : (
+                                        <Input 
+                                        type={fieldConfig.type} 
+                                        placeholder={fieldConfig.placeholder} 
+                                        ref={ref}
+                                        name={name}
+                                        value={value ?? ''} 
+                                        onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                                        onChange={rhfNativeOnChange}
+                                        />
+                                    )}
+                                    <FormMessage />
+                                    </FormItem>
+                                );
+                                }}
+                            />
+                            </FormFieldWrapper>
+                        );
+                      })}
+                    </FormSection>
+                  );
                 });
-
-                if (!isSectionVisible) {
-                  return null;
-                }
-
-                return (
-                  <FormSection key={sectionIdx} title={section.title} subtitle={section.subtitle}>
-                    {section.fields.map((fieldConfig) => {
-                      if (fieldConfig.dependsOn) {
-                          const watchedValue = watch(fieldConfig.dependsOn.field as any);
-                          if (watchedValue !== fieldConfig.dependsOn.value) {
-                              return null;
-                          }
-                      }
-                      return (
-                          <FormFieldWrapper key={fieldConfig.name} className={fieldConfig.colSpan === 2 ? 'md:col-span-2' : ''}>
-                          <FormField
-                              control={control}
-                              name={fieldConfig.name as any}
-                              render={({ field: { ref, name, onBlur, onChange: rhfNativeOnChange, value } }) => {
-                              if (fieldConfig.type === 'file') {
-                                  return (
-                                  <FormFileInputPresentation
-                                      fieldLabel={fieldConfig.label}
-                                      rhfName={name}
-                                      rhfRef={ref}
-                                      rhfOnBlur={onBlur}
-                                      rhfOnChange={(file: File | null) => { 
-                                      rhfNativeOnChange(file); 
-                                      setSelectedFiles(prev => ({ ...prev, [name]: file })); 
-                                      }}
-                                      selectedFile={selectedFiles[name]}
-                                      accept={fieldConfig.accept}
-                                      setValue={setValue} 
-                                  />
-                                  );
-                              }
-                              return (
-                                  <FormItem>
-                                  <FormLabel className="flex items-center">
-                                      {fieldConfig.label}
-                                      {fieldConfig.isPAN && isVerifyingPAN && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                                      {fieldConfig.isAadhaar && isVerifyingAadhaar && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                                  </FormLabel>
-                                  {fieldConfig.type === 'radio' ? (
-                                      <RadioGroup
-                                      onValueChange={rhfNativeOnChange}
-                                      defaultValue={value}
-                                      className="flex flex-col space-y-1 md:flex-row md:space-x-4 md:space-y-0"
-                                      >
-                                      {fieldConfig.options?.map(option => (
-                                          <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                                          <RadioGroupItem value={option.value} />
-                                          <FormLabel className="font-normal">{option.label}</FormLabel>
-                                          </FormItem>
-                                      ))}
-                                      </RadioGroup>
-                                  ) : fieldConfig.prefix ? (
-                                      <div className="relative">
-                                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">{fieldConfig.prefix}</span>
-                                      <Input 
-                                          type={fieldConfig.type} 
-                                          placeholder={fieldConfig.placeholder} 
-                                          ref={ref}
-                                          name={name}
-                                          value={value ?? ''}
-                                          onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
-                                          onChange={rhfNativeOnChange}
-                                          className="pl-7"
-                                      />
-                                      </div>
-                                  ) : (
-                                      <Input 
-                                      type={fieldConfig.type} 
-                                      placeholder={fieldConfig.placeholder} 
-                                      ref={ref}
-                                      name={name}
-                                      value={value ?? ''} 
-                                      onBlur={() => { onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
-                                      onChange={rhfNativeOnChange}
-                                      />
-                                  )}
-                                  <FormMessage />
-                                  </FormItem>
-                              );
-                              }}
-                          />
-                          </FormFieldWrapper>
-                      );
-                    })}
-                  </FormSection>
-                );
-              })}
+              })()}
               
               <p className="text-xs text-muted-foreground mt-6 px-1">
                 🔐 All information and documents submitted will remain confidential and will be used solely for loan processing purposes.
