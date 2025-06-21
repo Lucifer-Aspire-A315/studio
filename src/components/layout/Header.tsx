@@ -6,10 +6,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2, LayoutDashboard, ShieldCheck } from 'lucide-react'; 
+import { Menu, LogOut, Loader2, LayoutDashboard, ShieldCheck, User as UserIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/contexts/AuthContext'; 
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
   setCurrentPage?: SetPageView;
@@ -24,7 +33,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { currentUser, logout, isLoading } = useAuth(); 
+  const { currentUser, logout, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,10 +72,18 @@ export function Header({ setCurrentPage }: HeaderProps) {
 
   const handleLogout = async () => {
     setMobileMenuOpen(false);
-    await logout(); 
+    await logout();
     toast({ title: "Logged Out", description: "You have been successfully logged out." });
   };
   
+  const getInitials = (name: string) => {
+    const names = name.split(' ');
+    if (names.length > 1 && names[0] && names[names.length - 1]) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
   const commonLinkClasses = "text-gray-600 hover:text-primary transition-colors";
   const mobileLinkClasses = "block py-3 px-6 text-sm hover:bg-secondary";
 
@@ -87,39 +104,60 @@ export function Header({ setCurrentPage }: HeaderProps) {
           {isLoading ? (
              <Button variant="ghost" size="icon" disabled><Loader2 className="w-5 h-5 animate-spin" /></Button>
           ) : currentUser ? (
-            <>
-              {currentUser.isAdmin && (
-                <Button asChild className="cta-button bg-destructive/10 text-destructive hover:bg-destructive/20" variant="ghost">
-                  <Link href="/admin/dashboard">
-                    <ShieldCheck className="mr-2 h-4 w-4"/>
-                    Admin
-                  </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser.fullName}`} alt={currentUser.fullName} />
+                    <AvatarFallback>{getInitials(currentUser.fullName)}</AvatarFallback>
+                  </Avatar>
                 </Button>
-              )}
-              <Button asChild className="cta-button" variant="ghost">
-                <Link href="/dashboard">
-                  <LayoutDashboard className="mr-2 h-4 w-4"/>
-                  Dashboard
-                </Link>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="cta-button border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" /> Logout
-              </Button>
-            </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{currentUser.fullName}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{currentUser.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  {currentUser.isAdmin && (
+                     <DropdownMenuItem asChild>
+                      <Link href="/admin/dashboard">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="hidden md:inline-flex cta-button border-primary text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={() => router.push('/partner-login')}
               >
                 PARTNER LOGIN
               </Button>
-              <Button 
+              <Button
                 className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground"
                 onClick={() => router.push('/login')}
               >
@@ -174,9 +212,17 @@ export function Header({ setCurrentPage }: HeaderProps) {
                         </Button>
                       </SheetClose>
                       <SheetClose asChild>
-                          <Button 
-                              variant="outline" 
-                              onClick={handleLogout} 
+                         <Button asChild variant="outline" className="w-full justify-start">
+                          <Link href="/profile">
+                            <UserIcon className="mr-2 h-4 w-4"/>
+                            Profile
+                          </Link>
+                        </Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                          <Button
+                              variant="outline"
+                              onClick={handleLogout}
                               className={`${mobileLinkClasses} text-destructive font-semibold text-left justify-start border-destructive w-full`}
                           >
                             <LogOut className="mr-2 h-4 w-4" /> Logout
@@ -186,26 +232,26 @@ export function Header({ setCurrentPage }: HeaderProps) {
                 ) : (
                   <div className="px-6 py-3 space-y-2">
                     <SheetClose asChild>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {router.push('/partner-login'); setMobileMenuOpen(false);}} 
+                      <Button
+                        variant="outline"
+                        onClick={() => {router.push('/partner-login'); setMobileMenuOpen(false);}}
                         className={`${mobileLinkClasses} text-primary font-semibold text-left justify-start border-primary w-full`}
                       >
                         PARTNER LOGIN
                       </Button>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Button 
-                        onClick={() => { router.push('/login'); setMobileMenuOpen(false); }} 
+                      <Button
+                        onClick={() => { router.push('/login'); setMobileMenuOpen(false); }}
                         className={`${mobileLinkClasses} bg-primary text-primary-foreground font-semibold text-left justify-start w-full`}
                       >
                         LOGIN
                       </Button>
                     </SheetClose>
                      <SheetClose asChild>
-                      <Button 
+                      <Button
                         variant="link"
-                        onClick={() => { router.push('/signup'); setMobileMenuOpen(false); }} 
+                        onClick={() => { router.push('/signup'); setMobileMenuOpen(false); }}
                         className={`${mobileLinkClasses} text-accent font-semibold text-left justify-start w-full`}
                       >
                         CREATE ACCOUNT
