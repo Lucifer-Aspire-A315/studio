@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import type { UserData } from '@/app/page'; // Assuming UserData is defined here or in a shared types file
+import type { UserData } from '@/lib/types';
 import { logoutAction as performLogoutAction, checkSessionAction } from '@/app/actions/authActions';
 
 interface AuthContextType {

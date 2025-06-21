@@ -6,13 +6,7 @@ import type { PartnerSignUpFormData, PartnerLoginFormData, UserSignUpFormData, U
 import { db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import bcrypt from 'bcryptjs';
-
-interface UserData {
-  id: string;
-  fullName: string;
-  email: string;
-  type: 'partner' | 'normal';
-}
+import type { UserData } from '@/lib/types';
 
 interface AuthServerActionResponse {
   success: boolean;
@@ -410,6 +404,3 @@ export async function checkSessionAction(): Promise<UserData | null> {
     return null;
   }
 }
-    
-
-    

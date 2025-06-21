@@ -40,7 +40,7 @@ export function UserLoginForm() {
         });
         login(result.user); 
         form.reset();
-        router.push('/'); 
+        router.push('/dashboard'); 
       } else {
         toast({
           variant: "destructive",

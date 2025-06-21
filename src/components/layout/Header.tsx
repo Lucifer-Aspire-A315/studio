@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet'; // Added SheetDescription
-import { Menu, LogOut, Loader2 } from 'lucide-react'; 
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Menu, LogOut, Loader2, LayoutDashboard } from 'lucide-react'; 
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext'; 
@@ -35,31 +35,33 @@ export function Header({ setCurrentPage }: HeaderProps) {
   }, []);
 
   const navLinks = [
-    { href: '#home', label: 'Home', action: () => setCurrentPage('main') },
-    { href: '#services', label: 'Services', action: () => setCurrentPage('main') },
-    { href: '#calculator', label: 'Calculator', action: () => setCurrentPage('main') },
-    { href: '#about', label: 'About Us', action: () => setCurrentPage('main') },
+    { href: '/', label: 'Home', action: () => setCurrentPage('main') },
+    { href: '/#services', label: 'Services', action: () => setCurrentPage('main') },
+    { href: '/#calculator', label: 'Calculator', action: () => setCurrentPage('main') },
+    { href: '/#about', label: 'About Us', action: () => setCurrentPage('main') },
   ];
 
   const handleNavClick = (href: string, action?: () => void) => {
     if (action) action();
     setMobileMenuOpen(false);
-    if (href.startsWith('/')) {
-      router.push(href);
-    } else if (href.startsWith('#')) {
-      if (href === '#home' || href === '#services' || href === '#calculator' || href === '#about') {
-        if (router.pathname !== '/' && (window.location.pathname !== '/' || window.location.hash !== href)) {
-            setCurrentPage('main'); 
-            router.push('/' + href); 
-        } else {
-            const element = document.getElementById(href.substring(1));
+    
+    if (href.startsWith('/#')) {
+        // If we are already on the home page, scroll smoothly
+        if (router.pathname === '/') {
+            const elementId = href.substring(2);
+            const element = document.getElementById(elementId);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
             }
+        } else {
+            // Otherwise, navigate to the home page with the hash
+            router.push(href);
         }
-      }
+    } else {
+        router.push(href);
     }
   };
+
 
   const handleLogout = async () => {
     setMobileMenuOpen(false);
@@ -73,7 +75,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
   return (
     <header className={`bg-background shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <nav className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-        <Link href="/" onClick={() => handleNavClick('#home', () => setCurrentPage('main'))} className="text-2xl font-bold flex-shrink-0">
+        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage('main'))} className="text-2xl font-bold flex-shrink-0">
           <AnimatedGradientText />
         </Link>
         <div className="hidden md:flex items-center justify-center flex-grow space-x-3 lg:space-x-6">
@@ -88,7 +90,12 @@ export function Header({ setCurrentPage }: HeaderProps) {
              <Button variant="ghost" size="icon" disabled><Loader2 className="w-5 h-5 animate-spin" /></Button>
           ) : currentUser ? (
             <>
-              <span className="hidden md:inline-flex text-sm text-muted-foreground">Welcome, {currentUser.fullName}!</span>
+              <Button asChild className="cta-button" variant="ghost">
+                <Link href="/dashboard">
+                  <LayoutDashboard className="mr-2 h-4 w-4"/>
+                  Dashboard
+                </Link>
+              </Button>
               <Button 
                 variant="outline" 
                 className="cta-button border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
@@ -122,9 +129,9 @@ export function Header({ setCurrentPage }: HeaderProps) {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background p-0">
               <SheetTitle className="sr-only">Menu</SheetTitle>
-              <SheetDescription className="sr-only">Site navigation and user options</SheetDescription> {/* Added for accessibility */}
+              <SheetDescription className="sr-only">Site navigation and user options</SheetDescription>
               <div className="p-6 border-b">
-                <Link href="/" onClick={() => handleNavClick('#home', () => setCurrentPage('main'))} className="text-xl font-bold">
+                <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage('main'))} className="text-xl font-bold">
                   <AnimatedGradientText />
                 </Link>
               </div>
@@ -140,20 +147,28 @@ export function Header({ setCurrentPage }: HeaderProps) {
                 {isLoading ? (
                   <div className="px-6 py-3 text-center"><Loader2 className="w-5 h-5 animate-spin inline-block" /></div>
                 ) : currentUser ? (
-                  <SheetClose asChild>
-                     <div className="px-6 py-3">
-                        <p className="text-sm text-muted-foreground mb-2">Welcome, {currentUser.fullName}!</p>
-                        <Button 
-                            variant="outline" 
-                            onClick={handleLogout} 
-                            className={`${mobileLinkClasses} text-destructive font-semibold text-left justify-start border-destructive w-full`}
-                        >
-                           <LogOut className="mr-2 h-4 w-4" /> Logout
+                   <div className="px-6 py-3 space-y-2">
+                      <p className="text-sm text-muted-foreground mb-2">Welcome, {currentUser.fullName}!</p>
+                      <SheetClose asChild>
+                         <Button asChild variant="default" className="w-full justify-start">
+                          <Link href="/dashboard">
+                            <LayoutDashboard className="mr-2 h-4 w-4"/>
+                            Dashboard
+                          </Link>
                         </Button>
-                     </div>
-                  </SheetClose>
+                      </SheetClose>
+                      <SheetClose asChild>
+                          <Button 
+                              variant="outline" 
+                              onClick={handleLogout} 
+                              className={`${mobileLinkClasses} text-destructive font-semibold text-left justify-start border-destructive w-full`}
+                          >
+                            <LogOut className="mr-2 h-4 w-4" /> Logout
+                          </Button>
+                      </SheetClose>
+                   </div>
                 ) : (
-                  <>
+                  <div className="px-6 py-3 space-y-2">
                     <SheetClose asChild>
                       <Button 
                         variant="outline" 
@@ -180,7 +195,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
                         CREATE ACCOUNT
                       </Button>
                     </SheetClose>
-                  </>
+                  </div>
                 )}
               </nav>
             </SheetContent>

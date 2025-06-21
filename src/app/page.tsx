@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/sections/HeroSection';
@@ -21,14 +22,7 @@ import { CompanyIncorporationForm } from '@/components/forms/CompanyIncorporatio
 import { FinancialAdvisoryForm } from '@/components/forms/FinancialAdvisoryForm';
 import { AuditAndAssuranceForm } from '@/components/forms/AuditAndAssuranceForm';
 import { Skeleton } from '@/components/ui/skeleton'; 
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
-
-export interface UserData {
-  id: string;
-  fullName: string;
-  email: string;
-  type: 'partner' | 'normal'; 
-}
+import { useAuth } from '@/contexts/AuthContext';
 
 export type PageView = 
   'main' | 
@@ -49,7 +43,6 @@ export type PageView =
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
 export type SetOtherGovernmentSchemeName = React.Dispatch<React.SetStateAction<string | undefined>>;
-// SetCurrentUser is no longer needed here as AuthContext will manage it.
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<PageView>('main');
@@ -57,12 +50,18 @@ export default function Home() {
   const [selectedGovernmentScheme, setSelectedGovernmentScheme] = useState<string | undefined>();
   const [otherGovernmentSchemeName, setOtherGovernmentSchemeName] = useState<string | undefined>();
   
-  // currentUser and setCurrentUser are now managed by AuthContext
-  const { isLoading: isAuthLoading } = useAuth(); // Get loading state from AuthContext
+  const { currentUser, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // If auth is not loading and a user is logged in, redirect to dashboard
+    if (!isAuthLoading && currentUser) {
+      router.push('/dashboard');
+    }
+  }, [currentUser, isAuthLoading, router]);
 
   useEffect(() => {
     setIsClient(true);
-    // Session checking is now handled by AuthProvider
 
     const handleHashChange = () => {
       const hash = window.location.hash;
@@ -95,7 +94,8 @@ export default function Home() {
     }
   }, [currentPage]);
 
-  if (!isClient || isAuthLoading) { // Also consider AuthContext loading state
+  // If we are still checking for a user or if a user is found (and we are about to redirect), show a loading skeleton.
+  if (!isClient || isAuthLoading || currentUser) {
     return (
       <div className="flex flex-col min-h-screen">
         <Skeleton className="h-16 w-full" />
@@ -184,7 +184,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header setCurrentPage={setCurrentPage} /> {/* Header will use AuthContext */}
+      <Header setCurrentPage={setCurrentPage} />
       <main className="flex-grow">
         {renderPageContent()}
       </main>

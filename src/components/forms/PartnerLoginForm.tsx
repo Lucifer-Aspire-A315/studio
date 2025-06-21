@@ -13,18 +13,13 @@ import { Loader2, LogIn } from 'lucide-react';
 import { partnerLoginAction } from '@/app/actions/authActions';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
-
-// setCurrentUser prop is no longer needed
-// interface PartnerLoginFormProps {
-//   setCurrentUser: (user: UserData | null) => void; 
-// }
+import { useAuth } from '@/contexts/AuthContext';
 
 export function PartnerLoginForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth(); // Get login function from AuthContext
+  const { login } = useAuth();
 
   const form = useForm<PartnerLoginFormData>({
     resolver: zodResolver(PartnerLoginSchema),
@@ -43,9 +38,9 @@ export function PartnerLoginForm() {
           title: "Login Successful",
           description: result.message || "Welcome back!",
         });
-        login(result.user); // Update global state via AuthContext
+        login(result.user);
         form.reset();
-        router.push('/'); // Redirect to home page after successful login
+        router.push('/dashboard'); 
       } else {
         toast({
           variant: "destructive",
