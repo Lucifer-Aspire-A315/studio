@@ -3,7 +3,7 @@
 
 import { cookies } from 'next/headers';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy, limit, collectionGroup, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import type { UserApplication } from '@/lib/types';
 import type { DocumentData } from 'firebase/firestore';
 
@@ -45,9 +45,11 @@ export async function getUserApplications(): Promise<UserApplication[]> {
     const caServiceApplicationsRef = collection(db, 'caServiceApplications');
     const governmentSchemeApplicationsRef = collection(db, 'governmentSchemeApplications');
 
-    const qLoan = query(loanApplicationsRef, where('submittedBy.userId', '==', userId), orderBy('createdAt', 'desc'));
-    const qCa = query(caServiceApplicationsRef, where('submittedBy.userId', '==', userId), orderBy('createdAt', 'desc'));
-    const qGov = query(governmentSchemeApplicationsRef, where('submittedBy.userId', '==', userId), orderBy('createdAt', 'desc'));
+    // Removed the orderBy clause to avoid needing a composite index.
+    // The sorting is handled in the application code below.
+    const qLoan = query(loanApplicationsRef, where('submittedBy.userId', '==', userId));
+    const qCa = query(caServiceApplicationsRef, where('submittedBy.userId', '==', userId));
+    const qGov = query(governmentSchemeApplicationsRef, where('submittedBy.userId', '==', userId));
 
     const [loanSnapshot, caSnapshot, govSnapshot] = await Promise.all([
       getDocs(qLoan),
