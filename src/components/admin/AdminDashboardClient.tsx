@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminApplicationsTable } from './AdminApplicationsTable';
 import { PendingPartnersTable } from './PendingPartnersTable';
-import { approvePartner } from '@/app/actions/adminActions';
+import { approvePartner, updateApplicationStatus } from '@/app/actions/adminActions';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -42,6 +42,31 @@ export function AdminDashboardClient({ initialApplications, initialPendingPartne
     });
   };
 
+  const handleUpdateStatus = (applicationId: string, serviceCategory: UserApplication['serviceCategory'], newStatus: string) => {
+    startTransition(async () => {
+        const result = await updateApplicationStatus(applicationId, serviceCategory, newStatus);
+        if (result.success) {
+            toast({
+                title: "Status Updated",
+                description: result.message,
+            });
+            // Optimistically update the UI to reflect the change
+            setApplications(currentApps => 
+                currentApps.map(app => 
+                    app.id === applicationId ? { ...app, status: newStatus } : app
+                )
+            );
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Update Failed",
+                description: result.message,
+            });
+        }
+    });
+  };
+
+
   return (
     <Tabs defaultValue="partners" className="space-y-4">
       <TabsList>
@@ -70,7 +95,11 @@ export function AdminDashboardClient({ initialApplications, initialPendingPartne
               <CardDescription>A list of all applications submitted across the platform.</CardDescription>
             </CardHeader>
             <CardContent>
-              <AdminApplicationsTable applications={applications} />
+              <AdminApplicationsTable 
+                applications={applications} 
+                onUpdateStatus={handleUpdateStatus}
+                isUpdating={isPending}
+              />
             </CardContent>
           </Card>
       </TabsContent>

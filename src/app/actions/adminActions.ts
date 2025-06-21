@@ -135,3 +135,45 @@ export async function approvePartner(partnerId: string): Promise<{ success: bool
         return { success: false, message: 'Failed to approve partner.' };
     }
 }
+
+
+export async function updateApplicationStatus(
+  applicationId: string,
+  serviceCategory: UserApplication['serviceCategory'],
+  newStatus: string
+): Promise<{ success: boolean; message: string }> {
+  await verifyAdmin();
+  console.log(`[AdminActions] Attempting to update status for app ${applicationId} in category ${serviceCategory} to ${newStatus}`);
+
+  let collectionName: string;
+  switch (serviceCategory) {
+    case 'loan':
+      collectionName = 'loanApplications';
+      break;
+    case 'caService':
+      collectionName = 'caServiceApplications';
+      break;
+    case 'governmentScheme':
+      collectionName = 'governmentSchemeApplications';
+      break;
+    default:
+      console.error(`[AdminActions] Invalid service category provided: ${serviceCategory}`);
+      return { success: false, message: 'Invalid service category.' };
+  }
+
+  try {
+    const appRef = doc(db, collectionName, applicationId);
+    await updateDoc(appRef, {
+      status: newStatus,
+      updatedAt: Timestamp.now(),
+    });
+
+    console.log(`[AdminActions] Successfully updated status for ${applicationId}`);
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/dashboard'); // Revalidate user dashboard as well
+    return { success: true, message: `Application status updated to ${newStatus}.` };
+  } catch (error: any) {
+    console.error(`[AdminActions] Error updating status for ${applicationId}:`, error.message, error.stack);
+    return { success: false, message: 'Failed to update application status.' };
+  }
+}

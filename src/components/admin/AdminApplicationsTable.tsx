@@ -5,9 +5,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import type { UserApplication } from '@/lib/types';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Loader2 } from 'lucide-react';
 
 interface AdminApplicationsTableProps {
   applications: UserApplication[];
+  onUpdateStatus: (applicationId: string, serviceCategory: UserApplication['serviceCategory'], newStatus: string) => void;
+  isUpdating: boolean;
 }
 
 const getStatusVariant = (status: string): "default" | "secondary" | "destructive" => {
@@ -17,7 +22,9 @@ const getStatusVariant = (status: string): "default" | "secondary" | "destructiv
     case 'in review':
       return 'secondary';
     case 'approved':
-      return 'secondary'; // Consider a green variant for approved
+      // A green-like color would be good here, but we'll stick to theme colors.
+      // We can use secondary for approved as well for now, or define a new variant.
+      return 'secondary';
     case 'rejected':
       return 'destructive';
     default:
@@ -34,7 +41,9 @@ const getCategoryDisplay = (category: UserApplication['serviceCategory']): strin
     }
 }
 
-export function AdminApplicationsTable({ applications }: AdminApplicationsTableProps) {
+const availableStatuses = ['Submitted', 'In Review', 'Approved', 'Rejected'];
+
+export function AdminApplicationsTable({ applications, onUpdateStatus, isUpdating }: AdminApplicationsTableProps) {
   if (applications.length === 0) {
     return (
       <div className="text-center py-10 border-2 border-dashed rounded-lg">
@@ -53,7 +62,8 @@ export function AdminApplicationsTable({ applications }: AdminApplicationsTableP
             <TableHead>Application Type</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Submitted On</TableHead>
-            <TableHead className="text-right">Status</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,10 +76,31 @@ export function AdminApplicationsTable({ applications }: AdminApplicationsTableP
               <TableCell>{app.applicationType}</TableCell>
               <TableCell>{getCategoryDisplay(app.serviceCategory)}</TableCell>
               <TableCell>{format(new Date(app.createdAt), 'PPp')}</TableCell>
-              <TableCell className="text-right">
+              <TableCell>
                 <Badge variant={getStatusVariant(app.status)} className="capitalize">
                   {app.status}
                 </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                 <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" disabled={isUpdating}>
+                      {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                      <span className="sr-only">Actions</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {availableStatuses.map((status) => (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => onUpdateStatus(app.id, app.serviceCategory, status)}
+                        disabled={app.status === status || isUpdating}
+                      >
+                        Set as {status}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
