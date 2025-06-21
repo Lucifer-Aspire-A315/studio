@@ -46,7 +46,7 @@ export async function getUserApplications(): Promise<UserApplication[]> {
     const governmentSchemeApplicationsRef = collection(db, 'governmentSchemeApplications');
 
     const qLoan = query(loanApplicationsRef, where('submittedBy.userId', '==', userId), orderBy('createdAt', 'desc'));
-    const qCa = query(caServiceApplicationsRef, where('submittedBy.userId', '==', userId'), orderBy('createdAt', 'desc'));
+    const qCa = query(caServiceApplicationsRef, where('submittedBy.userId', '==', userId), orderBy('createdAt', 'desc'));
     const qGov = query(governmentSchemeApplicationsRef, where('submittedBy.userId', '==', userId), orderBy('createdAt', 'desc'));
 
     const [loanSnapshot, caSnapshot, govSnapshot] = await Promise.all([
