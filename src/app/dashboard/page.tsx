@@ -63,7 +63,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col min-h-screen bg-secondary">
       {/* The Header component will read cookies on the client side for its state */}
-      <Header setCurrentPage={() => {}} /> 
+      <Header /> 
       <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
         <DashboardHeader name={user.name} />
         <Suspense fallback={<ApplicationsTableSkeleton />}>

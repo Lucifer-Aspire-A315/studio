@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext'; 
 
 interface HeaderProps {
-  setCurrentPage: SetPageView;
+  setCurrentPage?: SetPageView;
 }
 
 const AnimatedGradientText = () => (
@@ -35,10 +35,10 @@ export function Header({ setCurrentPage }: HeaderProps) {
   }, []);
 
   const navLinks = [
-    { href: '/', label: 'Home', action: () => setCurrentPage('main') },
-    { href: '/#services', label: 'Services', action: () => setCurrentPage('main') },
-    { href: '/#calculator', label: 'Calculator', action: () => setCurrentPage('main') },
-    { href: '/#about', label: 'About Us', action: () => setCurrentPage('main') },
+    { href: '/', label: 'Home', action: () => setCurrentPage?.('main') },
+    { href: '/#services', label: 'Services', action: () => setCurrentPage?.('main') },
+    { href: '/#calculator', label: 'Calculator', action: () => setCurrentPage?.('main') },
+    { href: '/#about', label: 'About Us', action: () => setCurrentPage?.('main') },
   ];
 
   const handleNavClick = (href: string, action?: () => void) => {
@@ -75,7 +75,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
   return (
     <header className={`bg-background shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <nav className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage('main'))} className="text-2xl font-bold flex-shrink-0">
+        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0">
           <AnimatedGradientText />
         </Link>
         <div className="hidden md:flex items-center justify-center flex-grow space-x-3 lg:space-x-6">
@@ -131,7 +131,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <SheetDescription className="sr-only">Site navigation and user options</SheetDescription>
               <div className="p-6 border-b">
-                <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage('main'))} className="text-xl font-bold">
+                <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-xl font-bold">
                   <AnimatedGradientText />
                 </Link>
               </div>
