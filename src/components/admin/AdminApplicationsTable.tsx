@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -6,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import type { UserApplication } from '@/lib/types';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Loader2 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Loader2, Eye } from 'lucide-react';
+import Link from 'next/link';
 
 interface AdminApplicationsTableProps {
   applications: UserApplication[];
@@ -90,11 +90,18 @@ export function AdminApplicationsTable({ applications, onUpdateStatus, isUpdatin
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/admin/application/${app.id}?category=${app.serviceCategory}`}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Details
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     {availableStatuses.map((status) => (
                       <DropdownMenuItem
                         key={status}
                         onClick={() => onUpdateStatus(app.id, app.serviceCategory, status)}
-                        disabled={app.status === status || isUpdating}
+                        disabled={app.status.toLowerCase() === status.toLowerCase() || isUpdating}
                       >
                         Set as {status}
                       </DropdownMenuItem>

@@ -1,10 +1,10 @@
-
 "use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import type { UserApplication } from '@/lib/types';
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 interface ApplicationsTableProps {
   applications: UserApplication[];
@@ -35,6 +35,8 @@ const getCategoryDisplay = (category: UserApplication['serviceCategory']): strin
 }
 
 export function ApplicationsTable({ applications }: ApplicationsTableProps) {
+  const router = useRouter();
+
   if (applications.length === 0) {
     return (
       <div className="text-center py-10 border-2 border-dashed rounded-lg">
@@ -43,6 +45,11 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
       </div>
     );
   }
+
+  const handleRowClick = (app: UserApplication) => {
+    router.push(`/dashboard/application/${app.id}?category=${app.serviceCategory}`);
+  };
+
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -57,7 +64,11 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
         </TableHeader>
         <TableBody>
           {applications.map((app) => (
-            <TableRow key={app.id}>
+            <TableRow 
+              key={app.id} 
+              onClick={() => handleRowClick(app)}
+              className="cursor-pointer"
+            >
               <TableCell className="font-medium">{app.applicationType}</TableCell>
               <TableCell>{getCategoryDisplay(app.serviceCategory)}</TableCell>
               <TableCell>{format(new Date(app.createdAt), 'PPp')}</TableCell>
