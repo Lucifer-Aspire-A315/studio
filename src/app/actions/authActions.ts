@@ -31,7 +31,7 @@ const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
 const SALT_ROUNDS = 10; // For bcrypt
 
 async function setSessionCookies(userData: UserData) {
-  console.log(`[AuthActions - setSessionCookies] Attempting for user: ${userData.email}. NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`[AuthActions - setSessionCookies] Attempting for user: ${userData.email}. isAdmin: ${userData.isAdmin}. NODE_ENV: ${process.env.NODE_ENV}`);
   try {
     await cookies().get('any-placeholder-cookie-for-set-prime-get'); // Ensure store is primed
     const initialCookies = await cookies().getAll(); // Await to ensure store is resolved
@@ -53,20 +53,18 @@ async function setSessionCookies(userData: UserData) {
 
   try {
     cookies().set('session_token', sessionToken, cookieOptions);
-    console.log('[AuthActions - setSessionCookies] Attempted to set session_token.');
     cookies().set('user_id', userData.id, cookieOptions);
-    console.log(`[AuthActions - setSessionCookies] Attempted to set user_id: ${userData.id}`);
     cookies().set('user_name', userData.fullName, cookieOptions);
-    console.log(`[AuthActions - setSessionCookies] Attempted to set user_name: ${userData.fullName}`);
     cookies().set('user_email', userData.email, cookieOptions);
-    console.log(`[AuthActions - setSessionCookies] Attempted to set user_email: ${userData.email}`);
     cookies().set('user_type', userData.type, cookieOptions);
-    console.log(`[AuthActions - setSessionCookies] Attempted to set user_type: ${userData.type}`);
+    if (userData.isAdmin) {
+      cookies().set('is_admin', 'true', cookieOptions);
+      console.log(`[AuthActions - setSessionCookies] Admin flag set for user: ${userData.email}`);
+    } else {
+      // Explicitly clear the admin cookie if the user is not an admin
+      cookies().set('is_admin', '', { ...cookieOptions, maxAge: 0, expires: new Date(0) });
+    }
     console.log('[AuthActions - setSessionCookies] All cookie set attempts finished.');
-
-    const finalCookies = await cookies().getAll(); // Await to ensure store is resolved
-    console.log('[AuthActions - setSessionCookies] Cookies readable by server action immediately after set attempts:', finalCookies.map(c => ({ name: c.name, valueLength: c.value?.length, options: c })));
-
   } catch (error: any) {
     console.error('[AuthActions - setSessionCookies] Error during cookies().set calls:', error.message, error.stack);
   }
@@ -75,14 +73,14 @@ async function setSessionCookies(userData: UserData) {
 async function clearSessionCookies() {
   console.log(`[AuthActions - clearSessionCookies] Attempting. NODE_ENV: ${process.env.NODE_ENV}`);
    try {
-    await cookies().get('any-placeholder-cookie-for-clear-prime-get'); // Ensure store is primed
-    const initialCookies = await cookies().getAll(); // Await to ensure store is resolved
+    await cookies().get('any-placeholder-cookie-for-clear-prime-get');
+    const initialCookies = await cookies().getAll();
     console.log('[AuthActions - clearSessionCookies] Initial cookies readable by server action before clear:', initialCookies.map(c => ({ name: c.name, valueLength: c.value?.length })));
   } catch (e: any) {
     console.error('[AuthActions - clearSessionCookies] Error during robust priming cookie read:', e.message);
   }
 
-  const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type'];
+  const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type', 'is_admin'];
   const clearOptions: CustomCookieSetOptions = {
     httpOnly: true,
     secure: true,
@@ -99,10 +97,6 @@ async function clearSessionCookies() {
       console.log(`[AuthActions - clearSessionCookies] Attempted to clear cookie: ${name}`);
     });
     console.log('[AuthActions - clearSessionCookies] All cookie clear attempts finished.');
-
-    const finalCookies = await cookies().getAll(); // Await to ensure store is resolved
-    console.log('[AuthActions - clearSessionCookies] Cookies readable by server action immediately after clear attempts:', finalCookies.map(c => ({ name: c.name, valueLength: c.value?.length, options: c })));
-
   } catch (error: any) {
     console.error('[AuthActions - clearSessionCookies] Error during cookies().set for clearing:', error.message, error.stack);
   }
@@ -113,7 +107,7 @@ export async function partnerSignUpAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - partnerSignUpAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-partner-signup'); // Ensure store is primed
+    await cookies().get('priming-cookie-partner-signup');
     const partnersRef = collection(db, 'partners');
     const q = query(partnersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -148,7 +142,6 @@ export async function partnerSignUpAction(
       type: 'partner',
     };
 
-    // Not calling setSessionCookies as partner needs approval.
     console.log('[AuthActions - partnerSignUpAction] Sign-up successful, pending approval for:', newUser.email);
     return {
       success: true,
@@ -172,7 +165,7 @@ export async function partnerLoginAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - partnerLoginAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-partner-login'); // Ensure store is primed
+    await cookies().get('priming-cookie-partner-login');
     const partnersRef = collection(db, 'partners');
     const q = query(partnersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -211,6 +204,7 @@ export async function partnerLoginAction(
       fullName: partnerData.fullName,
       email: partnerData.email,
       type: 'partner',
+      isAdmin: !!partnerData.isAdmin,
     };
 
     await setSessionCookies(loggedInUser);
@@ -238,7 +232,7 @@ export async function userSignUpAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - userSignUpAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-user-signup'); // Ensure store is primed
+    await cookies().get('priming-cookie-user-signup');
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -260,6 +254,7 @@ export async function userSignUpAction(
       password: hashedPassword,
       createdAt: Timestamp.fromDate(new Date()),
       type: 'normal' as 'normal',
+      isAdmin: false, // Default to not admin
     };
 
     const docRef = await addDoc(usersRef, userDataToSave);
@@ -270,6 +265,7 @@ export async function userSignUpAction(
       fullName: data.fullName,
       email: data.email,
       type: 'normal',
+      isAdmin: false,
     };
 
     await setSessionCookies(newUser);
@@ -297,7 +293,7 @@ export async function userLoginAction(
 ): Promise<AuthServerActionResponse> {
   console.log('[AuthActions - userLoginAction] Initiated for email:', data.email);
   try {
-    await cookies().get('priming-cookie-user-login'); // Ensure store is primed
+    await cookies().get('priming-cookie-user-login');
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('email', '==', data.email));
     const querySnapshot = await getDocs(q);
@@ -332,6 +328,7 @@ export async function userLoginAction(
       fullName: userDataFromDb.fullName,
       email: userDataFromDb.email,
       type: userType,
+      isAdmin: !!userDataFromDb.isAdmin, // Check for the isAdmin flag
     };
 
     await setSessionCookies(loggedInUser);
@@ -374,21 +371,19 @@ export async function logoutAction(): Promise<AuthServerActionResponse> {
 
 export async function checkSessionAction(): Promise<UserData | null> {
   try {
-    // The first await cookies().get() call will prime the store
-    // No need for a separate 'priming-cookie-for-check-session' if we await subsequent gets.
-    
     const userIdCookie = await cookies().get('user_id');
     const userNameCookie = await cookies().get('user_name');
     const userEmailCookie = await cookies().get('user_email');
     const userTypeCookieVal = await cookies().get('user_type');
     const sessionTokenCookie = await cookies().get('session_token');
+    const isAdminCookie = await cookies().get('is_admin');
 
     const userId = userIdCookie?.value;
     const userName = userNameCookie?.value;
     const userEmail = userEmailCookie?.value;
     const userType = (userTypeCookieVal?.value === 'partner' || userTypeCookieVal?.value === 'normal') ? userTypeCookieVal.value : undefined;
     const sessionToken = sessionTokenCookie?.value;
-
+    const isAdmin = isAdminCookie?.value === 'true';
 
     if (userId && userName && userEmail && userType && sessionToken) {
       return {
@@ -396,6 +391,7 @@ export async function checkSessionAction(): Promise<UserData | null> {
         fullName: userName,
         email: userEmail,
         type: userType,
+        isAdmin: isAdmin,
       };
     }
     return null;

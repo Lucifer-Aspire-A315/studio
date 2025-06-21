@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2, LayoutDashboard } from 'lucide-react'; 
+import { Menu, LogOut, Loader2, LayoutDashboard, ShieldCheck } from 'lucide-react'; 
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext'; 
@@ -46,7 +46,6 @@ export function Header({ setCurrentPage }: HeaderProps) {
     setMobileMenuOpen(false);
     
     if (href.startsWith('/#')) {
-        // If we are already on the home page, scroll smoothly
         if (router.pathname === '/') {
             const elementId = href.substring(2);
             const element = document.getElementById(elementId);
@@ -54,7 +53,6 @@ export function Header({ setCurrentPage }: HeaderProps) {
                 element.scrollIntoView({ behavior: 'smooth' });
             }
         } else {
-            // Otherwise, navigate to the home page with the hash
             router.push(href);
         }
     } else {
@@ -90,6 +88,14 @@ export function Header({ setCurrentPage }: HeaderProps) {
              <Button variant="ghost" size="icon" disabled><Loader2 className="w-5 h-5 animate-spin" /></Button>
           ) : currentUser ? (
             <>
+              {currentUser.isAdmin && (
+                <Button asChild className="cta-button bg-destructive/10 text-destructive hover:bg-destructive/20" variant="ghost">
+                  <Link href="/admin/dashboard">
+                    <ShieldCheck className="mr-2 h-4 w-4"/>
+                    Admin
+                  </Link>
+                </Button>
+              )}
               <Button asChild className="cta-button" variant="ghost">
                 <Link href="/dashboard">
                   <LayoutDashboard className="mr-2 h-4 w-4"/>
@@ -149,6 +155,16 @@ export function Header({ setCurrentPage }: HeaderProps) {
                 ) : currentUser ? (
                    <div className="px-6 py-3 space-y-2">
                       <p className="text-sm text-muted-foreground mb-2">Welcome, {currentUser.fullName}!</p>
+                      {currentUser.isAdmin && (
+                        <SheetClose asChild>
+                          <Button asChild variant="destructive" className="w-full justify-start">
+                            <Link href="/admin/dashboard">
+                              <ShieldCheck className="mr-2 h-4 w-4"/>
+                              Admin Panel
+                            </Link>
+                          </Button>
+                        </SheetClose>
+                      )}
                       <SheetClose asChild>
                          <Button asChild variant="default" className="w-full justify-start">
                           <Link href="/dashboard">
