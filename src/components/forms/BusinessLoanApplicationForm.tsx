@@ -14,7 +14,7 @@ interface BusinessLoanApplicationFormProps {
 
 const businessLoanSections = [
   {
-    title: "1. Business Details",
+    title: "Business Details",
     subtitle: "व्यवसाय की जानकारी",
     fields: [
       { name: "businessDetails.businessName", label: "Business Name", type: "text", placeholder: "Your Company Name" },
@@ -33,7 +33,7 @@ const businessLoanSections = [
     ]
   },
   {
-    title: "2. Applicant Details",
+    title: "Applicant Details",
     subtitle: "आवेदक की जानकारी",
     fields: [
       { name: "applicantDetails.name", label: "Applicant Name", type: "text", placeholder: "Full Name" },
@@ -45,7 +45,7 @@ const businessLoanSections = [
     ]
   },
   {
-    title: "3. Loan Requirement",
+    title: "Loan Requirement",
     subtitle: "ऋण की आवश्यकता",
     fields: [
       { name: "loanDetails.loanAmountRequired", label: "Loan Amount Required (₹)", type: "number", placeholder: "e.g., 1000000", prefix: "₹" },
@@ -61,7 +61,7 @@ const businessLoanSections = [
     ]
   },
    {
-    title: "4. Existing Loan Details",
+    title: "Existing Loan Details",
     subtitle: "मौजूदा ऋण की जानकारी",
     fields: [
       { name: "existingLoans.emiAmount", label: "If Yes, Total Current EMI (कुल वर्तमान ईएमआई)", type: "number", placeholder: "Total EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
@@ -70,7 +70,7 @@ const businessLoanSections = [
     ]
   },
   {
-    title: "5. Upload Required Documents",
+    title: "Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.",
     fields: [
       { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
