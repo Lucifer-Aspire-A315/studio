@@ -25,7 +25,7 @@ const schemeDisplayNames: Record<string, string> = {
 
 const governmentSchemeSections = [
   {
-    title: "Applicant Details",
+    title: "1. Applicant Details",
     fields: [
       { name: "applicantDetailsGov.fullName", label: "Full Name", type: "text", placeholder: "Full Name" },
       { name: "applicantDetailsGov.fatherSpouseName", label: "Father’s / Spouse’s Name", type: "text", placeholder: "Father's / Spouse's Name" },
@@ -38,7 +38,7 @@ const governmentSchemeSections = [
     ]
   },
   {
-    title: "Address Information",
+    title: "2. Address Information",
     fields: [
       { name: "addressInformationGov.residentialAddress", label: "Residential Address", type: "textarea", placeholder: "Full Residential Address", colSpan: 2 },
       { name: "addressInformationGov.state", label: "State", type: "text", placeholder: "State" },
@@ -47,7 +47,7 @@ const governmentSchemeSections = [
     ]
   },
   {
-    title: "Business Information",
+    title: "3. Business Information",
     fields: [
       { name: "businessInformationGov.businessName", label: "Business Name (if any)", type: "text", placeholder: "Your Business Name" },
       { name: "businessInformationGov.businessType", label: "Type of Business", type: "radio", options: [{value: 'proprietorship', label: 'Proprietorship'}, {value: 'partnership', label: 'Partnership'}, {value: 'other', label: 'Other'}] },
@@ -59,14 +59,16 @@ const governmentSchemeSections = [
     ]
   },
   {
-    title: "Loan Details",
+    title: "4. Loan Details",
     fields: [
+      { name: "loanDetailsGov.selectedScheme", label: "Selected Scheme", type: "text", disabled: true, colSpan: 2 },
+      { name: "loanDetailsGov.otherSchemeName", label: "Specified Scheme Name", type: "text", disabled: true, dependsOn: { field: "loanDetailsGov.selectedScheme", value: "Other" }, colSpan: 2 },
       { name: "loanDetailsGov.loanAmountRequired", label: "Loan Amount Required (₹)", type: "number", placeholder: "e.g., 500000", prefix: '₹' },
       { name: "loanDetailsGov.loanTenure", label: "Loan Tenure (in Years)", type: "number", placeholder: "e.g., 5" },
     ]
   },
   {
-    title: "Upload Required Documents",
+    title: "5. Upload Required Documents",
     subtitle: "File types allowed: PDF, JPG, PNG. Max size: 5 MB per document.",
     fields: [
       { name: "documentUploadsGov.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
@@ -134,7 +136,7 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
       setCurrentPage={setCurrentPage}
       backPage='governmentSchemes'
       formTitle="Government Scheme Loan Application Form"
-      formSubtitle={`Applying for: ${defaultValues.loanDetailsGov.selectedScheme === 'Other' ? otherSchemeName : defaultValues.loanDetailsGov.selectedScheme}`}
+      formSubtitle={`Applying for: ${defaultValues.loanDetailsGov.selectedScheme === 'Other' && otherSchemeName ? otherSchemeName : defaultValues.loanDetailsGov.selectedScheme}`}
       formIcon={<FileText className="w-12 h-12 mx-auto text-primary mb-2" />}
       schema={GovernmentSchemeLoanApplicationSchema}
       defaultValues={defaultValues}

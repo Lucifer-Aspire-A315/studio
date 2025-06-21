@@ -33,6 +33,7 @@ interface FieldConfig {
   accept?: string;
   dependsOn?: { field: string; value: any };
   rows?: number;
+  disabled?: boolean;
 }
 
 interface SectionConfig {
@@ -309,6 +310,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                           value={field.value ?? ''}
                           onBlur={() => { field.onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
                           className="pl-7"
+                          disabled={fieldConfig.disabled}
                       />
                       </div>
                   ) : (
@@ -316,6 +318,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                         type={fieldConfig.type} placeholder={fieldConfig.placeholder} {...field}
                         value={field.value ?? ''} 
                         onBlur={() => { field.onBlur(); if (fieldConfig.isPAN || fieldConfig.isAadhaar) handleIDValidation(fieldConfig.name); }}
+                        disabled={fieldConfig.disabled}
                       />
                   )}
                   <FormMessage />
@@ -355,7 +358,7 @@ export function GenericLoanForm<TData extends Record<string, any>>({
                   if (!isSectionVisible) return null;
 
                   visibleSectionCounter++;
-                  const sectionTitle = `${visibleSectionCounter}. ${section.title}`;
+                  const sectionTitle = `${section.title}`;
 
                   return (
                     <FormSection key={sectionIdx} title={sectionTitle} subtitle={section.subtitle}>

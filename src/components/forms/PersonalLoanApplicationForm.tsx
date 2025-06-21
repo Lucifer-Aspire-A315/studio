@@ -14,7 +14,7 @@ interface PersonalLoanApplicationFormProps {
 
 const personalLoanSections = [
   {
-    title: "Applicant Information",
+    title: "1. Applicant Information",
     subtitle: "व्यक्तिगत जानकारी",
     fields: [
       { name: "applicantDetails.name", label: "Full Name", type: "text", placeholder: "Full Name" },
@@ -27,7 +27,7 @@ const personalLoanSections = [
     ]
   },
   {
-    title: "Employment / Income Details",
+    title: "2. Employment / Income Details",
     subtitle: "रोजगार और आय की जानकारी",
     fields: [
       { name: "employmentIncome.employmentType", label: "Occupation Type", type: "radio", options: [{value: "salaried", label: "Salaried"}, {value: "self-employed", label: "Self-Employed / Business"}], colSpan: 2},
@@ -37,7 +37,7 @@ const personalLoanSections = [
     ]
   },
    {
-    title: "Loan Details",
+    title: "3. Loan Details",
     subtitle: "ऋण की जानकारी",
     fields: [
       { name: "loanDetails.loanAmountRequired", label: "Loan Amount Required (₹)", type: "number", placeholder: "e.g., 200000", prefix: "₹" },
@@ -55,7 +55,7 @@ const personalLoanSections = [
     ]
   },
    {
-    title: "Existing Loan Details",
+    title: "4. Existing Loan Details",
     subtitle: "मौजूदा ऋण की जानकारी",
     fields: [
       { name: "existingLoans.emiAmount", label: "If Yes, Total Current EMI (कुल वर्तमान ईएमआई)", type: "number", placeholder: "Total EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
@@ -64,7 +64,7 @@ const personalLoanSections = [
     ]
   },
   {
-    title: "Upload Required Documents",
+    title: "5. Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
     fields: [
       { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
