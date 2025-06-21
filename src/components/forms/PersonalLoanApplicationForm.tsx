@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { User } from 'lucide-react'; // Removed UploadCloud as it's handled by GenericLoanForm
+import { User } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { PersonalLoanApplicationSchema, type PersonalLoanApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
@@ -20,7 +20,7 @@ const personalLoanSections = [
       { name: "applicantDetails.dob", label: "Date of Birth", type: "date" },
       { name: "applicantDetails.mobile", label: "Mobile Number", type: "tel", placeholder: "10-digit mobile" },
       { name: "applicantDetails.email", label: "Email ID", type: "email", placeholder: "example@mail.com" },
-      { name: "residentialAddress.fullAddress", label: "Current Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
+      { name: "applicantDetails.residentialAddress", label: "Current Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
       { name: "applicantDetails.pan", label: "PAN Number", type: "text", placeholder: "ABCDE1234F", isPAN: true },
       { name: "applicantDetails.aadhaar", label: "Aadhaar Number", type: "text", placeholder: "123456789012", isAadhaar: true },
     ]
@@ -51,12 +51,19 @@ const personalLoanSections = [
       { name: "loanDetails.otherPurposeOfLoan", label: "If Other, specify purpose", type: "text", placeholder: "Specify other purpose", dependsOn: { field: "loanDetails.purposeOfLoan", value: "other" } },
       { name: "loanDetails.loanTenureRequired", label: "Preferred Loan Tenure (in Months)", type: "number", placeholder: "e.g., 36" },
       { name: "loanDetails.hasExistingLoans", label: "Any Existing Loans?", type: "radio", options: [{value: "yes", label: "Yes"}, {value: "no", label: "No"}], colSpan: 2 },
-      { name: "existingLoans.emiAmount", label: "If Yes, EMI (₹)", type: "number", placeholder: "EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
-      { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text", placeholder: "Bank Name", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+    ]
+  },
+   {
+    title: "4. Existing Loan Details",
+    subtitle: "मौजूदा ऋण की जानकारी",
+    fields: [
+      { name: "existingLoans.emiAmount", label: "If Yes, Total Current EMI (कुल वर्तमान ईएमआई)", type: "number", placeholder: "Total EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.bankName", label: "If Yes, Bank Name(s) (बैंक का नाम)", type: "text", placeholder: "Bank Name(s)", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.outstandingAmount", label: "If Yes, Total Outstanding Amount (कुल बकाया राशि)", type: "number", placeholder: "Total outstanding amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
     ]
   },
   {
-    title: "4. Upload Required Documents",
+    title: "5. Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
     fields: [
       { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
@@ -73,8 +80,7 @@ const personalLoanSections = [
 
 export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanApplicationFormProps) {
   const defaultValues: PersonalLoanApplicationFormData = {
-    applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '' },
-    residentialAddress: { fullAddress: '' },
+    applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '', residentialAddress: '' },
     employmentIncome: { 
       employmentType: undefined,
       companyName: '', 
@@ -86,13 +92,14 @@ export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanAppl
       purposeOfLoan: undefined,
       otherPurposeOfLoan: '',
       loanTenureRequired: undefined,
-      hasExistingLoans: undefined,
+      hasExistingLoans: "no",
     },
     existingLoans: {
       emiAmount: undefined,
       bankName: '',
+      outstandingAmount: undefined,
     },
-    documentUploads: { // Ensure these are initially undefined or match schema expectations
+    documentUploads: {
       panCard: undefined,
       aadhaarCard: undefined,
       photograph: undefined,

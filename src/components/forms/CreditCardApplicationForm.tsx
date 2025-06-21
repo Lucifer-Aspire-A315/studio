@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { CreditCardIcon } from 'lucide-react'; // Removed UploadCloud as it's handled by GenericLoanForm
+import { CreditCardIcon } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { CreditCardApplicationSchema, type CreditCardApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
@@ -22,9 +22,9 @@ const creditCardSections = [
       { name: "applicantDetails.email", label: "Email ID", type: "email", placeholder: "example@mail.com" },
       { name: "applicantDetails.pan", label: "PAN Number", type: "text", placeholder: "ABCDE1234F", isPAN: true },
       { name: "applicantDetails.aadhaar", label: "Aadhaar Number", type: "text", placeholder: "123456789012", isAadhaar: true },
-      { name: "residentialAddress.fullAddress", label: "Residential Address", type: "text", placeholder: "Full residential address", colSpan: 2 },
-      { name: "residentialAddress.city", label: "City", type: "text", placeholder: "City" },
-      { name: "residentialAddress.pincode", label: "Pincode", type: "text", placeholder: "6-digit Pincode" },
+      { name: "applicantDetails.residentialAddress", label: "Residential Address", type: "text", placeholder: "Full residential address", colSpan: 2 },
+      { name: "applicantDetails.city", label: "City", type: "text", placeholder: "City" },
+      { name: "applicantDetails.pincode", label: "Pincode", type: "text", placeholder: "6-digit Pincode" },
     ]
   },
   {
@@ -71,8 +71,7 @@ const creditCardSections = [
 
 export function CreditCardApplicationForm({ setCurrentPage }: CreditCardApplicationFormProps) {
   const defaultValues: CreditCardApplicationFormData = {
-    applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '' },
-    residentialAddress: { fullAddress: '', city: '', pincode: '' },
+    applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '', residentialAddress: '', city: '', pincode: '' },
     employmentIncome: { 
       employmentType: undefined, 
       companyName: '', 
@@ -82,11 +81,11 @@ export function CreditCardApplicationForm({ setCurrentPage }: CreditCardApplicat
     creditCardPreferences: {
       preferredCardType: undefined,
       otherPreferredCardType: '',
-      hasExistingCreditCard: undefined,
+      hasExistingCreditCard: "no",
       existingCreditCardIssuer: '',
       existingCreditCardLimit: undefined,
     },
-    documentUploads: { // Ensure these are initially undefined or match schema expectations
+    documentUploads: {
       panCard: undefined,
       aadhaarCard: undefined,
       photograph: undefined,

@@ -28,15 +28,15 @@ const homeLoanSections = [
     title: "2. Address Details",
     subtitle: "पते की जानकारी",
     fields: [
-      { name: "addressDetails.residentialAddress.fullAddress", label: "Current Residential Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
+      { name: "addressDetails.residentialAddress", label: "Current Residential Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
       { 
-        name: "addressDetails.isPermanentAddressDifferent", 
-        label: "Is Permanent Address different from Current Address?", 
+        name: "addressDetails.isPermanentAddressSame", 
+        label: "Is Permanent Address same as Current Address?", 
         type: "radio", 
-        options: [{value: "no", label: "No"}, {value: "yes", label: "Yes"}], 
+        options: [{value: "yes", label: "Yes"}, {value: "no", label: "No"}], 
         colSpan: 2
       },
-      { name: "addressDetails.permanentAddress.fullAddress", label: "Permanent Address (if different)", type: "text", placeholder: "Enter your permanent full address", colSpan: 2, dependsOn: { field: "addressDetails.isPermanentAddressDifferent", value: "yes" } },
+      { name: "addressDetails.permanentAddress", label: "Permanent Address (if different)", type: "text", placeholder: "Enter your permanent full address", colSpan: 2, dependsOn: { field: "addressDetails.isPermanentAddressSame", value: "no" } },
     ]
   },
   {
@@ -101,9 +101,9 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
   const defaultValues: HomeLoanApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '' },
     addressDetails: {
-      residentialAddress: { fullAddress: '' },
-      isPermanentAddressDifferent: "no",
-      permanentAddress: { fullAddress: '' },
+      residentialAddress: '',
+      isPermanentAddressSame: "yes",
+      permanentAddress: '',
     },
     employmentIncome: {
       employmentType: undefined, 

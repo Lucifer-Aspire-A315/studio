@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { Briefcase } from 'lucide-react'; // Removed UploadCloud as it's handled by GenericLoanForm
+import { Briefcase } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { BusinessLoanApplicationSchema, type BusinessLoanApplicationFormData } from '@/lib/schemas';
 import type { SetPageView } from '@/app/page';
@@ -57,24 +57,31 @@ const businessLoanSections = [
         ], colSpan: 2 },
       { name: "loanDetails.otherPurposeOfLoan", label: "If Other, specify purpose (अन्य उद्देश्य निर्दिष्ट करें)", type: "text", placeholder: "Specify other purpose", dependsOn: { field: "loanDetails.purposeOfLoan", value: "other" } },
       { name: "loanDetails.hasExistingLoans", label: "Any Existing Loans? (क्या कोई वर्तमान लोन है?)", type: "radio", options: [{value: "yes", label: "Yes (हाँ)"}, {value: "no", label: "No (नहीं)"}], colSpan: 2 },
-      { name: "loanDetails.existingLoanEMI", label: "If Yes, EMI (ईएमआई)", type: "number", placeholder: "EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
-      { name: "loanDetails.existingLoanBankName", label: "If Yes, Bank Name (बैंक का नाम)", type: "text", placeholder: "Bank Name", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+    ]
+  },
+   {
+    title: "4. Existing Loan Details",
+    subtitle: "मौजूदा ऋण की जानकारी",
+    fields: [
+      { name: "existingLoans.emiAmount", label: "If Yes, Total Current EMI (कुल वर्तमान ईएमआई)", type: "number", placeholder: "Total EMI amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.bankName", label: "If Yes, Bank Name(s) (बैंक का नाम)", type: "text", placeholder: "Bank Name(s)", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.outstandingAmount", label: "If Yes, Total Outstanding Amount (कुल बकाया राशि)", type: "number", placeholder: "Total outstanding amount", prefix: "₹", dependsOn: { field: "loanDetails.hasExistingLoans", value: "yes" } },
     ]
   },
   {
-    title: "4. Upload Required Documents",
+    title: "5. Upload Required Documents",
     subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.",
     fields: [
-      { name: "documentUploadDetails.panCard", label: "PAN Card", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.applicantPhoto", label: "Passport Size Photo", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.gstOrUdyamCertificate", label: "GST Registration / Udyam Certificate", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.businessProof", label: "Shop Act / Business Proof", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.itrLast2Years", label: "ITR for Last 2 Years", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.balanceSheetAndPL", label: "Balance Sheet & Profit/Loss Statement", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.existingLoanStatement", label: "Existing Loan Statement (if applicable)", type: "file", colSpan: 2 },
-      { name: "documentUploadDetails.machineryQuotation", label: "Quotation (for Machinery Loan)", type: "file", colSpan: 2 },
+      { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
+      { name: "documentUploads.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
+      { name: "documentUploads.applicantPhoto", label: "Passport Size Photo", type: "file", colSpan: 2 },
+      { name: "documentUploads.gstOrUdyamCertificate", label: "GST Registration / Udyam Certificate", type: "file", colSpan: 2 },
+      { name: "documentUploads.businessProof", label: "Shop Act / Business Proof", type: "file", colSpan: 2 },
+      { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "file", colSpan: 2 },
+      { name: "documentUploads.itrLast2Years", label: "ITR for Last 2 Years", type: "file", colSpan: 2 },
+      { name: "documentUploads.balanceSheetAndPL", label: "Balance Sheet & Profit/Loss Statement", type: "file", colSpan: 2 },
+      { name: "documentUploads.existingLoanStatement", label: "Existing Loan Statement (if applicable)", type: "file", colSpan: 2 },
+      { name: "documentUploads.machineryQuotation", label: "Quotation (for Machinery Loan)", type: "file", colSpan: 2 },
     ]
   }
 ];
@@ -97,11 +104,14 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
       loanTenureRequired: undefined,
       purposeOfLoan: undefined, 
       otherPurposeOfLoan: '',
-      hasExistingLoans: undefined, 
-      existingLoanEMI: undefined,
-      existingLoanBankName: '',
+      hasExistingLoans: "no",
     },
-    documentUploadDetails: { 
+    existingLoans: {
+        emiAmount: undefined,
+        bankName: '',
+        outstandingAmount: undefined,
+    },
+    documentUploads: { 
         panCard: undefined,
         aadhaarCard: undefined,
         applicantPhoto: undefined,
