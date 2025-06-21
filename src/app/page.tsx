@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -50,15 +49,11 @@ export default function Home() {
   const [selectedGovernmentScheme, setSelectedGovernmentScheme] = useState<string | undefined>();
   const [otherGovernmentSchemeName, setOtherGovernmentSchemeName] = useState<string | undefined>();
   
-  const { currentUser, isLoading: isAuthLoading } = useAuth();
+  const { isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    // If auth is not loading and a user is logged in, redirect to dashboard
-    if (!isAuthLoading && currentUser) {
-      router.push('/dashboard');
-    }
-  }, [currentUser, isAuthLoading, router]);
+  // This useEffect was removed as it forced logged-in users to the dashboard.
+  // Users can now access the homepage while logged in.
 
   useEffect(() => {
     setIsClient(true);
@@ -94,8 +89,8 @@ export default function Home() {
     }
   }, [currentPage]);
 
-  // If we are still checking for a user or if a user is found (and we are about to redirect), show a loading skeleton.
-  if (!isClient || isAuthLoading || currentUser) {
+  // Show a loading skeleton only while authentication status is being checked.
+  if (!isClient || isAuthLoading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Skeleton className="h-16 w-full" />
