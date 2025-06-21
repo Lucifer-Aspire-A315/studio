@@ -63,6 +63,7 @@ export const LoanPropertyDetailsSchema = z.object({
     z.number({ invalid_type_error: "Property value must be a number"}).min(1, "Estimated property value is required")
   ),
   propertyType: z.enum(["apartment", "independent_house", "plot_construction"], { required_error: "Property Type is required" }),
+  hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
 });
 
 export const ExistingLoansSchema = z.object({
@@ -92,26 +93,27 @@ export type HomeLoanDocumentUploadFormData = z.infer<typeof HomeLoanDocumentUplo
 
 export const HomeLoanApplicationSchema = z.object({
   applicantDetails: HomeLoanApplicantDetailsSchema,
-  residentialAddress: ResidentialAddressSchema,
-  isPermanentAddressDifferent: z.enum(["yes", "no"], { required_error: "Please specify if your permanent address is different." }),
-  permanentAddress: ResidentialAddressSchema.optional(),
+  addressDetails: z.object({
+    residentialAddress: ResidentialAddressSchema,
+    isPermanentAddressDifferent: z.enum(["yes", "no"], { required_error: "Please specify if your permanent address is different." }),
+    permanentAddress: ResidentialAddressSchema.optional(),
+  }),
   employmentIncome: EmploymentIncomeSchema.omit({ occupation: true }),
   loanPropertyDetails: LoanPropertyDetailsSchema,
-  hasExistingLoans: z.enum(["yes", "no"], { required_error: "Please specify if you have existing loans" }),
   existingLoans: ExistingLoansSchema.optional(),
   documentUploads: HomeLoanDocumentUploadSchema.optional(),
 }).superRefine((data, ctx) => {
-  if (data.isPermanentAddressDifferent === "yes") {
-    if (!data.permanentAddress || !data.permanentAddress.fullAddress || data.permanentAddress.fullAddress.trim() === "") {
+  if (data.addressDetails.isPermanentAddressDifferent === "yes") {
+    if (!data.addressDetails.permanentAddress || !data.addressDetails.permanentAddress.fullAddress || data.addressDetails.permanentAddress.fullAddress.trim() === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Permanent Address is required if different.",
-        path: ["permanentAddress", "fullAddress"]
+        path: ["addressDetails", "permanentAddress", "fullAddress"]
       });
     }
   }
 
-  if (data.hasExistingLoans === "yes") {
+  if (data.loanPropertyDetails.hasExistingLoans === "yes") {
     if (!data.existingLoans) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "EMI and Bank Name are required if you have existing loans.", path: ["existingLoans", "emiAmount"] });
     } else {
@@ -914,5 +916,6 @@ export const UserLoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 export type UserLoginFormData = z.infer<typeof UserLoginSchema>;
+
 
 

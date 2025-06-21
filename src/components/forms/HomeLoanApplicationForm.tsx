@@ -28,15 +28,15 @@ const homeLoanSections = [
     title: "2. Address Details",
     subtitle: "पते की जानकारी",
     fields: [
-      { name: "residentialAddress.fullAddress", label: "Current Residential Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
+      { name: "addressDetails.residentialAddress.fullAddress", label: "Current Residential Address", type: "text", placeholder: "Enter your current full address", colSpan: 2 },
       { 
-        name: "isPermanentAddressDifferent", 
+        name: "addressDetails.isPermanentAddressDifferent", 
         label: "Is Permanent Address different from Current Address?", 
         type: "radio", 
         options: [{value: "no", label: "No"}, {value: "yes", label: "Yes"}], 
         colSpan: 2
       },
-      { name: "permanentAddress.fullAddress", label: "Permanent Address (if different)", type: "text", placeholder: "Enter your permanent full address", colSpan: 2, dependsOn: { field: "isPermanentAddressDifferent", value: "yes" } },
+      { name: "addressDetails.permanentAddress.fullAddress", label: "Permanent Address (if different)", type: "text", placeholder: "Enter your permanent full address", colSpan: 2, dependsOn: { field: "addressDetails.isPermanentAddressDifferent", value: "yes" } },
     ]
   },
   {
@@ -68,16 +68,16 @@ const homeLoanSections = [
           {value: "independent_house", label: "Independent House"},
           {value: "plot_construction", label: "Plot + Construction"}
         ], colSpan: 2 },
+      { name: "loanPropertyDetails.hasExistingLoans", label: "Any Existing Loans?", type: "radio", options: [{value: "no", label: "No"}, {value: "yes", label: "Yes"}], colSpan: 2 },
     ]
   },
   {
     title: "5. Existing Loan Details",
     subtitle: "मौजूदा ऋण की जानकारी",
     fields: [
-      { name: "hasExistingLoans", label: "Any Existing Loans?", type: "radio", options: [{value: "no", label: "No"}, {value: "yes", label: "Yes"}], colSpan: 2 },
-      { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text", placeholder: "Bank Name", dependsOn: { field: "hasExistingLoans", value: "yes" } },
-      { name: "existingLoans.outstandingAmount", label: "If Yes, Outstanding Amount (₹)", type: "number", placeholder: "Outstanding amount", prefix: "₹", dependsOn: { field: "hasExistingLoans", value: "yes" } },
-      { name: "existingLoans.emiAmount", label: "If Yes, EMI Amount (₹)", type: "number", placeholder: "EMI amount", prefix: "₹", dependsOn: { field: "hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.bankName", label: "If Yes, Bank Name", type: "text", placeholder: "Bank Name", dependsOn: { field: "loanPropertyDetails.hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.outstandingAmount", label: "If Yes, Outstanding Amount (₹)", type: "number", placeholder: "Outstanding amount", prefix: "₹", dependsOn: { field: "loanPropertyDetails.hasExistingLoans", value: "yes" } },
+      { name: "existingLoans.emiAmount", label: "If Yes, EMI Amount (₹)", type: "number", placeholder: "EMI amount", prefix: "₹", dependsOn: { field: "loanPropertyDetails.hasExistingLoans", value: "yes" } },
     ]
   },
   {
@@ -100,9 +100,11 @@ const homeLoanSections = [
 export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationFormProps) {
   const defaultValues: HomeLoanApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '' },
-    residentialAddress: { fullAddress: '' },
-    isPermanentAddressDifferent: "no", 
-    permanentAddress: { fullAddress: '' }, 
+    addressDetails: {
+      residentialAddress: { fullAddress: '' },
+      isPermanentAddressDifferent: "no",
+      permanentAddress: { fullAddress: '' },
+    },
     employmentIncome: {
       employmentType: undefined, 
       companyName: '',
@@ -116,8 +118,8 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
       propertyLocation: '',
       estimatedPropertyValue: undefined, 
       propertyType: undefined,
+      hasExistingLoans: "no", 
     },
-    hasExistingLoans: "no", 
     existingLoans: { 
       bankName: '',
       outstandingAmount: undefined, 
