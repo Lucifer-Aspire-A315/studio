@@ -9,7 +9,8 @@ import type {
   ItrFilingConsultationFormData,
   AccountingBookkeepingFormData,
   CompanyIncorporationFormData,
-  FinancialAdvisoryFormData
+  FinancialAdvisoryFormData,
+  AuditAndAssuranceFormData
 } from '@/lib/schemas';
 
 interface ServerActionResponse {
@@ -127,5 +128,11 @@ export async function submitFinancialAdvisoryAction(
   data: FinancialAdvisoryFormData
 ): Promise<ServerActionResponse> {
   return submitCAServiceApplication(data, "Financial Advisory Service");
+}
+
+export async function submitAuditAndAssuranceAction(
+    data: AuditAndAssuranceFormData
+): Promise<ServerActionResponse> {
+    return submitCAServiceApplication(data, "Audit and Assurance Service");
 }
     

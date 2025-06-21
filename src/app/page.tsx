@@ -19,6 +19,7 @@ import { ItrFilingConsultationForm } from '@/components/forms/ItrFilingConsultat
 import { AccountingBookkeepingForm } from '@/components/forms/AccountingBookkeepingForm';
 import { CompanyIncorporationForm } from '@/components/forms/CompanyIncorporationForm';
 import { FinancialAdvisoryForm } from '@/components/forms/FinancialAdvisoryForm';
+import { AuditAndAssuranceForm } from '@/components/forms/AuditAndAssuranceForm';
 import { Skeleton } from '@/components/ui/skeleton'; 
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
@@ -42,7 +43,8 @@ export type PageView =
   'itrFilingConsultationForm' | 
   'accountingBookkeepingForm' | 
   'companyIncorporationForm' | 
-  'financialAdvisoryForm';
+  'financialAdvisoryForm' |
+  'auditAndAssuranceForm';
 
 export type SetPageView = React.Dispatch<React.SetStateAction<PageView>>;
 export type SetSelectedGovernmentScheme = React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -173,6 +175,8 @@ export default function Home() {
         return <CompanyIncorporationForm setCurrentPage={setCurrentPage} />;
       case 'financialAdvisoryForm':
         return <FinancialAdvisoryForm setCurrentPage={setCurrentPage} />;
+      case 'auditAndAssuranceForm':
+        return <AuditAndAssuranceForm setCurrentPage={setCurrentPage} />;
       default:
         return <p>Page not found.</p>;
     }

@@ -59,6 +59,8 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
       setCurrentPage('companyIncorporationForm');
     } else if (serviceId === 'advisory') {
       setCurrentPage('financialAdvisoryForm');
+    } else if (serviceId === 'audit') {
+      setCurrentPage('auditAndAssuranceForm');
     }
      else {
       toast({
@@ -116,4 +118,3 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
     </section>
   );
 }
-

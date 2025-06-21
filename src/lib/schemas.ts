@@ -818,6 +818,62 @@ export const FinancialAdvisoryFormSchema = z.object({
 });
 export type FinancialAdvisoryFormData = z.infer<typeof FinancialAdvisoryFormSchema>;
 
+// Audit and Assurance Service Schemas
+export const AuditAndAssuranceApplicantDetailsSchema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number"),
+  emailId: z.string().email("Invalid email address"),
+  businessName: z.string().min(1, "Business Name is required"),
+  businessType: z.enum(["proprietorship", "partnership", "pvt_ltd", "llp", "other"], { required_error: "Business type is required" }),
+  otherBusinessTypeDetail: z.string().optional(),
+  annualTurnover: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z.number({ invalid_type_error: "Annual turnover must be a number" }).min(0, "Annual turnover cannot be negative")
+  ),
+}).superRefine((data, ctx) => {
+  if (data.businessType === "other" && (!data.otherBusinessTypeDetail || data.otherBusinessTypeDetail.trim() === "")) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Please specify other business type", path: ["otherBusinessTypeDetail"] });
+  }
+});
+export type AuditAndAssuranceApplicantDetailsFormData = z.infer<typeof AuditAndAssuranceApplicantDetailsSchema>;
+
+export const AuditAndAssuranceServicesRequiredSchema = z.object({
+  statutoryAudit: z.boolean().optional().default(false),
+  taxAudit: z.boolean().optional().default(false),
+  internalAudit: z.boolean().optional().default(false),
+  managementAudit: z.boolean().optional().default(false),
+  stockAudit: z.boolean().optional().default(false),
+  dueDiligence: z.boolean().optional().default(false),
+  otherAuditService: z.boolean().optional().default(false),
+  otherAuditServiceDetail: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.otherAuditService && (!data.otherAuditServiceDetail || data.otherAuditServiceDetail.trim() === "")) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Please specify other service details.", path: ["otherAuditServiceDetail"] });
+  }
+  const { otherAuditServiceDetail, ...services } = data;
+  if (!Object.values(services).some(val => val === true)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "At least one audit service must be selected.", path: ["statutoryAudit"] });
+  }
+});
+export type AuditAndAssuranceServicesRequiredFormData = z.infer<typeof AuditAndAssuranceServicesRequiredSchema>;
+
+export const AuditAndAssuranceDocumentUploadSchema = z.object({
+  panCardBusiness: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("PAN Card of Business/Promoter"),
+  gstCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("GST Certificate (if available)").optional(),
+  lastFinancials: stringOrFileSchema(accountingExcelTypes).describe("Last 2 Years Financial Statements"),
+  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Bank Statement (Last 1 Year)"),
+  existingAuditorDetails: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).describe("Details of Existing Auditors (if any)").optional(),
+  otherSupportingDocs: stringOrFileSchema(accountingExcelTypes).describe("Any Other Supporting Documents").optional(),
+});
+export type AuditAndAssuranceDocumentUploadFormData = z.infer<typeof AuditAndAssuranceDocumentUploadSchema>;
+
+export const AuditAndAssuranceFormSchema = z.object({
+  applicantDetails: AuditAndAssuranceApplicantDetailsSchema,
+  servicesRequired: AuditAndAssuranceServicesRequiredSchema,
+  documentUploads: AuditAndAssuranceDocumentUploadSchema.optional(),
+});
+export type AuditAndAssuranceFormData = z.infer<typeof AuditAndAssuranceFormSchema>;
+
 // Partner Sign Up Schema
 export const PartnerSignUpSchema = z.object({
   fullName: z.string().min(1, "Full Name is required"),
@@ -858,4 +914,5 @@ export const UserLoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 export type UserLoginFormData = z.infer<typeof UserLoginSchema>;
+
 
