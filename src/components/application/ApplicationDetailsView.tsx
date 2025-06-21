@@ -48,6 +48,16 @@ const renderValue = (value: any) => {
           return value; // Fallback to string if formatting fails
       }
   }
+  // This will handle unconverted Firestore timestamp objects { seconds: ..., nanoseconds: ... }
+  if (value && typeof value.seconds === 'number' && typeof value.nanoseconds === 'number') {
+    try {
+      const date = new Date(value.seconds * 1000 + value.nanoseconds / 1000000);
+      return format(date, 'PPp');
+    } catch {
+      return 'Invalid Date';
+    }
+  }
+
   if (value === null || value === undefined || value === '') {
     return <span className="text-muted-foreground">N/A</span>;
   }
@@ -56,6 +66,16 @@ const renderValue = (value: any) => {
 
 // Recursive component to render nested objects and values
 const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any }) => {
+  // Prevent recursive rendering for timestamp-like objects
+  if (typeof itemValue === 'object' && itemValue !== null && !Array.isArray(itemValue) && 'seconds' in itemValue && 'nanoseconds' in itemValue) {
+     return (
+        <div className="flex flex-col">
+            <dt className="text-sm font-medium text-muted-foreground">{formatKey(itemKey)}</dt>
+            <dd className="mt-1 text-sm text-foreground break-words">{renderValue(itemValue)}</dd>
+        </div>
+    );
+  }
+
   if (typeof itemValue === 'object' && itemValue !== null && !Array.isArray(itemValue)) {
     return (
       <div className="col-span-1 md:col-span-2">
@@ -98,7 +118,7 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
         );
     }
   
-  // Destructure to control rendering order and hide certain fields
+  // Destructure to separate meta fields from form data
   const {
       createdAt,
       updatedAt, // This will be ignored
@@ -106,15 +126,10 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
       ...restOfData
   } = applicationData;
   
-  // Flatten top-level simple properties and group nested objects
+  // Flatten top-level simple properties and group nested objects from the rest of the data
   const topLevelDetails: [string, any][] = [];
   const formSections: [string, any][] = [];
 
-  // Manually add 'Submitted On' to the top of the details
-  if (createdAt) {
-      topLevelDetails.push(['Submitted On', createdAt]);
-  }
-  
   Object.entries(restOfData).forEach(([key, value]) => {
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           formSections.push([key, value]);
@@ -134,6 +149,7 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
         <CardDescription>{subtitle}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Render main form data first */}
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             {topLevelDetails.map(([key, value]) => (
                 <DetailItem key={key} itemKey={key} itemValue={value} />
@@ -147,12 +163,18 @@ export function ApplicationDetailsView({ applicationData, title, subtitle }: App
             </div>
         ))}
         
-        {submittedBy && (
-            <div key="submittedBySection">
-                <Separator className="my-4" />
-                <DetailItem itemKey="Submitted By" itemValue={submittedBy} />
-            </div>
-        )}
+        {/* Render meta-data like submittedBy and createdAt at the bottom */}
+        <div key="metaDataSection">
+            <Separator className="my-4" />
+             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                {submittedBy && (
+                   <DetailItem itemKey="Submitted By" itemValue={submittedBy} />
+                )}
+                {createdAt && (
+                    <DetailItem itemKey="Submitted On" itemValue={createdAt} />
+                )}
+             </dl>
+        </div>
       </CardContent>
     </Card>
   );
