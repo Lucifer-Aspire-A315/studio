@@ -1,9 +1,7 @@
-
 "use client";
 
 import { Button } from '@/components/ui/button';
 import type { SetPageView } from '@/app/page';
-import { LoanTrainAnimation } from '@/components/shared/LoanTrainAnimation';
 
 interface HeroSectionProps {
   setCurrentPage: SetPageView;
@@ -17,7 +15,9 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <span className="text-primary">Quick & Easy</span> Financial Solutions
         </h1>
         
-        <LoanTrainAnimation />
+        <p className="mt-8 max-w-2xl mx-auto text-lg text-muted-foreground">
+            Mudra Loans: Over 52 crore entrepreneurs empowered in the last 11 years.
+        </p>
 
         <div className="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <Button 
