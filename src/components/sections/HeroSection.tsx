@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,12 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <span className="text-primary">Quick & Easy</span> Financial Solutions
         </h1>
         
-        <div className="mt-8 max-w-4xl mx-auto">
+        <div 
+          className="mt-8 max-w-4xl mx-auto cursor-pointer"
+          onClick={() => setCurrentPage('governmentSchemes')}
+          role="button"
+          aria-label="Click to explore Government Scheme Loans"
+        >
           <NewsTicker items={governmentSchemes} />
         </div>
 
