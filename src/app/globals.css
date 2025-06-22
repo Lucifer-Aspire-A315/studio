@@ -126,7 +126,7 @@ body {
 }
 
 .hero-bg {
-  background-color: hsl(var(--primary) / 0.05); /* Lighter shade of primary */
+  background: linear-gradient(135deg, hsl(0 100% 97%), hsl(54 100% 97%));
 }
 
 .cta-button {
