@@ -83,7 +83,7 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
         </Button>
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-foreground">Chartered Accountant Services</h2>
+            <h2 className="text-2xl font-bold text-foreground">Chartered Accountant Services</h2>
             <p className="text-muted-foreground mt-2">
               Expert financial and compliance services to meet your needs.
             </p>
