@@ -1,66 +1,82 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
-interface Train {
-  id: number;
-  text: string;
-  colorClass: string;
-}
-
-const loanItems = [
-  { text: "Pradhan Mantri Mudra Yojana (PMMY) - Funding for the unfunded." },
-  { text: "Stand-Up India Scheme - Empowering SC/ST & women entrepreneurs." },
-  { text: "Prime Minister’s Employment Generation Programme (PMEGP) - Creating self-employment opportunities." },
-  { text: "PM SVANidhi Scheme - Working capital for street vendors." },
-  { text: "PM Vishwakarma Scheme - End-to-end support for artisans and craftspeople." }
+// List of loan schemes to display in the banner
+const loanSchemes = [
+    'प्रधानमंत्री मुद्रा योजना',
+    'स्टैंड-अप इंडिया स्कीम',
+    'पीएम स्वनिधि योजना'
 ];
 
-const colors = ['bg-sky-200', 'bg-green-200', 'bg-pink-200', 'bg-yellow-200', 'bg-purple-200'];
-
 export function LoanTrainAnimation() {
-  const [activeTrains, setActiveTrains] = useState<Train[]>([]);
+    // This state tracks which item is currently being animated ('train' or 'banner')
+    const [animatingItem, setAnimatingItem] = useState<'train' | 'banner'>('train');
+    
+    // This state holds the text for the banner
+    const [bannerText, setBannerText] = useState(loanSchemes[0]);
+    
+    // This key is used to force React to re-render the animating element,
+    // which is necessary to restart the CSS animation.
+    const [animationKey, setAnimationKey] = useState(0);
 
-  useEffect(() => {
-    let currentLoanIndex = 0;
+    // We use a ref to keep track of the current scheme index across re-renders
+    // without causing a re-render itself.
+    const schemeIndexRef = React.useRef(0);
 
-    const createTrain = () => {
-      const newTrain: Train = {
-        id: Date.now() + Math.random(),
-        text: loanItems[currentLoanIndex].text,
-        colorClass: colors[currentLoanIndex % colors.length]
-      };
-      
-      setActiveTrains(prev => [...prev, newTrain]);
-      currentLoanIndex = (currentLoanIndex + 1) % loanItems.length;
+    const handleAnimationEnd = () => {
+        if (animatingItem === 'train') {
+            // After the train has passed, it's time for the banners.
+            // Reset the scheme index and set the text for the first banner.
+            schemeIndexRef.current = 0;
+            setBannerText(loanSchemes[0]);
+            setAnimatingItem('banner'); // Switch to banner mode.
+        } else {
+            // A banner has just finished. Time to show the next one or the train.
+            const nextSchemeIndex = schemeIndexRef.current + 1;
+            
+            if (nextSchemeIndex < loanSchemes.length) {
+                // There are more schemes to show.
+                schemeIndexRef.current = nextSchemeIndex;
+                setBannerText(loanSchemes[nextSchemeIndex]);
+                // We stay in 'banner' mode, but a key change will restart the animation.
+            } else {
+                // All banners have been shown. It's time for the train again.
+                setAnimatingItem('train');
+            }
+        }
+        // Incrementing the key forces the element with this key to be re-mounted,
+        // which reliably restarts the CSS animation.
+        setAnimationKey(prev => prev + 1);
     };
 
-    // Start the first train immediately
-    createTrain(); 
-    
-    // Stagger subsequent trains
-    const interval = setInterval(createTrain, 4000); // New train every 4 seconds
-    return () => clearInterval(interval);
-  }, []); // Empty dependency array ensures this runs only once on mount
+    return (
+        <div className="animation-viewport">
+            <Image
+                key={`train-${animationKey}`} // The key is crucial for restarting the animation.
+                src="https://i.imgur.com/gSoSzs9.png"
+                alt="Loan Train"
+                width={300}
+                height={154}
+                className={cn('moving-item train-image', {
+                    'is-animating': animatingItem === 'train'
+                })}
+                onAnimationEnd={animatingItem === 'train' ? handleAnimationEnd : undefined}
+                priority // Preload the train image
+            />
 
-  const handleAnimationEnd = (id: number) => {
-    setActiveTrains(prev => prev.filter(train => train.id !== id));
-  };
-
-  return (
-    <div className="loan-train-container">
-      {activeTrains.map(train => (
-        <div
-          key={train.id}
-          className={cn('train', train.colorClass)}
-          onAnimationEnd={() => handleAnimationEnd(train.id)}
-        >
-          <span className="train-engine">🚂</span>
-          {train.text}
+            <div
+                key={`banner-${animationKey}`} // The key is also crucial here.
+                className={cn('moving-item scheme-banner', {
+                    'is-animating': animatingItem === 'banner'
+                })}
+                onAnimationEnd={animatingItem === 'banner' ? handleAnimationEnd : undefined}
+            >
+                {bannerText}
+            </div>
         </div>
-      ))}
-    </div>
-  );
+    );
 }
