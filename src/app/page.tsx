@@ -129,7 +129,7 @@ export default function Home() {
                     Have questions? We're here to help. Reach out to us via email or visit our office.
                 </p>
                  <p className="mt-2 text-primary font-semibold">contact@rnfintech.com</p>
-                 <p className="mt-1 text-muted-foreground">123 Loan Street, Finance City, India</p>
+                 <p className="mt-1 text-muted-foreground">Sunrise Apartment, A-101, Santoshi Mata Rd, near Yashoda Apartment, near KDMC Commissioners Bunglow, Syndicate, Kalyan, Maharashtra 421301</p>
               </div>
             </section>
           </>

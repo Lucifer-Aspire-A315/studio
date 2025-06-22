@@ -34,7 +34,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-white">Connect With Us</h4>
             <address className="mt-4 space-y-1 text-sm not-italic">
-              <p className="text-gray-400">123 Loan Street, Finance City, India</p>
+              <p className="text-gray-400">Sunrise Apartment, A-101, Santoshi Mata Rd, near Yashoda Apartment, near KDMC Commissioners Bunglow, Syndicate, Kalyan, Maharashtra 421301</p>
               <p><a href="mailto:contact@rnfintech.com" className="text-gray-400 hover:text-white transition-colors">contact@rnfintech.com</a></p>
             </address>
           </div>
