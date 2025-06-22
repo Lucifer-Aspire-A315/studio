@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -11,11 +10,11 @@ interface Train {
 }
 
 const loanItems = [
-  { text: "PM Mudra Yojana: Loan limit increased to ₹20 lakh." },
-  { text: "Stand-Up India: Over ₹61,000 crore sanctioned." },
-  { text: "PM SVANidhi: Extended till Dec 2024 for street vendors." },
-  { text: "PMEGP: Margin money subsidy to boost employment." },
-  { text: "Mudra Loans: Over 52 crore entrepreneurs empowered." }
+  { text: "Pradhan Mantri Mudra Yojana (PMMY) - Funding for the unfunded." },
+  { text: "Stand-Up India Scheme - Empowering SC/ST & women entrepreneurs." },
+  { text: "Prime Minister’s Employment Generation Programme (PMEGP) - Creating self-employment opportunities." },
+  { text: "PM SVANidhi Scheme - Working capital for street vendors." },
+  { text: "PM Vishwakarma Scheme - End-to-end support for artisans and craftspeople." }
 ];
 
 const colors = ['bg-sky-200', 'bg-green-200', 'bg-pink-200', 'bg-yellow-200', 'bg-purple-200'];
