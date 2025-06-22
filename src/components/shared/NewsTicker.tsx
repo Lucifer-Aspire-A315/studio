@@ -39,7 +39,7 @@ export function NewsTicker({ items, duration = 4000, className }: NewsTickerProp
   return (
     <p
       className={cn(
-        'text-2xl font-semibold transition-opacity duration-500 ease-in-out text-center flex items-center justify-center min-h-[80px]',
+        'text-3xl font-semibold transition-opacity duration-500 ease-in-out text-center flex items-center justify-center min-h-[80px]',
         isFadingOut ? 'opacity-0' : 'opacity-100',
         currentItem.className, // Apply the color class
         className
