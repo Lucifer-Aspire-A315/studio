@@ -1,5 +1,8 @@
+"use client";
+
 import { Button } from '@/components/ui/button';
 import type { SetPageView } from '@/app/page';
+import { NewsTicker } from '@/components/shared/NewsTicker';
 
 interface HeroSectionProps {
   setCurrentPage: SetPageView;
@@ -13,13 +16,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <span className="text-primary">Quick & Easy</span> Financial Solutions
         </h1>
         
-        <div className="mt-8 max-w-4xl mx-auto">
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 shadow-lg">
-            <p className="text-lg font-medium text-primary">
-              Mudra Loans: Over 52 crore entrepreneurs empowered in the last 11 years.
-            </p>
-          </div>
-        </div>
+        <NewsTicker />
 
         <div className="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <Button 
@@ -28,7 +25,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             onClick={() => setCurrentPage('caServices')} 
             aria-label="Services Offered by a Chartered Accountant (CA)"
           >
-            CHARTERED ACCOUNTANT SERVICES
+            Chartered Accountant Services
           </Button>
           <Button 
             variant="outline" 
@@ -37,7 +34,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             onClick={() => setCurrentPage('governmentSchemes')} 
             aria-label="Explore Government Scheme Loans"
           >
-            GOVERNMENT SCHEME LOAN
+            Government Scheme Loan
           </Button>
         </div>
       </div>
