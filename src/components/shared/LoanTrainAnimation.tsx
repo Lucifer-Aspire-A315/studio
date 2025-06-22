@@ -1,10 +1,9 @@
 
 "use client";
 
-import React, { useState, useCallback } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useCallback, useRef } from 'react';
+import Image from 'next/image';
 
-// List of loan schemes to display in the banner
 const loanSchemes = [
     'Pradhan Mantri Mudra Yojana (PMMY)',
     'Stand-Up India Scheme',
@@ -13,32 +12,72 @@ const loanSchemes = [
     'PM Vishwakarma Scheme',
 ];
 
+const TRAIN_IMAGE_URL = "https://i.imgur.com/vHqB02A.png";
+
+type AnimationState = {
+  type: 'train' | 'banner';
+  key: number;
+  text?: string;
+};
+
 export function LoanTrainAnimation() {
-    const [bannerText, setBannerText] = useState(loanSchemes[0]);
-    const [animationKey, setAnimationKey] = useState(0);
-    const schemeIndexRef = React.useRef(0);
+    const [animationState, setAnimationState] = useState<AnimationState>({ type: 'train', key: 0 });
+    const schemeIndexRef = useRef(0);
 
     const handleAnimationEnd = useCallback(() => {
-        // Move to the next scheme, or loop back to the start
-        const nextSchemeIndex = (schemeIndexRef.current + 1) % loanSchemes.length;
-        schemeIndexRef.current = nextSchemeIndex;
-        
-        // Update the banner text for the next animation
-        setBannerText(loanSchemes[nextSchemeIndex]);
-        
-        // Increment the key to force a re-render and restart the animation
-        setAnimationKey(prev => prev + 1);
-    }, []);
+        if (animationState.type === 'train') {
+            // After train, show the first banner
+            setAnimationState({
+                type: 'banner',
+                key: animationState.key + 1,
+                text: loanSchemes[schemeIndexRef.current]
+            });
+        } else {
+            // After a banner, show the next one, or loop to the train
+            const nextSchemeIndex = (schemeIndexRef.current + 1);
+            if (nextSchemeIndex < loanSchemes.length) {
+                // Show next banner
+                schemeIndexRef.current = nextSchemeIndex;
+                setAnimationState({
+                    type: 'banner',
+                    key: animationState.key + 1,
+                    text: loanSchemes[nextSchemeIndex]
+                });
+            } else {
+                // Loop back to train
+                schemeIndexRef.current = 0;
+                setAnimationState({
+                    type: 'train',
+                    key: animationState.key + 1
+                });
+            }
+        }
+    }, [animationState.key, animationState.type]);
 
     return (
         <div className="animation-viewport">
-            <div
-                key={`banner-${animationKey}`}
-                className={cn('moving-item scheme-banner is-animating')}
-                onAnimationEnd={handleAnimationEnd}
-            >
-                {bannerText}
-            </div>
+            {animationState.type === 'train' && (
+                <Image
+                    key={animationState.key}
+                    src={TRAIN_IMAGE_URL}
+                    alt="Loan Scheme Train"
+                    className="moving-item is-animating"
+                    width={300}
+                    height={120}
+                    style={{ objectFit: 'contain' }}
+                    onAnimationEnd={handleAnimationEnd}
+                    unoptimized // This is needed for external images like from imgur
+                />
+            )}
+            {animationState.type === 'banner' && (
+                <div
+                    key={animationState.key}
+                    className="moving-item scheme-banner is-animating"
+                    onAnimationEnd={handleAnimationEnd}
+                >
+                    {animationState.text}
+                </div>
+            )}
         </div>
     );
 }
