@@ -7,11 +7,15 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ACCEPTED_DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
 const ACCEPTED_EXCEL_TYPES = ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"];
+const ACCEPTED_WORD_TYPES = ["application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+
 const aCCOUNTING_ACCEPTED_TYPES = [...ACCEPTED_DOCUMENT_TYPES, ...ACCEPTED_EXCEL_TYPES];
+const ACCEPTED_BANK_STATEMENT_TYPES = [...ACCEPTED_DOCUMENT_TYPES, ...ACCEPTED_EXCEL_TYPES, ...ACCEPTED_WORD_TYPES];
+
 
 const fileSchema = (types: string[]) => z.instanceof(File, { message: "File is required." })
   .refine(file => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
-  .refine(file => types.includes(file.type), `Unsupported file type. Accepted: ${types.join(', ')}`)
+  .refine(file => types.includes(file.type), `Unsupported file type.`)
   .optional()
   .nullable();
 
@@ -92,7 +96,7 @@ const HomeLoanDocumentUploadSchema = z.object({
   aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES),
   incomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   propertyDocs: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   allotmentLetter: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   employmentProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
@@ -147,7 +151,7 @@ const PersonalLoanDocumentUploadSchema = z.object({
   aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES),
   incomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   employmentProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   existingLoanStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
 });
@@ -208,7 +212,7 @@ const BusinessLoanDocumentUploadSchema = z.object({
   applicantPhoto: stringOrFileSchema(ACCEPTED_IMAGE_TYPES),
   gstOrUdyamCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   businessProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   itrLast2Years: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   balanceSheetAndPL: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   existingLoanStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
@@ -269,7 +273,7 @@ const CreditCardDocumentUploadSchema = z.object({
   aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES),
   incomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   employmentProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   existingCreditCardStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
 });
@@ -330,7 +334,7 @@ export const GovernmentSchemeDocumentUploadSchema = z.object({
   panCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   passportSizePhoto: stringOrFileSchema(ACCEPTED_IMAGE_TYPES),
   businessProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   casteCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   incomeCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   projectReport: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
@@ -436,7 +440,7 @@ export const ItrDocumentUploadSchema = z.object({
   aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   form16: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   salarySlips: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   investmentProofs: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   rentReceipts: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   capitalGainStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
@@ -489,7 +493,7 @@ export const AccountingDocumentUploadSchema = z.object({
   panCardBusinessOwner: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   gstCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   previousYearFinancials: stringOrFileSchema(aCCOUNTING_ACCEPTED_TYPES).optional(),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   invoices: stringOrFileSchema(aCCOUNTING_ACCEPTED_TYPES).optional(),
   payrollData: stringOrFileSchema(aCCOUNTING_ACCEPTED_TYPES).optional(),
   tdsTaxDetails: stringOrFileSchema(aCCOUNTING_ACCEPTED_TYPES).optional(),
@@ -542,7 +546,7 @@ export const IncorporationDocumentUploadsSchema = z.object({
   directorAadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   directorPhoto: stringOrFileSchema(ACCEPTED_IMAGE_TYPES),
   businessAddressProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
-  directorBankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  directorBankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   dsc: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
 });
 
@@ -623,7 +627,7 @@ export const FinancialAdvisoryDocumentUploadSchema = z.object({
   aadhaarCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   salarySlipsIncomeProof: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   lastYearItrForm16: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES).optional(),
   investmentProofs: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   existingLoanEmiDetails: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
 });
@@ -674,7 +678,7 @@ export const AuditAndAssuranceDocumentUploadSchema = z.object({
   panCardBusiness: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
   gstCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   lastFinancials: stringOrFileSchema(aCCOUNTING_ACCEPTED_TYPES),
-  bankStatement: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
   existingAuditorDetails: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES).optional(),
   otherSupportingDocs: stringOrFileSchema(aCCOUNTING_ACCEPTED_TYPES).optional(),
 });

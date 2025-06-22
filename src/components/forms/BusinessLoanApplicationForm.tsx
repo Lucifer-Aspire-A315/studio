@@ -71,14 +71,14 @@ const businessLoanSections = [
   },
   {
     title: "Upload Required Documents",
-    subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per file.",
+    subtitle: "Accepted File Types: PDF, Word, Excel, JPG, PNG. Max File Size: 5 MB per file.",
     fields: [
       { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
       { name: "documentUploads.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
       { name: "documentUploads.applicantPhoto", label: "Passport Size Photo", type: "file", colSpan: 2 },
       { name: "documentUploads.gstOrUdyamCertificate", label: "GST Registration / Udyam Certificate", type: "file", colSpan: 2 },
       { name: "documentUploads.businessProof", label: "Shop Act / Business Proof", type: "file", colSpan: 2 },
-      { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "file", colSpan: 2 },
+      { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
       { name: "documentUploads.itrLast2Years", label: "ITR for Last 2 Years", type: "file", colSpan: 2 },
       { name: "documentUploads.balanceSheetAndPL", label: "Balance Sheet & Profit/Loss Statement", type: "file", colSpan: 2 },
       { name: "documentUploads.existingLoanStatement", label: "Existing Loan Statement (if applicable)", type: "file", colSpan: 2 },

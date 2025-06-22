@@ -65,13 +65,13 @@ const financialAdvisorySections = [
     },
     {
         title: "Upload Required Documents",
-        subtitle: "Optional but Recommended. Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
+        subtitle: "Optional but Recommended. Accepted File Types: PDF, Word, Excel, JPG, PNG. Max File Size: 5 MB per document.",
         fields: [
             { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
             { name: "documentUploads.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
             { name: "documentUploads.salarySlipsIncomeProof", label: "Salary Slips / Income Proof", type: "file", colSpan: 2 },
             { name: "documentUploads.lastYearItrForm16", label: "Last Year’s ITR or Form 16", type: "file", colSpan: 2 },
-            { name: "documentUploads.bankStatement", label: "Bank Statement (3–6 Months)", type: "file", colSpan: 2 },
+            { name: "documentUploads.bankStatement", label: "Bank Statement (3–6 Months)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
             { name: "documentUploads.investmentProofs", label: "Investment Proofs (Mutual Funds, LIC, etc.)", type: "file", colSpan: 2 },
             { name: "documentUploads.existingLoanEmiDetails", label: "Existing Loan / EMI Details (if any)", type: "file", colSpan: 2 },
         ]

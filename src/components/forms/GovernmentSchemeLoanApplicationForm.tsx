@@ -69,13 +69,13 @@ const governmentSchemeSections = [
   },
   {
     title: "Upload Required Documents",
-    subtitle: "File types allowed: PDF, JPG, PNG. Max size: 5 MB per document.",
+    subtitle: "File types allowed: PDF, Word, Excel, JPG, PNG. Max size: 5 MB per document.",
     fields: [
       { name: "documentUploadsGov.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
       { name: "documentUploadsGov.panCard", label: "PAN Card", type: "file", colSpan: 2 },
       { name: "documentUploadsGov.passportSizePhoto", label: "Passport Size Photo", type: "file", colSpan: 2 },
       { name: "documentUploadsGov.businessProof", label: "Business Proof (Udyam / Registration)", type: "file", colSpan: 2 },
-      { name: "documentUploadsGov.bankStatement", label: "Bank Statement (Last 6 Months)", type: "file", colSpan: 2 },
+      { name: "documentUploadsGov.bankStatement", label: "Bank Statement (Last 6 Months)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
       { name: "documentUploadsGov.casteCertificate", label: "Caste Certificate (if applicable)", type: "file", colSpan: 2 },
       { name: "documentUploadsGov.incomeCertificate", label: "Income Certificate", type: "file", colSpan: 2 },
       { name: "documentUploadsGov.projectReport", label: "Project Report / Business Plan", type: "file", colSpan: 2 },

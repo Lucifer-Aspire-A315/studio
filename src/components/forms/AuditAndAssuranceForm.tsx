@@ -52,7 +52,7 @@ const auditAndAssuranceSections = [
             { name: "documentUploads.panCardBusiness", label: "PAN Card of Business/Promoter", type: "file", colSpan: 2, accept: ".pdf,.jpg,.jpeg,.png" },
             { name: "documentUploads.gstCertificate", label: "GST Certificate (if available)", type: "file", colSpan: 2, accept: ".pdf,.jpg,.jpeg,.png" },
             { name: "documentUploads.lastFinancials", label: "Last 2 Years Financial Statements", type: "file", colSpan: 2, accept: ".pdf,.xls,.xlsx,.jpg,.jpeg,.png" },
-            { name: "documentUploads.bankStatement", label: "Bank Statement (Last 1 Year)", type: "file", colSpan: 2, accept: ".pdf,.jpg,.jpeg,.png" },
+            { name: "documentUploads.bankStatement", label: "Bank Statement (Last 1 Year)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
             { name: "documentUploads.existingAuditorDetails", label: "Details of Existing Auditors (if any)", type: "file", colSpan: 2, accept: ".pdf,.jpg,.jpeg,.png" },
             { name: "documentUploads.otherSupportingDocs", label: "Any Other Supporting Documents", type: "file", colSpan: 2, accept: ".pdf,.xls,.xlsx,.jpg,.jpeg,.png" },
         ]

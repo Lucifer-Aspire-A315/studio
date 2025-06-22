@@ -62,13 +62,13 @@ const companyIncorporationSections = [
     },
     {
         title: "Upload Required Documents",
-        subtitle: "For Each Director/Partner. Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
+        subtitle: "For Each Director/Partner. Accepted File Types: PDF, Word, Excel, JPG, PNG. Max File Size: 5 MB per document.",
         fields: [
             { name: "documentUploads.directorPanCard", label: "PAN Card", type: "file", colSpan: 2 },
             { name: "documentUploads.directorAadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
             { name: "documentUploads.directorPhoto", label: "Passport Size Photo (JPG/PNG)", type: "file", colSpan: 2 },
             { name: "documentUploads.businessAddressProof", label: "Electricity Bill / Rent Agreement (Business Address Proof)", type: "file", colSpan: 2 },
-            { name: "documentUploads.directorBankStatement", label: "Bank Statement (Last 1 month)", type: "file", colSpan: 2 },
+            { name: "documentUploads.directorBankStatement", label: "Bank Statement (Last 1 month)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
             { name: "documentUploads.dsc", label: "Digital Signature Certificate (DSC, if available)", type: "file", colSpan: 2 },
         ]
     },

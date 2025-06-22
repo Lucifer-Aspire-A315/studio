@@ -65,13 +65,13 @@ const personalLoanSections = [
   },
   {
     title: "Upload Required Documents",
-    subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
+    subtitle: "Accepted File Types: PDF, Word, Excel, JPG, PNG. Max File Size: 5 MB per document.",
     fields: [
       { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
       { name: "documentUploads.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
       { name: "documentUploads.photograph", label: "Passport Size Photograph", type: "file", colSpan: 2 },
       { name: "documentUploads.incomeProof", label: "Income Proof (Salary Slip / ITR)", type: "file", colSpan: 2 },
-      { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6 Months)", type: "file", colSpan: 2 },
+      { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6 Months)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
       { name: "documentUploads.employmentProof", label: "Employment/Business Proof", type: "file", colSpan: 2 },
       { name: "documentUploads.existingLoanStatement", label: "Existing Loan Statement (if any)", type: "file", colSpan: 2 },
     ]

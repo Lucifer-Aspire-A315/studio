@@ -53,7 +53,7 @@ const accountingSections = [
             { name: "documentUploads.panCardBusinessOwner", label: "PAN Card of Business/Owner", type: "file", colSpan: 2, accept: ".pdf,.jpg,.jpeg,.png" },
             { name: "documentUploads.gstCertificate", label: "GST Certificate (if available)", type: "file", colSpan: 2, accept: ".pdf,.jpg,.jpeg,.png" },
             { name: "documentUploads.previousYearFinancials", label: "Previous Year Financial Statements", type: "file", colSpan: 2, accept: ".pdf,.xls,.xlsx,.jpg,.jpeg,.png" },
-            { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "file", colSpan: 2, accept: ".pdf,.jpg,.jpeg,.png" },
+            { name: "documentUploads.bankStatement", label: "Bank Statement (Last 6–12 Months)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
             { name: "documentUploads.invoices", label: "Invoices (Sales & Purchase - PDF/Excel)", type: "file", colSpan: 2, accept: ".pdf,.xls,.xlsx,.jpg,.jpeg,.png" },
             { name: "documentUploads.payrollData", label: "Payroll Data (if applicable)", type: "file", colSpan: 2, accept: ".pdf,.xls,.xlsx,.jpg,.jpeg,.png" },
             { name: "documentUploads.tdsTaxDetails", label: "TDS & Tax Details (if any)", type: "file", colSpan: 2, accept: ".pdf,.xls,.xlsx,.jpg,.jpeg,.png" },

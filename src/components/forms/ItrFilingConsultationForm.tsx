@@ -41,13 +41,13 @@ const itrFilingSections = [
     },
     {
         title: "Upload Required Documents",
-        subtitle: "Accepted File Types: PDF, JPG, PNG. Max File Size: 5 MB per document.",
+        subtitle: "Accepted File Types: PDF, Word, Excel, JPG, PNG. Max File Size: 5 MB per document.",
         fields: [
             { name: "documentUploads.panCard", label: "PAN Card", type: "file", colSpan: 2 },
             { name: "documentUploads.aadhaarCard", label: "Aadhaar Card", type: "file", colSpan: 2 },
             { name: "documentUploads.form16", label: "Form 16 (if Salaried)", type: "file", colSpan: 2 },
             { name: "documentUploads.salarySlips", label: "Salary Slips (if applicable)", type: "file", colSpan: 2 },
-            { name: "documentUploads.bankStatement", label: "Bank Statement (Full FY)", type: "file", colSpan: 2 },
+            { name: "documentUploads.bankStatement", label: "Bank Statement (Full FY)", type: "file", colSpan: 2, accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" },
             { name: "documentUploads.investmentProofs", label: "Investment Proofs (LIC, PPF, 80C, etc.)", type: "file", colSpan: 2 },
             { name: "documentUploads.rentReceipts", label: "Rent Receipts / HRA Proofs", type: "file", colSpan: 2 },
             { name: "documentUploads.capitalGainStatement", label: "Capital Gain Statement (if any)", type: "file", colSpan: 2 },
