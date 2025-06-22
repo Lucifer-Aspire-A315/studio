@@ -37,7 +37,7 @@ export function NewsTicker({ items, duration = 4000, className }: NewsTickerProp
   const currentItem = items[index] || { text: '', className: '' };
 
   return (
-    <div className="bg-background/50 backdrop-blur-sm rounded-xl shadow-lg p-4 flex items-center justify-center min-h-[80px]">
+    <div className={cn('bg-secondary backdrop-blur-sm rounded-xl shadow-lg p-4 flex items-center justify-center min-h-[80px]')}>
       <p
         className={cn(
           'text-2xl font-semibold transition-opacity duration-500 ease-in-out text-center', // Increased size and weight
