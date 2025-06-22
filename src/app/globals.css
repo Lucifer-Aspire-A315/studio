@@ -160,11 +160,6 @@ body {
     justify-content: center;
 }
 
-.train-image {
-    width: 300px;
-    height: auto;
-}
-
 .scheme-banner {
     background: linear-gradient(45deg, #007bff, #0056b3);
     color: white;

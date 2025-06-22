@@ -1,8 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
+import React, { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
 // List of loan schemes to display in the banner
@@ -15,67 +14,28 @@ const loanSchemes = [
 ];
 
 export function LoanTrainAnimation() {
-    // This state tracks which item is currently being animated ('train' or 'banner')
-    const [animatingItem, setAnimatingItem] = useState<'train' | 'banner'>('train');
-    
-    // This state holds the text for the banner
     const [bannerText, setBannerText] = useState(loanSchemes[0]);
-    
-    // This key is used to force React to re-render the animating element,
-    // which is necessary to restart the CSS animation.
     const [animationKey, setAnimationKey] = useState(0);
-
-    // We use a ref to keep track of the current scheme index across re-renders
-    // without causing a re-render itself.
     const schemeIndexRef = React.useRef(0);
 
-    const handleAnimationEnd = () => {
-        if (animatingItem === 'train') {
-            // After the train has passed, it's time for the banners.
-            // Reset the scheme index and set the text for the first banner.
-            schemeIndexRef.current = 0;
-            setBannerText(loanSchemes[0]);
-            setAnimatingItem('banner'); // Switch to banner mode.
-        } else {
-            // A banner has just finished. Time to show the next one or the train.
-            const nextSchemeIndex = schemeIndexRef.current + 1;
-            
-            if (nextSchemeIndex < loanSchemes.length) {
-                // There are more schemes to show.
-                schemeIndexRef.current = nextSchemeIndex;
-                setBannerText(loanSchemes[nextSchemeIndex]);
-                // We stay in 'banner' mode, but a key change will restart the animation.
-            } else {
-                // All banners have been shown. It's time for the train again.
-                setAnimatingItem('train');
-            }
-        }
-        // Incrementing the key forces the element with this key to be re-mounted,
-        // which reliably restarts the CSS animation.
+    const handleAnimationEnd = useCallback(() => {
+        // Move to the next scheme, or loop back to the start
+        const nextSchemeIndex = (schemeIndexRef.current + 1) % loanSchemes.length;
+        schemeIndexRef.current = nextSchemeIndex;
+        
+        // Update the banner text for the next animation
+        setBannerText(loanSchemes[nextSchemeIndex]);
+        
+        // Increment the key to force a re-render and restart the animation
         setAnimationKey(prev => prev + 1);
-    };
+    }, []);
 
     return (
         <div className="animation-viewport">
-            <Image
-                key={`train-${animationKey}`} // The key is crucial for restarting the animation.
-                src="https://i.imgur.com/gSoSzs9.png"
-                alt="A colorful cartoon train carrying gold coins representing various loans"
-                width={300}
-                height={200}
-                className={cn('moving-item train-image', {
-                    'is-animating': animatingItem === 'train'
-                })}
-                onAnimationEnd={animatingItem === 'train' ? handleAnimationEnd : undefined}
-                priority // Preload the train image
-            />
-
             <div
-                key={`banner-${animationKey}`} // The key is also crucial here.
-                className={cn('moving-item scheme-banner', {
-                    'is-animating': animatingItem === 'banner'
-                })}
-                onAnimationEnd={animatingItem === 'banner' ? handleAnimationEnd : undefined}
+                key={`banner-${animationKey}`}
+                className={cn('moving-item scheme-banner is-animating')}
+                onAnimationEnd={handleAnimationEnd}
             >
                 {bannerText}
             </div>
