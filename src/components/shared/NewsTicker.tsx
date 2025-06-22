@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface NewsTickerItem {
-  text: string;
+  text: React.ReactNode;
   className?: string;
 }
 
@@ -37,15 +37,15 @@ export function NewsTicker({ items, duration = 4000, className }: NewsTickerProp
   const currentItem = items[index] || { text: '', className: '' };
 
   return (
-    <p
+    <div
       className={cn(
-        'text-3xl font-semibold transition-opacity duration-500 ease-in-out text-center flex items-center justify-center min-h-[80px]',
+        'text-4xl font-semibold transition-opacity duration-500 ease-in-out text-center flex items-center justify-center min-h-[120px]',
         isFadingOut ? 'opacity-0' : 'opacity-100',
         currentItem.className, // Apply the color class
         className
       )}
     >
       {currentItem.text}
-    </p>
+    </div>
   );
 }

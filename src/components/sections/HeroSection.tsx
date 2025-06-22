@@ -1,6 +1,6 @@
-
 "use client";
 
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import type { SetPageView } from '@/app/page';
 import { NewsTicker } from '@/components/shared/NewsTicker';
@@ -10,12 +10,53 @@ interface HeroSectionProps {
 }
 
 const governmentSchemes = [
-  { text: "Pradhan Mantri Mudra Yojana (PMMY)", className: "text-primary" },
-  { text: "Stand-Up India Scheme", className: "text-accent" },
-  { text: "Prime Minister’s Employment Generation Programme (PMEGP)", className: "text-green-600 dark:text-green-400" },
-  { text: "PM SVANidhi Scheme", className: "text-orange-600 dark:text-orange-400" },
-  { text: "PM Vishwakarma Scheme", className: "text-sky-600 dark:text-sky-400" }
+  { 
+    text: (
+      <div>
+        <p className="text-2xl font-medium">Pradhan Mantri Mudra Yojana (PMMY)</p>
+        <p className="mt-1">प्रधानमंत्री मुद्रा योजना (PMMY)</p>
+      </div>
+    ), 
+    className: "text-primary" 
+  },
+  { 
+    text: (
+      <div>
+        <p className="text-2xl font-medium">Stand-Up India Scheme</p>
+        <p className="mt-1">स्टैंड-अप इंडिया योजना</p>
+      </div>
+    ),
+    className: "text-accent" 
+  },
+  { 
+    text: (
+      <div>
+        <p className="text-2xl font-medium">Prime Minister’s Employment Generation Programme (PMEGP)</p>
+        <p className="mt-1">प्रधानमंत्री रोजगार सृजन कार्यक्रम (PMEGP)</p>
+      </div>
+    ), 
+    className: "text-green-600 dark:text-green-400"
+  },
+  { 
+    text: (
+      <div>
+        <p className="text-2xl font-medium">PM SVANidhi Scheme</p>
+        <p className="mt-1">पीएम स्वनिधि योजना</p>
+      </div>
+    ), 
+    className: "text-orange-600 dark:text-orange-400" 
+  },
+  { 
+    text: (
+      <div>
+        <p className="text-2xl font-medium">PM Vishwakarma Scheme</p>
+        <p className="mt-1">पीएम विश्वकर्मा योजना</p>
+      </div>
+    ), 
+    className: "text-sky-600 dark:text-sky-400" 
+  }
 ];
+
 
 export function HeroSection({ setCurrentPage }: HeroSectionProps) {
   return (
