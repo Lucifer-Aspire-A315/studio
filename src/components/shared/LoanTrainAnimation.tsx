@@ -7,9 +7,11 @@ import { cn } from '@/lib/utils';
 
 // List of loan schemes to display in the banner
 const loanSchemes = [
-    'प्रधानमंत्री मुद्रा योजना',
-    'स्टैंड-अप इंडिया स्कीम',
-    'पीएम स्वनिधि योजना'
+    'Pradhan Mantri Mudra Yojana (PMMY)',
+    'Stand-Up India Scheme',
+    'Prime Minister’s Employment Generation Programme (PMEGP)',
+    'PM SVANidhi Scheme',
+    'PM Vishwakarma Scheme',
 ];
 
 export function LoanTrainAnimation() {
@@ -58,9 +60,9 @@ export function LoanTrainAnimation() {
             <Image
                 key={`train-${animationKey}`} // The key is crucial for restarting the animation.
                 src="https://i.imgur.com/gSoSzs9.png"
-                alt="Loan Train"
+                alt="A colorful cartoon train carrying gold coins representing various loans"
                 width={300}
-                height={154}
+                height={200}
                 className={cn('moving-item train-image', {
                     'is-animating': animatingItem === 'train'
                 })}
