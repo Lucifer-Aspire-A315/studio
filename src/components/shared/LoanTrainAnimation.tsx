@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface Train {
@@ -21,27 +22,28 @@ const colors = ['bg-sky-200', 'bg-green-200', 'bg-pink-200', 'bg-yellow-200', 'b
 
 export function LoanTrainAnimation() {
   const [activeTrains, setActiveTrains] = useState<Train[]>([]);
-  const [loanIndex, setLoanIndex] = useState(0);
-
-  const createTrain = useCallback(() => {
-    const newTrain: Train = {
-      id: Date.now() + Math.random(),
-      text: loanItems[loanIndex].text,
-      colorClass: colors[loanIndex % colors.length]
-    };
-
-    setActiveTrains(prev => [...prev, newTrain]);
-    setLoanIndex(prev => (prev + 1) % loanItems.length);
-  }, [loanIndex]);
 
   useEffect(() => {
+    let currentLoanIndex = 0;
+
+    const createTrain = () => {
+      const newTrain: Train = {
+        id: Date.now() + Math.random(),
+        text: loanItems[currentLoanIndex].text,
+        colorClass: colors[currentLoanIndex % colors.length]
+      };
+      
+      setActiveTrains(prev => [...prev, newTrain]);
+      currentLoanIndex = (currentLoanIndex + 1) % loanItems.length;
+    };
+
     // Start the first train immediately
     createTrain(); 
     
     // Stagger subsequent trains
     const interval = setInterval(createTrain, 4000); // New train every 4 seconds
     return () => clearInterval(interval);
-  }, []); // Note: createTrain is not in deps array to avoid resetting interval on index change
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleAnimationEnd = (id: number) => {
     setActiveTrains(prev => prev.filter(train => train.id !== id));
