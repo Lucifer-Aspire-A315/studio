@@ -9,11 +9,11 @@ interface HeroSectionProps {
 }
 
 const governmentSchemes = [
-  "Pradhan Mantri Mudra Yojana (PMMY)",
-  "Stand-Up India Scheme",
-  "Prime Minister’s Employment Generation Programme (PMEGP)",
-  "PM SVANidhi Scheme",
-  "PM Vishwakarma Scheme"
+  { text: "Pradhan Mantri Mudra Yojana (PMMY)", className: "text-primary" },
+  { text: "Stand-Up India Scheme", className: "text-accent" },
+  { text: "Prime Minister’s Employment Generation Programme (PMEGP)", className: "text-green-600 dark:text-green-400" },
+  { text: "PM SVANidhi Scheme", className: "text-orange-600 dark:text-orange-400" },
+  { text: "PM Vishwakarma Scheme", className: "text-sky-600 dark:text-sky-400" }
 ];
 
 export function HeroSection({ setCurrentPage }: HeroSectionProps) {
@@ -24,7 +24,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <span className="text-primary">Quick & Easy</span> Financial Solutions
         </h1>
         
-        <div className="mt-8 max-w-3xl mx-auto">
+        <div className="mt-8 max-w-4xl mx-auto">
           <NewsTicker items={governmentSchemes} />
         </div>
 

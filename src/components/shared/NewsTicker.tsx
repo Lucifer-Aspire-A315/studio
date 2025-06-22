@@ -3,8 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
+interface NewsTickerItem {
+  text: string;
+  className?: string;
+}
+
 interface NewsTickerProps {
-  items: string[];
+  items: NewsTickerItem[];
   duration?: number;
   className?: string;
 }
@@ -27,18 +32,21 @@ export function NewsTicker({ items, duration = 4000, className }: NewsTickerProp
     const intervalId = setInterval(changeItem, duration);
 
     return () => clearInterval(intervalId);
-  }, [items.length, duration]);
+  }, [items, duration]);
+
+  const currentItem = items[index] || { text: '', className: '' };
 
   return (
-    <div className="h-7 flex items-center justify-center"> {/* Set a fixed height to prevent layout shift */}
+    <div className="h-10 flex items-center justify-center"> {/* Increased height for larger text */}
       <p
         className={cn(
-          'text-lg text-muted-foreground transition-opacity duration-500 ease-in-out',
+          'text-2xl font-semibold transition-opacity duration-500 ease-in-out text-center', // Increased size and weight
           isFadingOut ? 'opacity-0' : 'opacity-100',
+          currentItem.className, // Apply the color class
           className
         )}
       >
-        {items[index]}
+        {currentItem.text}
       </p>
     </div>
   );
