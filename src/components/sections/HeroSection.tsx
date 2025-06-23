@@ -59,6 +59,7 @@ const governmentSchemes = [
 
 export function HeroSection({ setCurrentPage }: HeroSectionProps) {
   return (
+<<<<<<< HEAD
     <section
       id="home"
       className="relative min-h-[80vh] flex flex-col justify-center items-center bg-gradient-to-b from-[#F8FAE5] to-[#E4EFE7] px-4 overflow-hidden"
@@ -101,15 +102,45 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             size="lg"
             className="bg-[#4E944F] text-white font-bold px-8 py-3 rounded-full shadow-md hover:bg-[#F26A4B] hover:text-white hover:scale-105 transition"
             onClick={() => setCurrentPage('caServices')}
+=======
+    <section id="home" className="bg-background py-20 md:py-32">
+      <div className="container mx-auto px-6 text-center">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight">
+          Aapke Sapno Ka Loan, Ab <span className="animated-gradient-text">Aapke Saath</span>
+        </h1>
+
+        <div
+          className="mt-8 max-w-xl mx-auto cursor-pointer"
+          onClick={() => setCurrentPage('governmentSchemes')}
+          role="button"
+          aria-label="Click to explore Government Scheme Loans"
+        >
+          <NewsTicker items={governmentSchemes} />
+        </div>
+
+        <div className="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+          <Button 
+            size="lg" 
+            className="cta-button bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 w-full sm:w-auto"
+            onClick={() => setCurrentPage('caServices')} 
+>>>>>>> 287e1e1 (ok remove the last update)
             aria-label="Services Offered by a Chartered Accountant (CA)"
           >
             Chartered Accountant Services
           </Button>
+<<<<<<< HEAD
           <Button
             variant="outline"
             size="lg"
             className="border-[#4E944F] text-[#4E944F] font-bold px-8 py-3 rounded-full hover:bg-[#F26A4B] hover:text-white hover:scale-105 transition"
             onClick={() => setCurrentPage('governmentSchemes')}
+=======
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="cta-button bg-card hover:bg-secondary text-primary font-bold py-3 px-8 border-primary/30 w-full sm:w-auto"
+            onClick={() => setCurrentPage('governmentSchemes')} 
+>>>>>>> 287e1e1 (ok remove the last update)
             aria-label="Explore Government Scheme Loans"
           >
             Government Scheme Loan
