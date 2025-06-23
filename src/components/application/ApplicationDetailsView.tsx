@@ -13,14 +13,6 @@ import { updateApplicationStatus } from '@/app/actions/adminActions';
 import { useToast } from '@/hooks/use-toast';
 import type { UserApplication } from '@/lib/types';
 
-interface ApplicationDetailsViewProps {
-  applicationId: string;
-  applicationData: any;
-  title: string;
-  subtitle: string;
-  isAdmin?: boolean;
-}
-
 // Helper to format keys for display (e.g., 'fullName' -> 'Full Name')
 const formatKey = (key: string) => {
   return key
@@ -85,7 +77,9 @@ const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any })
       <div className="col-span-1 md:col-span-2">
         <h4 className="text-md font-semibold text-foreground mt-4 mb-2 border-b pb-1">{formatKey(itemKey)}</h4>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pl-4">
-          {Object.entries(itemValue).map(([key, value]) => (
+          {Object.entries(itemValue)
+            .filter(([key, value]) => key !== 'userId' || (value !== null && value !== undefined))
+            .map(([key, value]) => (
             <DetailItem key={key} itemKey={key} itemValue={value} />
           ))}
         </dl>
