@@ -2,6 +2,7 @@
 
 
 
+
 'use server';
 
 import { cookies } from 'next/headers';
@@ -328,16 +329,12 @@ export async function userLoginAction(
       };
     }
 
-    const userType = (userDataFromDb.type === 'partner' || userDataFromDb.type === 'normal')
-                     ? userDataFromDb.type
-                     : 'normal';
-
     const loggedInUser: UserData = {
       id: userDoc.id,
       fullName: userDataFromDb.fullName,
       email: userDataFromDb.email,
-      type: userType,
-      isAdmin: !!userDataFromDb.isAdmin, // Check for the isAdmin flag
+      type: 'normal', // User login action always logs in a 'normal' user
+      isAdmin: false, // User login action never grants admin privileges
     };
 
     await setSessionCookies(loggedInUser);

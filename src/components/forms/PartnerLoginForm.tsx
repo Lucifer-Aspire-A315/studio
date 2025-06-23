@@ -76,9 +76,9 @@ export function PartnerLoginForm() {
     <div className="max-w-md mx-auto bg-card p-8 rounded-2xl shadow-xl">
       <div className="text-center mb-8">
         <LogIn className="w-12 h-12 mx-auto text-primary mb-2" />
-        <h2 className="text-2xl font-bold text-card-foreground">Partner Login</h2>
+        <h2 className="text-2xl font-bold text-card-foreground">Partner &amp; Admin Login</h2>
         <p className="text-muted-foreground mt-1">
-          Access your partner account.
+          Access your Partner or Administrator account.
         </p>
       </div>
       <Form {...form}>
