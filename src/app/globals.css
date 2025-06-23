@@ -3,39 +3,35 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: var(--font-inter), sans-serif; /* Ensure Inter is primary font */
-}
-
 @layer base {
   :root {
-    --background: 220 14% 96.1%; /* #F9FAFB - Light Gray */
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 20% 94%;
+    --foreground: 224 71.4% 4.1%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 71.4% 4.1%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 224 71.4% 4.1%;
 
-    --primary: 217 91% 60%; /* #3B82F6 - Deep Blue */
-    --primary-foreground: 0 0% 100%; /* White for contrast on primary */
+    --primary: 225.9 71.8% 50%; /* Indigo */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 220 20% 97%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 220 20% 97%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 254 91% 68%; /* #8B5CF6 - Purple */
-    --accent-foreground: 0 0% 100%; /* White for contrast on accent */
+    --accent: 286.9 83.3% 58.6%; /* Fuchsia */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%; /* Primary color for rings */
+    --border: 215 27.9% 82.9%;
+    --input: 215 27.9% 82.9%;
+    --ring: 225.9 71.8% 50%;
 
     --radius: 0.5rem;
 
@@ -47,34 +43,34 @@ body {
     
     --sidebar-background: 220 14% 98%; /* Lighter shade for sidebar */
     --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 225.9 71.8% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 254 91% 68%;
+    --sidebar-accent: 286.9 83.3% 58.6%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 225.9 71.8% 50%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 217.2 32.6% 17.5%;
+    --foreground: 210 20% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
 
-    --primary: 217 91% 60%; /* Keep primary blue for dark mode */
+    --primary: 225.9 71.8% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary-foreground: 210 20% 98%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 254 91% 68%; /* Keep accent purple for dark mode */
+    --accent: 286.9 83.3% 58.6%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
@@ -82,7 +78,7 @@ body {
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 217 91% 60%; /* Primary color for rings */
+    --ring: 225.9 71.8% 50%;
     
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -90,23 +86,25 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-background: 224 71.4% 4.1%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-primary: 225.9 71.8% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 254 91% 68%;
+    --sidebar-accent: 286.9 83.3% 58.6%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 225.9 71.8% 50%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  * {
+    @apply border-border;
   }
 }
 
@@ -127,13 +125,25 @@ body {
 }
 
 .hero-bg {
-  background: linear-gradient(135deg, hsl(217 91% 96%), hsl(254 91% 96%));
+  background: 
+    radial-gradient(at 27% 37%, hsla(var(--primary), 0.1) 0px, transparent 50%),
+    radial-gradient(at 97% 21%, hsla(var(--accent), 0.1) 0px, transparent 50%),
+    radial-gradient(at 52% 99%, hsla(var(--primary), 0.1) 0px, transparent 50%);
 }
 
+
 .cta-button {
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .cta-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px hsla(var(--primary), 0.2);
+}
+
+.card-hover-effect {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
 }

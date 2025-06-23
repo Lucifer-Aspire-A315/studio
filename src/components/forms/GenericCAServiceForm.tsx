@@ -12,11 +12,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { uploadFileAction } from '@/app/actions/fileUploadActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Loader2, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import type { SetPageView, PageView } from '@/app/page';
+import { processFileUploads } from '@/lib/form-helpers';
 
 // Field and Section Configuration Types
 interface FieldConfig {
@@ -134,30 +134,8 @@ export function GenericCAServiceForm<TData extends Record<string, any>>({
     try {
       const documentUploadsKey = getFirstDocumentUploadsKey();
       if (documentUploadsKey && data[documentUploadsKey]) {
-        const uploadPromises = Object.entries(data[documentUploadsKey] as Record<string, any>)
-          .filter(([, file]) => file instanceof File)
-          .map(async ([key, file]) => {
-            if (file instanceof File) {
-              toast({ title: `Uploading ${key}...`, description: "Please wait." });
-              const formData = new FormData();
-              formData.append('file', file);
-              formData.append('fileName', file.name);
-              const uploadResult = await uploadFileAction(formData);
-              if (uploadResult.success && uploadResult.url) {
-                return { key, url: uploadResult.url };
-              }
-              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
-            }
-            return null;
-          });
-        
-        const uploadedDocuments = await Promise.all(uploadPromises);
-        
-        uploadedDocuments.forEach(doc => {
-            if (doc) {
-                dataToSubmit[documentUploadsKey][doc.key] = doc.url;
-            }
-        });
+        const uploadedUrls = await processFileUploads(data[documentUploadsKey], toast);
+        Object.assign(dataToSubmit[documentUploadsKey], uploadedUrls);
       }
       
       const result = await submitAction(dataToSubmit);

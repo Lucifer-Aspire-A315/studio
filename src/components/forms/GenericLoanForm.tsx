@@ -13,9 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { validateIdentificationDetails, type ValidateIdentificationDetailsOutput } from '@/ai/flows/validate-identification-details';
 import { ArrowLeft, Loader2, Info, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
-import { uploadFileAction } from '@/app/actions/fileUploadActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { Textarea } from '../ui/textarea';
+import { processFileUploads } from '@/lib/form-helpers';
 
 // --- TYPE DEFINITIONS ---
 
@@ -157,31 +157,9 @@ export function GenericLoanForm<TData extends Record<string, any>>({
     try {
       const documentUploadsKey = getFirstDocumentUploadsKey();
       
-      if (documentUploadsKey && payloadForServer[documentUploadsKey] && typeof payloadForServer[documentUploadsKey] === 'object') {
-        const uploadPromises = Object.entries(data[documentUploadsKey] as Record<string, any>)
-          .filter(([, file]) => file instanceof File)
-          .map(async ([key, file]) => {
-            if (file instanceof File) {
-              toast({ title: `Uploading ${key}...`, description: "Please wait." });
-              const formData = new FormData();
-              formData.append('file', file);
-              formData.append('fileName', file.name);
-              const uploadResult = await uploadFileAction(formData);
-              if (uploadResult.success && uploadResult.url) {
-                return { key, url: uploadResult.url };
-              }
-              throw new Error(`Failed to upload ${key}: ${uploadResult.error}`);
-            }
-            return null;
-          });
-        
-        const uploadedDocuments = await Promise.all(uploadPromises);
-        
-        uploadedDocuments.forEach(doc => {
-            if (doc) {
-                payloadForServer[documentUploadsKey][doc.key] = doc.url;
-            }
-        });
+      if (documentUploadsKey && payloadForServer[documentUploadsKey]) {
+        const uploadedUrls = await processFileUploads(data[documentUploadsKey], toast);
+        Object.assign(payloadForServer[documentUploadsKey], uploadedUrls);
       }
       
       const result = await submitAction(payloadForServer);

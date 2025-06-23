@@ -1,10 +1,11 @@
+
 'use client';
 
 import React, { useState, useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { updateApplicationStatus } from '@/app/actions/adminActions';
 import { useToast } from '@/hooks/use-toast';
 import type { UserApplication } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
 
 // Helper to format keys for display (e.g., 'fullName' -> 'Full Name')
 const formatKey = (key: string) => {
@@ -33,9 +35,10 @@ const renderValue = (value: any) => {
         href={value}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-primary hover:underline font-medium break-all"
+        className="text-primary hover:underline font-medium break-all flex items-center gap-1.5"
       >
-        {fileName || "View Uploaded File"}
+        <FileText size={16} />
+        <span>{fileName || "View Uploaded File"}</span>
       </Link>
     );
   }
@@ -63,22 +66,14 @@ const renderValue = (value: any) => {
 
 // Recursive component to render nested objects and values
 const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any }) => {
-  if (typeof itemValue === 'object' && itemValue !== null && !Array.isArray(itemValue) && 'seconds' in itemValue && 'nanoseconds' in itemValue) {
-     return (
-        <div className="flex flex-col">
-            <dt className="text-sm font-medium text-muted-foreground">{formatKey(itemKey)}</dt>
-            <dd className="mt-1 text-sm text-foreground break-words">{renderValue(itemValue)}</dd>
-        </div>
-    );
-  }
-
-  if (typeof itemValue === 'object' && itemValue !== null && !Array.isArray(itemValue)) {
+  // Section rendering (for nested objects)
+  if (typeof itemValue === 'object' && itemValue !== null && !Array.isArray(itemValue) && !('seconds' in itemValue)) {
     return (
-      <div className="col-span-1 md:col-span-2">
-        <h4 className="text-md font-semibold text-foreground mt-4 mb-2 border-b pb-1">{formatKey(itemKey)}</h4>
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pl-4">
+      <div className="md:col-span-2">
+        <h3 className="text-lg font-semibold text-primary mt-6 mb-4 border-b border-primary/20 pb-2">{formatKey(itemKey)}</h3>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           {Object.entries(itemValue)
-            .filter(([key, value]) => key !== 'userId' || (value !== null && value !== undefined))
+            .filter(([, value]) => value !== null && value !== undefined && value !== '')
             .map(([key, value]) => (
             <DetailItem key={key} itemKey={key} itemValue={value} />
           ))}
@@ -87,15 +82,34 @@ const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any })
     );
   }
 
+  // Simple key-value pair rendering
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col space-y-1.5">
       <dt className="text-sm font-medium text-muted-foreground">{formatKey(itemKey)}</dt>
-      <dd className="mt-1 text-sm text-foreground break-words">{renderValue(itemValue)}</dd>
+      <dd className="text-base text-foreground break-words">{renderValue(itemValue)}</dd>
     </div>
   );
 };
 
+interface ApplicationDetailsViewProps {
+  applicationId: string;
+  applicationData: any | null;
+  title: string;
+  subtitle: string;
+  isAdmin: boolean;
+}
+
 const availableStatuses = ['Submitted', 'In Review', 'Approved', 'Rejected'];
+
+const getStatusVariant = (status: string): "default" | "secondary" | "destructive" => {
+  switch (status?.toLowerCase()) {
+    case 'submitted': return 'default';
+    case 'in review': return 'secondary';
+    case 'approved': return 'secondary'; // Consider a 'success' variant in the theme
+    case 'rejected': return 'destructive';
+    default: return 'default';
+  }
+};
 
 export function ApplicationDetailsView({ applicationId, applicationData, title, subtitle, isAdmin = false }: ApplicationDetailsViewProps) {
     const router = useRouter();
@@ -146,38 +160,39 @@ export function ApplicationDetailsView({ applicationId, applicationData, title, 
         });
     };
 
-  const {
+    const {
       createdAt,
       updatedAt,
       submittedBy,
+      formData,
+      status,
+      applicationType,
+      serviceCategory,
       ...restOfData
-  } = applicationData;
+    } = applicationData;
   
-  const topLevelDetails: [string, any][] = [];
-  const formSections: [string, any][] = [];
+    const displayData = { ...restOfData, ...formData };
+    delete displayData.status; // Handled in summary
+    delete displayData.applicationType; // Handled in summary
+    delete displayData.serviceCategory; // Handled in summary
 
-  Object.entries(restOfData).forEach(([key, value]) => {
-      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          formSections.push([key, value]);
-      } else {
-          topLevelDetails.push([key, value]);
-      }
-  });
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-         <Button onClick={() => router.back()} variant="ghost" className="self-start -ml-4 mb-4">
+    <Card className="max-w-4xl mx-auto shadow-lg">
+      <CardHeader className="bg-muted/30">
+         <Button onClick={() => router.back()} variant="ghost" className="self-start -ml-4 mb-2">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
         </Button>
-        <CardTitle className="text-2xl">{title}</CardTitle>
-        <CardDescription>{subtitle}</CardDescription>
+        <div className="pt-2">
+            <CardTitle className="text-2xl">{title}</CardTitle>
+            <CardDescription>{subtitle}</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="p-6 space-y-6">
         
         {isAdmin && (
-            <div className="bg-muted/50 p-4 rounded-lg">
+            <div className="bg-muted/50 p-4 rounded-lg border border-border">
                 <h4 className="text-md font-semibold text-foreground mb-3">Admin Actions</h4>
                 <div className="flex items-center space-x-4">
                     <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -198,30 +213,48 @@ export function ApplicationDetailsView({ applicationId, applicationData, title, 
             </div>
         )}
 
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            {topLevelDetails.map(([key, value]) => (
+        {/* Application Summary */}
+        <div className="p-4 bg-background rounded-lg border">
+            <h3 className="text-lg font-semibold text-primary mb-4">Application Summary</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col space-y-1.5">
+                    <dt className="text-sm font-medium text-muted-foreground">Application Type</dt>
+                    <dd className="text-base text-foreground">{applicationType}</dd>
+                </div>
+                 <div className="flex flex-col space-y-1.5">
+                    <dt className="text-sm font-medium text-muted-foreground">Service Category</dt>
+                    <dd className="text-base text-foreground">{serviceCategory}</dd>
+                </div>
+                 <div className="flex flex-col space-y-1.5">
+                    <dt className="text-sm font-medium text-muted-foreground">Status</dt>
+                    <dd className="text-base text-foreground">
+                        <Badge variant={getStatusVariant(status)} className="capitalize text-sm">{status}</Badge>
+                    </dd>
+                </div>
+            </div>
+        </div>
+
+        {/* Render all other form data */}
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            {Object.entries(displayData).map(([key, value]) => (
                 <DetailItem key={key} itemKey={key} itemValue={value} />
             ))}
         </dl>
         
-        {formSections.map(([sectionKey, sectionValue]) => (
-            <div key={sectionKey}>
-                <Separator className="my-4" />
-                <DetailItem itemKey={sectionKey} itemValue={sectionValue} />
+        {submittedBy && (
+            <div className="md:col-span-2">
+                <h3 className="text-lg font-semibold text-primary mt-6 mb-4 border-b border-primary/20 pb-2">Submission Details</h3>
+                <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <DetailItem itemKey="Submitted By" itemValue={submittedBy} />
+                     {createdAt && (
+                        <div className="flex flex-col space-y-1.5">
+                            <dt className="text-sm font-medium text-muted-foreground">Submitted On</dt>
+                            <dd className="text-base text-foreground break-words">{renderValue(createdAt)}</dd>
+                        </div>
+                    )}
+                </dl>
             </div>
-        ))}
-        
-        <div key="metaDataSection">
-            <Separator className="my-4" />
-             <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                {submittedBy && (
-                   <DetailItem itemKey="Submitted By" itemValue={submittedBy} />
-                )}
-                {createdAt && (
-                    <DetailItem itemKey="Submitted On" itemValue={createdAt} />
-                )}
-             </dl>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

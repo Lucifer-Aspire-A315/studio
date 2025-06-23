@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import type { SetPageView, PageView } from '@/app/page';
+import { cn } from '@/lib/utils';
 
 interface ServiceCardProps {
   icon: React.ReactNode;
@@ -14,7 +15,9 @@ interface ServiceCardProps {
 
 export function ServiceCard({ icon, title, description, bgColorClass, textColorClass, targetPage, setCurrentPage }: ServiceCardProps) {
   return (
-    <div className="bg-card p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col text-center items-center">
+    <div className={cn(
+        "bg-card p-8 rounded-xl shadow-lg flex flex-col text-center items-center card-hover-effect"
+    )}>
       <div className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto ${bgColorClass}`}>
         <div className={textColorClass}>{icon}</div>
       </div>

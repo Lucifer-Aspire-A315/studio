@@ -91,7 +91,7 @@ export function CAServicesPage({ setCurrentPage }: CAServicesPageProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {caServicesList.map((service) => (
-              <Card key={service.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <Card key={service.id} className="shadow-lg card-hover-effect">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">{service.title}</CardTitle>
                 </CardHeader>
