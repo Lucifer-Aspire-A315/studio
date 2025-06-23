@@ -757,7 +757,9 @@ const merchantPartnerSchema = basePartnerSchema.extend({
     businessType: z.enum(['proprietorship', 'partnership', 'pvt_ltd'], { required_error: "Business type is required" }),
     industry: z.string().min(1, "Industry is required"),
     businessAddress: z.string().min(1, "Business address is required"),
-    gstNumber: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, "Invalid GST format"),
+    gstNumber: z.string()
+      .transform(val => val.toUpperCase())
+      .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, "Invalid GST format. Must be 15 characters."),
   }),
   merchantDocumentUploads: z.object({
     gstCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
@@ -803,5 +805,3 @@ export const UserLoginSchema = z.object({
 export type UserLoginFormData = z.infer<typeof UserLoginSchema>;
 
 // #endregion
-
-    
