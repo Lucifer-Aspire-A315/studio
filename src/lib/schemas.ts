@@ -695,14 +695,93 @@ export type AuditAndAssuranceFormData = z.infer<typeof AuditAndAssuranceFormSche
 // #region --- AUTHENTICATION SCHEMAS ---
 
 export const PartnerSignUpSchema = z.object({
+  businessModel: z.enum(["dsa", "franchise", "referral", "manchar"], { required_error: "Business model is required" }),
+  
+  // Common fields
   fullName: z.string().min(1, "Full Name is required"),
   email: z.string().email("Invalid email address"),
   mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
   password: z.string().min(8, "Password must be at least 8 characters long"),
   confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters long"),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
+
+  // DSA Specific fields - all optional initially
+  personalDetails: z.object({
+    fathersHusbandsName: z.string().optional(),
+    dob: z.string().optional(),
+    gender: z.enum(['male', 'female', 'other']).optional(),
+    pan: z.string().optional(),
+    aadhaar: z.string().optional(),
+    currentAddress: z.string().optional(),
+    isPermanentAddressSame: z.boolean().default(true),
+    permanentAddress: z.string().optional(),
+  }).optional(),
+
+  professionalBackground: z.object({
+    highestQualification: z.string().optional(),
+    presentOccupation: z.string().optional(),
+    yearsInOccupation: z.preprocess((v) => (v === "" || v === null || v === undefined ? undefined : Number(v)), z.number().min(0, "Cannot be negative")).optional(),
+    previousEmployment: z.string().optional(),
+  }).optional(),
+  
+  financialDetails: z.object({
+    bankAccountNumber: z.string().optional(),
+    ifscCode: z.string().optional(),
+    bankName: z.string().optional(),
+    bankBranch: z.string().optional(),
+    annualIncome: z.preprocess((v) => (v === "" || v === null || v === undefined ? undefined : Number(v)), z.number().min(0, "Cannot be negative")).optional(),
+    hasExistingLoans: z.boolean().default(false),
+    existingLoanDetails: z.string().optional(),
+  }).optional(),
+
+  constitution: z.enum(['individual', 'firm', 'company']).optional(),
+  
+  businessScope: z.object({
+    operatingCity: z.string().optional(),
+    interestedProducts: z.string().optional(), 
+  }).optional(),
+
+  declaration: z.boolean().optional(),
+  
+}).superRefine((data, ctx) => {
+  // Password match validation for all models
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      path: ['confirmPassword'], message: 'Passwords do not match', code: z.ZodIssueCode.custom,
+    });
+  }
+
+  // DSA specific validations
+  if (data.businessModel === 'dsa') {
+    if (!data.personalDetails?.fathersHusbandsName) ctx.addIssue({path: ['personalDetails.fathersHusbandsName'], message: 'Required'});
+    if (!data.personalDetails?.dob) ctx.addIssue({path: ['personalDetails.dob'], message: 'Required'});
+    if (!data.personalDetails?.gender) ctx.addIssue({path: ['personalDetails.gender'], message: 'Required'});
+    if (!data.personalDetails?.pan?.match(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/)) ctx.addIssue({path: ['personalDetails.pan'], message: 'Valid PAN is required'});
+    if (!data.personalDetails?.aadhaar?.match(/^\d{12}$/)) ctx.addIssue({path: ['personalDetails.aadhaar'], message: 'Valid Aadhaar is required'});
+    if (!data.personalDetails?.currentAddress) ctx.addIssue({path: ['personalDetails.currentAddress'], message: 'Required'});
+    if (data.personalDetails.isPermanentAddressSame === false && !data.personalDetails.permanentAddress) {
+        ctx.addIssue({path: ['personalDetails.permanentAddress'], message: 'Required'});
+    }
+    
+    if (!data.professionalBackground?.highestQualification) ctx.addIssue({path: ['professionalBackground.highestQualification'], message: 'Required'});
+    if (!data.professionalBackground?.presentOccupation) ctx.addIssue({path: ['professionalBackground.presentOccupation'], message: 'Required'});
+    if (data.professionalBackground?.yearsInOccupation === undefined) ctx.addIssue({path: ['professionalBackground.yearsInOccupation'], message: 'Required'});
+
+    if (!data.financialDetails?.bankAccountNumber) ctx.addIssue({path: ['financialDetails.bankAccountNumber'], message: 'Required'});
+    if (!data.financialDetails?.ifscCode) ctx.addIssue({path: ['financialDetails.ifscCode'], message: 'Required'});
+    if (!data.financialDetails?.bankName) ctx.addIssue({path: ['financialDetails.bankName'], message: 'Required'});
+    if (!data.financialDetails?.bankBranch) ctx.addIssue({path: ['financialDetails.bankBranch'], message: 'Required'});
+    if (data.financialDetails?.annualIncome === undefined) ctx.addIssue({path: ['financialDetails.annualIncome'], message: 'Required'});
+    if (data.financialDetails?.hasExistingLoans === true && !data.financialDetails?.existingLoanDetails) {
+        ctx.addIssue({path: ['financialDetails.existingLoanDetails'], message: 'Details of existing loans are required'});
+    }
+
+    if (!data.constitution) ctx.addIssue({path: ['constitution'], message: 'Required'});
+    
+    if (!data.businessScope?.operatingCity) ctx.addIssue({path: ['businessScope.operatingCity'], message: 'Required'});
+    if (!data.businessScope?.interestedProducts) ctx.addIssue({path: ['businessScope.interestedProducts'], message: 'Required'});
+
+    if (data.declaration !== true) ctx.addIssue({path: ['declaration'], message: 'You must accept the declaration'});
+  }
 });
 export type PartnerSignUpFormData = z.infer<typeof PartnerSignUpSchema>;
 
@@ -731,3 +810,5 @@ export const UserLoginSchema = z.object({
 export type UserLoginFormData = z.infer<typeof UserLoginSchema>;
 
 // #endregion
+
+    

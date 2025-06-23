@@ -111,7 +111,7 @@ export function PartnerLoginForm() {
         </form>
       </Form>
       <p className="text-sm text-muted-foreground mt-6 text-center">
-        Don&apos;t have an account?{' '}
+        Don&apos;t have a partner account?{' '}
         <Link href="/partner-signup" className="font-medium text-primary hover:underline">
           Sign up here
         </Link>

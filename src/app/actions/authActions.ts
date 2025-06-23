@@ -121,11 +121,12 @@ export async function partnerSignUpAction(
     }
 
     const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { confirmPassword, ...dataToSubmit } = data;
 
     const partnerDataToSave = {
-      fullName: data.fullName,
-      email: data.email,
-      mobileNumber: data.mobileNumber,
+      ...dataToSubmit,
       password: hashedPassword,
       createdAt: Timestamp.fromDate(new Date()),
       isApproved: false,
@@ -400,3 +401,5 @@ export async function checkSessionAction(): Promise<UserData | null> {
     return null;
   }
 }
+
+    

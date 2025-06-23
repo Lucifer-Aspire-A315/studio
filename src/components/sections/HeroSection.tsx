@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import type { SetPageView } from '@/app/page';
 import { NewsTicker } from '@/components/shared/NewsTicker';
@@ -60,39 +61,56 @@ const governmentSchemes = [
 
 export function HeroSection({ setCurrentPage }: HeroSectionProps) {
   return (
-    <section id="home" className="hero-bg py-20 lg:py-32">
-      <div className="container mx-auto px-6 text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
-          <span className="text-primary">Quick & Easy</span> Financial Solutions
-        </h1>
-        
-        <div 
-          className="mt-8 max-w-4xl mx-auto cursor-pointer"
-          onClick={() => setCurrentPage('governmentSchemes')}
-          role="button"
-          aria-label="Click to explore Government Scheme Loans"
-        >
-          <NewsTicker items={governmentSchemes} />
-        </div>
+    <section id="home" className="hero-bg py-20 lg:py-24 overflow-hidden">
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          {/* Column 1: Image */}
+          <div className="hidden md:flex justify-center items-center">
+             <Image
+                src="https://storage.googleapis.com/project-spark-b52b2.appspot.com/static/templates/image/62e08e64-f655-46f9-a292-629a43a0e6fa.jpeg"
+                width={400}
+                height={500}
+                alt="Professional woman in a suit"
+                className="rounded-lg shadow-2xl object-cover"
+                data-ai-hint="professional woman"
+              />
+          </div>
+            
+          {/* Column 2: Text content */}
+          <div className="text-center md:text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
+              <span className="text-primary">Quick & Easy</span> Financial Solutions
+            </h1>
 
-        <div className="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-          <Button 
-            size="lg" 
-            className="cta-button bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 w-full sm:w-auto"
-            onClick={() => setCurrentPage('caServices')} 
-            aria-label="Services Offered by a Chartered Accountant (CA)"
-          >
-            Chartered Accountant Services
-          </Button>
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="cta-button bg-background hover:bg-secondary text-primary font-bold py-3 px-8 border-primary/30 w-full sm:w-auto"
-            onClick={() => setCurrentPage('governmentSchemes')} 
-            aria-label="Explore Government Scheme Loans"
-          >
-            Government Scheme Loan
-          </Button>
+            <div
+              className="mt-8 max-w-xl cursor-pointer"
+              onClick={() => setCurrentPage('governmentSchemes')}
+              role="button"
+              aria-label="Click to explore Government Scheme Loans"
+            >
+              <NewsTicker items={governmentSchemes} />
+            </div>
+
+            <div className="mt-12 flex flex-col sm:flex-row justify-center md:justify-start items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Button 
+                size="lg" 
+                className="cta-button bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 w-full sm:w-auto"
+                onClick={() => setCurrentPage('caServices')} 
+                aria-label="Services Offered by a Chartered Accountant (CA)"
+              >
+                Chartered Accountant Services
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="cta-button bg-background hover:bg-secondary text-primary font-bold py-3 px-8 border-primary/30 w-full sm:w-auto"
+                onClick={() => setCurrentPage('governmentSchemes')} 
+                aria-label="Explore Government Scheme Loans"
+              >
+                Government Scheme Loan
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
