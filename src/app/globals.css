@@ -5,10 +5,14 @@
 @layer base {
   :root {
 <<<<<<< HEAD
+<<<<<<< HEAD
     --background: 74 44% 95%;         /* #F8FAE5 */
     --foreground: 168 10% 18%;        /* #2D3A3A */
 =======
     --background: 220 14.3% 97%; /* A more distinct light gray */
+=======
+    --background: 0 0% 100%;
+>>>>>>> c827e8e (ok but can u remove the updated styles from last half hour the previous)
     --foreground: 224 71.4% 4.1%;
 >>>>>>> 287e1e1 (ok remove the last update)
 
@@ -22,15 +26,24 @@
     --primary-foreground: 0 0% 100%;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     --secondary: 135 18% 80%;         /* #B2C8BA */
     --secondary-foreground: 168 10% 18%;
 =======
     --secondary: 220 20% 98%; /* Slightly lighter than background for sections */
+=======
+    --secondary: 210 40% 96.1%;
+>>>>>>> c827e8e (ok but can u remove the updated styles from last half hour the previous)
     --secondary-foreground: 222.2 47.4% 11.2%;
 >>>>>>> 287e1e1 (ok remove the last update)
 
+<<<<<<< HEAD
     --muted: 135 18% 80%;
     --muted-foreground: 168 10% 40%;
+=======
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+>>>>>>> c827e8e (ok but can u remove the updated styles from last half hour the previous)
 
     --accent: 16 89% 62%;             /* #F26A4B */
     --accent-foreground: 0 0% 100%;
