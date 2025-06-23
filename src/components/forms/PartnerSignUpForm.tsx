@@ -18,7 +18,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import { Textarea } from '../ui/textarea';
 import { Checkbox } from '../ui/checkbox';
-import { Label } from "@/components/ui/label";
 
 
 export function PartnerSignUpForm() {
@@ -124,40 +123,40 @@ export function PartnerSignUpForm() {
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="businessModel"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Business Model *</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <div className="flex items-center space-x-3 space-y-0">
-                      <RadioGroupItem value="dsa" id="model-dsa" />
-                      <Label htmlFor="model-dsa" className="font-normal">DSA (Direct Selling Agent)</Label>
-                    </div>
-                    <div className="flex items-center space-x-3 space-y-0">
-                      <RadioGroupItem value="franchise" id="model-franchise"/>
-                      <Label htmlFor="model-franchise" className="font-normal">Franchise</Label>
-                    </div>
-                    <div className="flex items-center space-x-3 space-y-0">
-                      <RadioGroupItem value="referral" id="model-referral"/>
-                      <Label htmlFor="model-referral" className="font-normal">Referral Partner</Label>
-                    </div>
-                    <div className="flex items-center space-x-3 space-y-0">
-                      <RadioGroupItem value="manchar" id="model-manchar"/>
-                      <Label htmlFor="model-manchar" className="font-normal">Manchar Partner</Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+           <FormField
+              control={form.control}
+              name="businessModel"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Business Model *</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl><RadioGroupItem value="dsa" /></FormControl>
+                        <FormLabel className="font-normal">DSA (Direct Selling Agent)</FormLabel>
+                      </FormItem>
+                       <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl><RadioGroupItem value="franchise" /></FormControl>
+                        <FormLabel className="font-normal">Franchise</FormLabel>
+                      </FormItem>
+                       <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl><RadioGroupItem value="referral" /></FormControl>
+                        <FormLabel className="font-normal">Referral Partner</FormLabel>
+                      </FormItem>
+                       <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl><RadioGroupItem value="manchar" /></FormControl>
+                        <FormLabel className="font-normal">Manchar Partner</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           {businessModel === 'dsa' ? (
              <>
@@ -166,28 +165,32 @@ export function PartnerSignUpForm() {
                   <FormField control={form.control} name="personalDetails.fathersHusbandsName" render={({ field }) => ( <FormItem> <FormLabel>Father's/Husband's Name *</FormLabel> <FormControl> <Input placeholder="Father's or Husband's Name" {...field} /> </FormControl> <FormMessage /> </FormItem> )} />
                   <FormField control={form.control} name="personalDetails.dob" render={({ field }) => ( <FormItem> <FormLabel>Date of Birth *</FormLabel> <FormControl> <Input type="date" {...field} /> </FormControl> <FormMessage /> </FormItem> )} />
                   
-                  <FormField control={form.control} name="personalDetails.gender" render={({ field }) => ( 
-                    <FormItem> 
-                      <FormLabel>Gender *</FormLabel> 
-                      <FormControl> 
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4"> 
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="male" id="gender-male" />
-                            <Label htmlFor="gender-male" className="font-normal">Male</Label>
-                          </div> 
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="female" id="gender-female"/>
-                            <Label htmlFor="gender-female" className="font-normal">Female</Label>
-                          </div> 
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="other" id="gender-other" />
-                            <Label htmlFor="gender-other" className="font-normal">Other</Label>
-                          </div>
-                        </RadioGroup> 
-                      </FormControl> 
-                      <FormMessage /> 
-                    </FormItem> 
-                  )} />
+                  <FormField
+                    control={form.control}
+                    name="personalDetails.gender"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Gender *</FormLabel>
+                        <FormControl>
+                          <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row gap-4">
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl><RadioGroupItem value="male" /></FormControl>
+                              <FormLabel className="font-normal">Male</FormLabel>
+                            </FormItem>
+                             <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl><RadioGroupItem value="female" /></FormControl>
+                              <FormLabel className="font-normal">Female</FormLabel>
+                            </FormItem>
+                             <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl><RadioGroupItem value="other" /></FormControl>
+                              <FormLabel className="font-normal">Other</FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField control={form.control} name="personalDetails.pan" render={({ field }) => ( <FormItem> <FormLabel>PAN Card Number *</FormLabel> <FormControl> <Input placeholder="ABCDE1234F" {...field} /> </FormControl> <FormMessage /> </FormItem> )} />
                   <FormField control={form.control} name="personalDetails.aadhaar" render={({ field }) => ( <FormItem> <FormLabel>Aadhaar Card Number *</FormLabel> <FormControl> <Input placeholder="123456789012" {...field} /> </FormControl> <FormMessage /> </FormItem> )} />
@@ -196,24 +199,28 @@ export function PartnerSignUpForm() {
                   <FormFieldWrapper className="md:col-span-2"> <FormField control={form.control} name="personalDetails.currentAddress" render={({ field }) => ( <FormItem> <FormLabel>Current Residential Address *</FormLabel> <FormControl> <Textarea placeholder="Full current address" {...field} /> </FormControl> <FormMessage /> </FormItem> )} /> </FormFieldWrapper>
                   
                   <FormFieldWrapper className="md:col-span-2"> 
-                    <FormField control={form.control} name="personalDetails.isPermanentAddressSame" render={({ field }) => ( 
-                      <FormItem> 
-                        <FormLabel>Is permanent address same as current? *</FormLabel> 
-                        <FormControl> 
-                          <RadioGroup onValueChange={(value) => field.onChange(value === 'true')} defaultValue={String(field.value)} className="flex gap-4"> 
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="true" id="addr-yes"/>
-                              <Label htmlFor="addr-yes" className="font-normal">Yes</Label>
-                            </div> 
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="false" id="addr-no" />
-                              <Label htmlFor="addr-no" className="font-normal">No</Label>
-                            </div> 
-                          </RadioGroup> 
-                        </FormControl> 
-                        <FormMessage /> 
-                      </FormItem> 
-                    )} /> 
+                    <FormField
+                      control={form.control}
+                      name="personalDetails.isPermanentAddressSame"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Is permanent address same as current? *</FormLabel>
+                           <FormControl>
+                            <RadioGroup onValueChange={(value) => field.onChange(value === 'true')} defaultValue={String(field.value)} className="flex flex-row gap-4">
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl><RadioGroupItem value="true" /></FormControl>
+                                <FormLabel className="font-normal">Yes</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl><RadioGroupItem value="false" /></FormControl>
+                                <FormLabel className="font-normal">No</FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </FormFieldWrapper>
 
                   {!isPermanentAddressSame && ( <FormFieldWrapper className="md:col-span-2"> <FormField control={form.control} name="personalDetails.permanentAddress" render={({ field }) => ( <FormItem> <FormLabel>Permanent Address *</FormLabel> <FormControl> <Textarea placeholder="Full permanent address" {...field} /> </FormControl> <FormMessage /> </FormItem> )} /> </FormFieldWrapper> )}
@@ -233,53 +240,69 @@ export function PartnerSignUpForm() {
                   <FormField control={form.control} name="financialDetails.bankBranch" render={({ field }) => ( <FormItem> <FormLabel>Bank Branch *</FormLabel> <FormControl> <Input placeholder="Your bank's branch" {...field} /> </FormControl> <FormMessage /> </FormItem> )} />
                   <FormFieldWrapper className="md:col-span-2"><FormField control={form.control} name="financialDetails.annualIncome" render={({ field }) => ( <FormItem> <FormLabel>Annual Income (from IT Returns/Form 16) *</FormLabel> <FormControl> <Input type="number" placeholder="e.g., 500000" {...field} /> </FormControl> <FormMessage /> </FormItem> )} /></FormFieldWrapper>
                   
-                  <FormFieldWrapper className="md:col-span-2"> 
-                    <FormField control={form.control} name="financialDetails.hasExistingLoans" render={({ field }) => ( 
-                      <FormItem> 
-                        <FormLabel>Any existing loans or liabilities? *</FormLabel> 
-                        <FormControl> 
-                          <RadioGroup onValueChange={(value) => field.onChange(value === 'true')} defaultValue={String(field.value)} className="flex gap-4"> 
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="false" id="loan-no"/>
-                              <Label htmlFor="loan-no" className="font-normal">No</Label>
-                            </div> 
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="true" id="loan-yes"/>
-                              <Label htmlFor="loan-yes" className="font-normal">Yes</Label>
-                            </div>
-                          </RadioGroup> 
-                        </FormControl> 
-                        <FormMessage /> 
-                      </FormItem> 
-                    )} /> 
+                  <FormFieldWrapper className="md:col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="financialDetails.hasExistingLoans"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Any existing loans or liabilities? *</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={(value) => field.onChange(value === 'true')}
+                              defaultValue={String(field.value)}
+                              className="flex flex-row gap-4"
+                            >
+                               <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl><RadioGroupItem value="false" /></FormControl>
+                                <FormLabel className="font-normal">No</FormLabel>
+                              </FormItem>
+                               <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl><RadioGroupItem value="true" /></FormControl>
+                                <FormLabel className="font-normal">Yes</FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </FormFieldWrapper>
 
                   {hasExistingLoans && ( <FormFieldWrapper className="md:col-span-2"> <FormField control={form.control} name="financialDetails.existingLoanDetails" render={({ field }) => ( <FormItem> <FormLabel>Details of Existing Loans *</FormLabel> <FormControl> <Textarea placeholder="Mention loan type, bank, and outstanding amount" {...field} /> </FormControl> <FormMessage /> </FormItem> )} /> </FormFieldWrapper> )}
                 </FormSection>
 
                 <FormSection title="Constitution & Business Scope">
-                    <FormField control={form.control} name="constitution" render={({ field }) => ( 
-                      <FormItem> 
-                        <FormLabel>Constitution *</FormLabel> 
-                        <FormControl> 
-                          <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4"> 
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="individual" id="const-individual"/>
-                              <Label htmlFor="const-individual" className="font-normal">Individual</Label>
-                            </div> 
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="firm" id="const-firm" />
-                              <Label htmlFor="const-firm" className="font-normal">Firm</Label>
-                            </div> 
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="company" id="const-company" />
-                              <Label htmlFor="const-company" className="font-normal">Company</Label>
-                            </div> 
-                          </RadioGroup> 
-                        </FormControl> 
-                        <FormMessage /> 
-                      </FormItem> 
-                    )}/>
+                     <FormField
+                      control={form.control}
+                      name="constitution"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Constitution *</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-row gap-4"
+                            >
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl><RadioGroupItem value="individual" /></FormControl>
+                                <FormLabel className="font-normal">Individual</FormLabel>
+                              </FormItem>
+                               <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl><RadioGroupItem value="firm" /></FormControl>
+                                <FormLabel className="font-normal">Firm</FormLabel>
+                              </FormItem>
+                               <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl><RadioGroupItem value="company" /></FormControl>
+                                <FormLabel className="font-normal">Company</FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField control={form.control} name="businessScope.operatingCity" render={({ field }) => ( <FormItem> <FormLabel>Preferred Operating City/Region *</FormLabel> <FormControl> <Input placeholder="e.g., Pune" {...field} /> </FormControl> <FormMessage /> </FormItem> )}/>
                     <FormFieldWrapper className="md:col-span-2"> <FormField control={form.control} name="businessScope.interestedProducts" render={({ field }) => ( <FormItem> <FormLabel>Loan Products Interested In Sourcing *</FormLabel> <FormControl> <Textarea placeholder="e.g., Home Loans, Personal Loans, Business Loans" {...field} /> </FormControl> <FormMessage /> </FormItem> )}/> </FormFieldWrapper>
                 </FormSection>
