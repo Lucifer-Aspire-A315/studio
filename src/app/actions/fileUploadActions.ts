@@ -4,6 +4,7 @@
 import { cookies } from 'next/headers';
 import { adminStorage } from '@/lib/firebaseAdmin'; // Import Admin SDK storage
 import { Buffer } from 'buffer'; // Node.js Buffer
+import { randomUUID } from 'crypto';
 
 interface FileUploadResponse {
   success: boolean;
@@ -20,12 +21,6 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
     return { success: false, error: adminInitError };
   }
   
-  try {
-    await cookies().get('priming-cookie-upload-admin'); 
-  } catch (e: any) {
-    console.warn("[FileUploadAction - AdminSDK] Priming cookie read failed (this is often benign for Admin SDK):", e.message);
-  }
-
   const file = formData.get('file') as File | null;
   const fileName = formData.get('fileName') as string | null;
 
@@ -33,54 +28,49 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
     console.error("[FileUploadAction - AdminSDK] Critical error: No file or filename provided in FormData.");
     return { success: false, error: 'No file or filename provided.' };
   }
-
-  const userIdCookie = cookies().get('user_id');
-  const userId = userIdCookie?.value;
-
-  if (!userId) {
-    console.warn(`[FileUploadAction - AdminSDK] Authentication check failed: 'user_id' cookie was not found or has no value.`);
-    try {
-        const allCookies = cookies().getAll();
-        console.log("[FileUploadAction - AdminSDK] All available cookies at time of auth failure:", allCookies.map(c => ({name: c.name, value: c.value ? `present (length: ${c.value.length})` : 'empty/null', path: c.path, domain: c.domain })));
-    } catch (e: any) {
-        console.error("[FileUploadAction - AdminSDK] Could not log all cookies:", e.message);
-    }
-    return { success: false, error: 'User not authenticated for file upload. Session details missing.' };
-  }
   
-  console.log(`[FileUploadAction - AdminSDK] User ${userId} attempting to upload file: ${fileName} (Size: ${file.size} bytes, Type: ${file.type})`);
+  const cookieStore = cookies();
+  const userIdCookie = await cookieStore.get('user_id');
+  const userId = userIdCookie?.value;
+  
+  let uploadPath: string;
+  const uniqueFileName = `${Date.now()}-${encodeURIComponent(fileName)}`;
+
+  if (userId) {
+    console.log(`[FileUploadAction - AdminSDK] User ${userId} attempting to upload file: ${fileName} (Size: ${file.size} bytes, Type: ${file.type})`);
+    uploadPath = `uploads/${userId}/${uniqueFileName}`;
+  } else {
+    // No user session, this is likely a signup process.
+    // Create a temporary, unique path for pending partner applications.
+    const tempId = randomUUID();
+    uploadPath = `uploads/pending-partners/${tempId}/${uniqueFileName}`;
+    console.log(`[FileUploadAction - AdminSDK] No user session found. Uploading to temporary path: ${uploadPath}`);
+  }
+
 
   try {
-    const uniqueFileName = `${Date.now()}-${encodeURIComponent(fileName)}`;
-    const filePath = `uploads/${userId}/${uniqueFileName}`; // Path includes userId
-    
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const bucket = adminStorage.bucket(); 
-    const fileUploadRef = bucket.file(filePath);
+    const fileUploadRef = bucket.file(uploadPath);
 
-    console.log(`[FileUploadAction - AdminSDK] Uploading to Firebase Storage path: ${filePath} using Admin SDK.`);
+    console.log(`[FileUploadAction - AdminSDK] Uploading to Firebase Storage path: ${uploadPath} using Admin SDK.`);
     
     await fileUploadRef.save(buffer, {
       metadata: {
         contentType: file.type,
       },
-      // Optional: Make the file publicly readable immediately if desired
-      // public: true, 
-      // resumable: false, // Good for smaller files, can sometimes be faster
     });
 
-    console.log(`[FileUploadAction - AdminSDK] File uploaded successfully for user ${userId} to path: ${filePath}.`);
+    console.log(`[FileUploadAction - AdminSDK] File uploaded successfully to path: ${uploadPath}.`);
 
-    // Get a signed URL for the file - this URL will be publicly accessible for a limited time
-    // or indefinitely if the object is public.
     const [downloadUrl] = await fileUploadRef.getSignedUrl({
       action: 'read',
-      expires: '03-09-2491', // A far future date for effectively "permanent" if object isn't public
+      expires: '03-09-2491',
     });
 
-    console.log(`[FileUploadAction - AdminSDK] Generated signed URL for ${filePath}: ${downloadUrl.substring(0, 100)}...`);
+    console.log(`[FileUploadAction - AdminSDK] Generated signed URL for ${uploadPath}: ${downloadUrl.substring(0, 100)}...`);
 
     return {
       success: true,
@@ -89,7 +79,7 @@ export async function uploadFileAction(formData: FormData): Promise<FileUploadRe
 
   } catch (error: any)
  {
-    console.error(`[FileUploadAction - AdminSDK] Firebase Admin SDK Storage upload error for user ${userId}, file ${fileName}:`);
+    console.error(`[FileUploadAction - AdminSDK] Firebase Admin SDK Storage upload error for file ${fileName}:`);
     console.error("Error Name:", error.name);
     console.error("Error Message:", error.message);
     console.error("Error Code:", error.code); // Firebase errors often have a code

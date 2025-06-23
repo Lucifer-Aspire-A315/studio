@@ -1,6 +1,7 @@
 
 
 
+
 'use server';
 
 import { cookies } from 'next/headers';
@@ -379,13 +380,14 @@ export async function logoutAction(): Promise<AuthServerActionResponse> {
 
 export async function checkSessionAction(): Promise<UserData | null> {
   try {
-    const userIdCookie = await cookies().get('user_id');
-    const userNameCookie = await cookies().get('user_name');
-    const userEmailCookie = await cookies().get('user_email');
-    const userTypeCookieVal = await cookies().get('user_type');
-    const sessionTokenCookie = await cookies().get('session_token');
-    const isAdminCookie = await cookies().get('is_admin');
-    const businessModelCookie = await cookies().get('business_model');
+    const cookieStore = cookies();
+    const userIdCookie = await cookieStore.get('user_id');
+    const userNameCookie = await cookieStore.get('user_name');
+    const userEmailCookie = await cookieStore.get('user_email');
+    const userTypeCookieVal = await cookieStore.get('user_type');
+    const sessionTokenCookie = await cookieStore.get('session_token');
+    const isAdminCookie = await cookieStore.get('is_admin');
+    const businessModelCookie = await cookieStore.get('business_model');
 
     const userId = userIdCookie?.value;
     const userName = userNameCookie?.value;
