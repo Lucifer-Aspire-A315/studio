@@ -5,7 +5,7 @@ import type { UserData, UserApplication } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Handshake, UserPlus, Store } from 'lucide-react';
-import { NewLoanApplication } from './NewLoanApplication';
+import { PartnerNewApplicationPortal } from './PartnerNewApplicationPortal';
 import { ApplicationsTable } from './ApplicationsTable';
 
 interface PartnerDashboardViewProps {
@@ -14,16 +14,30 @@ interface PartnerDashboardViewProps {
 }
 
 const ReferralDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
-    <Tabs defaultValue="myApplications" className="space-y-4">
+    <Tabs defaultValue="newApplication" className="space-y-4">
         <TabsList>
+            <TabsTrigger value="newApplication">Start New Application</TabsTrigger>
             <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
         </TabsList>
+        <TabsContent value="newApplication">
+             <Card>
+                <CardHeader>
+                    <CardTitle>New Referral Application</CardTitle>
+                    <CardDescription>
+                        Start a new application on behalf of a client you are referring.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PartnerNewApplicationPortal />
+                </CardContent>
+            </Card>
+        </TabsContent>
         <TabsContent value="myApplications">
             <Card>
                 <CardHeader>
                     <CardTitle>Referral Activity</CardTitle>
                     <CardDescription>
-                        A list of all applications you have submitted. Advanced referral tracking features are coming soon.
+                        A list of all applications you have submitted.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -41,7 +55,15 @@ const DsaDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
             <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
         </TabsList>
         <TabsContent value="newApplication">
-            <NewLoanApplication /> 
+            <Card>
+                <CardHeader>
+                    <CardTitle>New Client Application</CardTitle>
+                    <CardDescription>Start a new application on behalf of a client. Select the service to begin.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PartnerNewApplicationPortal />
+                </CardContent>
+            </Card>
         </TabsContent>
         <TabsContent value="myApplications">
             <Card>
@@ -64,7 +86,15 @@ const MerchantDashboard = ({ user, applications }: PartnerDashboardViewProps) =>
             <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
         </TabsList>
         <TabsContent value="newApplication">
-            <NewLoanApplication />
+            <Card>
+                <CardHeader>
+                    <CardTitle>New Customer Application</CardTitle>
+                    <CardDescription>Start a new application for a customer. Select the service to begin.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PartnerNewApplicationPortal /> 
+                </CardContent>
+            </Card>
         </TabsContent>
         <TabsContent value="myApplications">
             <Card>

@@ -44,8 +44,8 @@ const schemeOptions = [
 
 export function GovernmentSchemesPage({ 
   setCurrentPage, 
-  setSelectedGovernmentScheme: setGlobalSelectedScheme, // Renamed for clarity
-  setOtherGovernmentSchemeName: setGlobalOtherSchemeName // Renamed for clarity
+  setSelectedGovernmentScheme: setGlobalSelectedScheme,
+  setOtherGovernmentSchemeName: setGlobalOtherSchemeName 
 }: GovernmentSchemesPageProps) {
   const [localSelectedScheme, setLocalSelectedScheme] = useState<string | undefined>();
   const [localOtherSchemeName, setLocalOtherSchemeName] = useState<string>("");
@@ -124,7 +124,7 @@ export function GovernmentSchemesPage({
               size="lg"
               disabled={!localSelectedScheme || (localSelectedScheme === "other" && !localOtherSchemeName.trim())}
             >
-              Proceed
+              Proceed to Application Form
             </Button>
           </div>
 

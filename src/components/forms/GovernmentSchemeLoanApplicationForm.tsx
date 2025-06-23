@@ -112,7 +112,7 @@ export function GovernmentSchemeLoanApplicationForm({ onBack, selectedScheme, ot
       loanPurpose: undefined,
     },
     loanDetailsGov: {
-      selectedScheme: schemeDisplayNames[selectedScheme] || selectedScheme,
+      selectedScheme: schemeDisplayNames[selectedScheme] || otherSchemeName || selectedScheme,
       otherSchemeName: selectedScheme === 'other' ? otherSchemeName : '',
       loanAmountRequired: undefined,
       loanTenure: undefined,
@@ -135,7 +135,7 @@ export function GovernmentSchemeLoanApplicationForm({ onBack, selectedScheme, ot
       onBack={onBack}
       backButtonText="Back to Schemes"
       formTitle="Government Scheme Loan Application Form"
-      formSubtitle={`Applying for: ${defaultValues.loanDetailsGov.selectedScheme === 'Other' && otherSchemeName ? otherSchemeName : defaultValues.loanDetailsGov.selectedScheme}`}
+      formSubtitle={`Applying for: ${defaultValues.loanDetailsGov.selectedScheme}`}
       formIcon={<FileText className="w-12 h-12 mx-auto text-primary mb-2" />}
       schema={GovernmentSchemeLoanApplicationSchema}
       defaultValues={defaultValues}
