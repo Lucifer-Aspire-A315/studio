@@ -44,18 +44,19 @@ export async function submitGovernmentSchemeLoanApplicationAction(
       };
     }
     
-    // For now, assume the applicant is the submitter.
-    const applicantUserId = submitterUserId;
-    const applicantFullName = submitterUserName;
-    const applicantEmail = submitterUserEmail;
+    // Get applicant info from the form data. This schema uses `applicantDetailsGov`.
+    const applicantDataFromForm = data.applicantDetailsGov;
+    if (!applicantDataFromForm) {
+      return { success: false, message: 'Applicant details are missing from the form submission.' };
+    }
 
     const partnerId = submitterUserType === 'partner' ? submitterUserId : null;
 
     const applicationData = {
       applicantDetails: {
-        userId: applicantUserId,
-        fullName: applicantFullName,
-        email: applicantEmail,
+        userId: null,
+        fullName: applicantDataFromForm.fullName,
+        email: applicantDataFromForm.emailId, // Schema uses emailId
       },
       submittedBy: {
         userId: submitterUserId,

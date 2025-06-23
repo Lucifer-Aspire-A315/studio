@@ -7,11 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { GovernmentSchemeLoanApplicationSchema, type GovernmentSchemeLoanApplicationFormData } from '@/lib/schemas';
 import { FileText } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
-import type { PageView, SetPageView } from '@/app/page';
 import { submitGovernmentSchemeLoanApplicationAction } from '@/app/actions/governmentSchemeActions';
 
 interface GovernmentSchemeLoanApplicationFormProps {
-  setCurrentPage: SetPageView;
+  onBack: () => void;
   selectedScheme: string;
   otherSchemeName?: string;
 }
@@ -84,7 +83,7 @@ const governmentSchemeSections = [
   }
 ];
 
-export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedScheme, otherSchemeName }: GovernmentSchemeLoanApplicationFormProps) {
+export function GovernmentSchemeLoanApplicationForm({ onBack, selectedScheme, otherSchemeName }: GovernmentSchemeLoanApplicationFormProps) {
 
   const defaultValues: GovernmentSchemeLoanApplicationFormData = {
     applicantDetailsGov: {
@@ -133,8 +132,8 @@ export function GovernmentSchemeLoanApplicationForm({ setCurrentPage, selectedSc
 
   return (
      <GenericLoanForm
-      setCurrentPage={setCurrentPage}
-      backPage='governmentSchemes'
+      onBack={onBack}
+      backButtonText="Back to Schemes"
       formTitle="Government Scheme Loan Application Form"
       formSubtitle={`Applying for: ${defaultValues.loanDetailsGov.selectedScheme === 'Other' && otherSchemeName ? otherSchemeName : defaultValues.loanDetailsGov.selectedScheme}`}
       formIcon={<FileText className="w-12 h-12 mx-auto text-primary mb-2" />}

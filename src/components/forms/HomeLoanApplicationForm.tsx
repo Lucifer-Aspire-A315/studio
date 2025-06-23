@@ -5,11 +5,11 @@ import React from 'react';
 import { Home as HomeIcon } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { HomeLoanApplicationSchema, type HomeLoanApplicationFormData } from '@/lib/schemas';
-import type { SetPageView } from '@/app/page';
 import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface HomeLoanApplicationFormProps {
-  setCurrentPage: SetPageView;
+  onBack: () => void;
+  backButtonText?: string;
 }
 
 const homeLoanSections = [
@@ -98,7 +98,7 @@ const homeLoanSections = [
   }
 ];
 
-export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationFormProps) {
+export function HomeLoanApplicationForm({ onBack, backButtonText }: HomeLoanApplicationFormProps) {
   const defaultValues: HomeLoanApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '' },
     addressDetails: {
@@ -141,7 +141,8 @@ export function HomeLoanApplicationForm({ setCurrentPage }: HomeLoanApplicationF
 
   return (
     <GenericLoanForm
-      setCurrentPage={setCurrentPage}
+      onBack={onBack}
+      backButtonText={backButtonText}
       formTitle="Home Loan Application Form"
       formSubtitle="Simple & Fast Home Loan Process. Transparent Terms, Minimum Documentation. 100% Digital & Safe."
       formIcon={<HomeIcon className="w-12 h-12 mx-auto text-primary mb-2" />}

@@ -13,7 +13,8 @@ interface DashboardClientProps {
 
 export function DashboardClient({ user, applications }: DashboardClientProps) {
   if (user.type === 'partner') {
-    return <PartnerDashboard user={user} />;
+    // Pass the fetched applications to the PartnerDashboard
+    return <PartnerDashboard user={user} applications={applications} />;
   }
 
   // Fallback to the normal user dashboard

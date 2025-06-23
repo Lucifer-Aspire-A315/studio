@@ -33,19 +33,20 @@ export async function submitLoanApplicationAction<T extends Record<string, any>>
       };
     }
 
-    // For now, assume the applicant is the submitter.
-    // This can be expanded if forms allow submitting on behalf of someone else.
-    const applicantUserId = submitterUserId;
-    const applicantFullName = submitterUserName;
-    const applicantEmail = submitterUserEmail;
+    // Get applicant info from the form data. All loan schemas use `applicantDetails`.
+    const applicantDataFromForm = data.applicantDetails;
+    if (!applicantDataFromForm) {
+      return { success: false, message: 'Applicant details are missing from the form submission.' };
+    }
 
     const partnerId = submitterUserType === 'partner' ? submitterUserId : null;
 
     const applicationData = {
       applicantDetails: {
-        userId: applicantUserId,
-        fullName: applicantFullName,
-        email: applicantEmail,
+        // A client of a partner may not have a userId yet. This is captured in submittedBy.
+        userId: null, 
+        fullName: applicantDataFromForm.name, // Loan schemas use 'name'
+        email: applicantDataFromForm.email,   // Loan schemas use 'email'
       },
       submittedBy: {
         userId: submitterUserId,

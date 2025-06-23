@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { validateIdentificationDetails, type ValidateIdentificationDetailsOutput } from '@/ai/flows/validate-identification-details';
 import { ArrowLeft, Loader2, Info, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
-import type { PageView, SetPageView } from '@/app/page';
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { Textarea } from '../ui/textarea';
@@ -50,8 +49,8 @@ interface ServerActionResponse {
 }
 
 interface GenericLoanFormProps<T extends Record<string, any>> {
-  setCurrentPage: SetPageView;
-  backPage?: PageView;
+  onBack: () => void;
+  backButtonText?: string;
   formTitle: string;
   formSubtitle?: string;
   formIcon?: React.ReactNode;
@@ -104,8 +103,8 @@ const FormFileInputPresentation: React.FC<FormFileInputPresentationProps> = ({
 // --- GENERIC FORM COMPONENT ---
 
 export function GenericLoanForm<TData extends Record<string, any>>({ 
-  setCurrentPage, 
-  backPage = 'main',
+  onBack,
+  backButtonText,
   formTitle, 
   formSubtitle, 
   formIcon,
@@ -333,9 +332,9 @@ export function GenericLoanForm<TData extends Record<string, any>>({
   return (
     <section className="bg-secondary py-12 md:py-20">
       <div className="container mx-auto px-4 sm:px-6">
-        <Button variant="ghost" onClick={() => setCurrentPage(backPage)} className="inline-flex items-center mb-8 text-muted-foreground hover:text-primary">
+        <Button variant="ghost" onClick={onBack} className="inline-flex items-center mb-8 text-muted-foreground hover:text-primary">
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Home
+          {backButtonText || 'Back to Home'}
         </Button>
         <div className="max-w-4xl mx-auto bg-card p-6 md:p-10 rounded-2xl shadow-xl">
           <div className="text-center mb-8">

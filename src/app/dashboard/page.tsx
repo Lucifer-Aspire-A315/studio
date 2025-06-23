@@ -37,6 +37,8 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
+  // This action now works for both normal users and partners,
+  // fetching applications where they are the 'submitter'.
   const applications = await getUserApplications();
 
   return (

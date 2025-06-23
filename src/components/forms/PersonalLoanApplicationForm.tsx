@@ -5,11 +5,11 @@ import React from 'react';
 import { User } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { PersonalLoanApplicationSchema, type PersonalLoanApplicationFormData } from '@/lib/schemas';
-import type { SetPageView } from '@/app/page';
 import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface PersonalLoanApplicationFormProps {
-  setCurrentPage: SetPageView;
+  onBack: () => void;
+  backButtonText?: string;
 }
 
 const personalLoanSections = [
@@ -79,7 +79,7 @@ const personalLoanSections = [
 ];
 
 
-export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanApplicationFormProps) {
+export function PersonalLoanApplicationForm({ onBack, backButtonText }: PersonalLoanApplicationFormProps) {
   const defaultValues: PersonalLoanApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '', residentialAddress: '' },
     employmentIncome: { 
@@ -114,7 +114,8 @@ export function PersonalLoanApplicationForm({ setCurrentPage }: PersonalLoanAppl
 
   return (
     <GenericLoanForm
-      setCurrentPage={setCurrentPage}
+      onBack={onBack}
+      backButtonText={backButtonText}
       formTitle="Personal Loan Application Form"
       formSubtitle="Instant Loan for Your Personal Needs • Easy Process • Fast Disbursal • Minimum Documents • 100% Secure & Confidential"
       formIcon={<User className="w-12 h-12 mx-auto text-primary mb-2" />}

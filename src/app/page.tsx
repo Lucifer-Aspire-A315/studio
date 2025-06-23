@@ -105,6 +105,8 @@ export default function Home() {
   }
   
   const renderPageContent = () => {
+    const handleBackToMain = () => setCurrentPage('main');
+
     switch (currentPage) {
       case 'main':
         return (
@@ -135,13 +137,13 @@ export default function Home() {
           </>
         );
       case 'homeLoan':
-        return <HomeLoanApplicationForm setCurrentPage={setCurrentPage} />;
+        return <HomeLoanApplicationForm onBack={handleBackToMain} />;
       case 'personalLoan':
-        return <PersonalLoanApplicationForm setCurrentPage={setCurrentPage} />;
+        return <PersonalLoanApplicationForm onBack={handleBackToMain} />;
       case 'businessLoan':
-        return <BusinessLoanApplicationForm setCurrentPage={setCurrentPage} />;
+        return <BusinessLoanApplicationForm onBack={handleBackToMain} />;
       case 'creditCard':
-        return <CreditCardApplicationForm setCurrentPage={setCurrentPage} />;
+        return <CreditCardApplicationForm onBack={handleBackToMain} />;
       case 'governmentSchemes':
         return <GovernmentSchemesPage
                   setCurrentPage={setCurrentPage}
@@ -154,7 +156,7 @@ export default function Home() {
           return <p>Please select a scheme first.</p>;
         }
         return <GovernmentSchemeLoanApplicationForm
-                  setCurrentPage={setCurrentPage}
+                  onBack={() => setCurrentPage('governmentSchemes')}
                   selectedScheme={selectedGovernmentScheme}
                   otherSchemeName={otherGovernmentSchemeName}
                 />;

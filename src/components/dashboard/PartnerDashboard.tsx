@@ -1,32 +1,38 @@
 
 'use client';
 
-import type { UserData } from '@/lib/types';
+import type { UserData, UserApplication } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Handshake, UserPlus, Store } from 'lucide-react';
 import { NewLoanApplication } from './NewLoanApplication';
+import { ApplicationsTable } from './ApplicationsTable';
 
 interface PartnerDashboardViewProps {
     user: UserData;
+    applications: UserApplication[];
 }
 
-const ReferralDashboard = ({ user }: PartnerDashboardViewProps) => (
+const ReferralDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
     <Card>
         <CardHeader>
             <CardTitle>Referral Partner Dashboard</CardTitle>
             <CardDescription>Welcome, {user.fullName}. Track your referrals and earnings here.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                <h3 className="text-lg font-medium text-muted-foreground">Referral Tracking Coming Soon</h3>
-                <p className="text-sm text-muted-foreground mt-1">This section is under construction.</p>
-            </div>
+             <Tabs defaultValue="myApplications" className="space-y-4">
+                <TabsList>
+                    <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
+                </TabsList>
+                <TabsContent value="myApplications">
+                     <ApplicationsTable applications={applications} />
+                </TabsContent>
+            </Tabs>
         </CardContent>
     </Card>
 );
 
-const DsaDashboard = ({ user }: PartnerDashboardViewProps) => (
+const DsaDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
     <Tabs defaultValue="newApplication" className="space-y-4">
         <TabsList>
             <TabsTrigger value="newApplication">New Client Application</TabsTrigger>
@@ -42,27 +48,28 @@ const DsaDashboard = ({ user }: PartnerDashboardViewProps) => (
                     <CardDescription>A list of all applications you have submitted for clients.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                        <h3 className="text-lg font-medium text-muted-foreground">Application Tracking Coming Soon</h3>
-                        <p className="text-sm text-muted-foreground mt-1">This section is under construction.</p>
-                    </div>
+                    <ApplicationsTable applications={applications} />
                 </CardContent>
             </Card>
         </TabsContent>
     </Tabs>
 );
 
-const MerchantDashboard = ({ user }: PartnerDashboardViewProps) => (
+const MerchantDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
      <Card>
         <CardHeader>
             <CardTitle>Merchant Partner Dashboard</CardTitle>
             <CardDescription>Welcome, {user.fullName}. Manage point-of-sale financing here.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                <h3 className="text-lg font-medium text-muted-foreground">Point-of-Sale Tools Coming Soon</h3>
-                <p className="text-sm text-muted-foreground mt-1">This section is under construction.</p>
-            </div>
+             <Tabs defaultValue="myApplications" className="space-y-4">
+                <TabsList>
+                    <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
+                </TabsList>
+                <TabsContent value="myApplications">
+                    <ApplicationsTable applications={applications} />
+                </TabsContent>
+            </Tabs>
         </CardContent>
     </Card>
 );
@@ -85,7 +92,7 @@ const modelToTitle: Record<string, string> = {
     merchant: 'Merchant Partner',
 }
 
-export function PartnerDashboard({ user }: PartnerDashboardViewProps) {
+export function PartnerDashboard({ user, applications }: PartnerDashboardViewProps) {
     if (!user.businessModel) {
         return (
             <Card>
@@ -112,7 +119,7 @@ export function PartnerDashboard({ user }: PartnerDashboardViewProps) {
                     <p className="text-muted-foreground">Welcome, {user.fullName}! Manage your partner activities here.</p>
                 </div>
             </div>
-            {DashboardComponent ? <DashboardComponent user={user} /> : <p>Dashboard for your partner type is not available yet.</p>}
+            {DashboardComponent ? <DashboardComponent user={user} applications={applications} /> : <p>Dashboard for your partner type is not available yet.</p>}
         </div>
     );
 }

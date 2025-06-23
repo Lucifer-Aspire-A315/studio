@@ -5,11 +5,10 @@ import React from 'react';
 import { Briefcase } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { BusinessLoanApplicationSchema, type BusinessLoanApplicationFormData } from '@/lib/schemas';
-import type { SetPageView } from '@/app/page';
-import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface BusinessLoanApplicationFormProps {
-  setCurrentPage: SetPageView;
+  onBack: () => void;
+  backButtonText?: string;
 }
 
 const businessLoanSections = [
@@ -87,7 +86,7 @@ const businessLoanSections = [
   }
 ];
 
-export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanApplicationFormProps) {
+export function BusinessLoanApplicationForm({ onBack, backButtonText }: BusinessLoanApplicationFormProps) {
   const defaultValues: BusinessLoanApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '' },
     businessDetails: {
@@ -128,7 +127,8 @@ export function BusinessLoanApplicationForm({ setCurrentPage }: BusinessLoanAppl
 
   return (
     <GenericLoanForm
-      setCurrentPage={setCurrentPage}
+      onBack={onBack}
+      backButtonText={backButtonText}
       formTitle="Business Loan Application Form"
       formSubtitle="Easy Application Process • Minimum Documentation • 100% Digital & Secure"
       formIcon={<Briefcase className="w-12 h-12 mx-auto text-primary mb-2" />}

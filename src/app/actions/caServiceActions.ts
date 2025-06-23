@@ -40,18 +40,20 @@ async function submitCAServiceApplication<T extends Record<string, any>>(
       };
     }
 
-    // For now, assume the applicant is the submitter.
-    const applicantUserId = submitterUserId;
-    const applicantFullName = submitterUserName;
-    const applicantEmail = submitterUserEmail;
+    // Get applicant details from the form data. These schemas use `applicantDetails` or `applicantFounderDetails`.
+    const applicantDataFromForm = data.applicantDetails || data.applicantFounderDetails;
+    if (!applicantDataFromForm) {
+      return { success: false, message: 'Applicant details are missing from the form submission.' };
+    }
     
     const partnerId = submitterUserType === 'partner' ? submitterUserId : null;
 
     const applicationData = {
       applicantDetails: {
-        userId: applicantUserId,
-        fullName: applicantFullName,
-        email: applicantEmail,
+        // A client of a partner may not have a userId. This is captured in submittedBy.
+        userId: null, 
+        fullName: applicantDataFromForm.fullName,
+        email: applicantDataFromForm.emailId, // CA forms use emailId
       },
       submittedBy: {
         userId: submitterUserId,

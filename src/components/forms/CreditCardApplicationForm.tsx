@@ -5,11 +5,11 @@ import React from 'react';
 import { CreditCardIcon } from 'lucide-react';
 import { GenericLoanForm } from './GenericLoanForm';
 import { CreditCardApplicationSchema, type CreditCardApplicationFormData } from '@/lib/schemas';
-import type { SetPageView } from '@/app/page';
 import { submitLoanApplicationAction } from '@/app/actions/loanActions';
 
 interface CreditCardApplicationFormProps {
-  setCurrentPage: SetPageView;
+  onBack: () => void;
+  backButtonText?: string;
 }
 
 const creditCardSections = [
@@ -70,7 +70,7 @@ const creditCardSections = [
   }
 ];
 
-export function CreditCardApplicationForm({ setCurrentPage }: { setCurrentPage: SetPageView }) {
+export function CreditCardApplicationForm({ onBack, backButtonText }: CreditCardApplicationFormProps) {
   const defaultValues: CreditCardApplicationFormData = {
     applicantDetails: { name: '', dob: '', mobile: '', email: '', pan: '', aadhaar: '', residentialAddress: '', city: '', pincode: '' },
     employmentIncome: { 
@@ -99,7 +99,8 @@ export function CreditCardApplicationForm({ setCurrentPage }: { setCurrentPage: 
 
   return (
     <GenericLoanForm
-      setCurrentPage={setCurrentPage}
+      onBack={onBack}
+      backButtonText={backButtonText}
       formTitle="Credit Card Application Form"
       formSubtitle="Apply for Your Credit Card Easily • Quick Approval • Minimal Documents • 100% Digital & Secure Process"
       formIcon={<CreditCardIcon className="w-12 h-12 mx-auto text-primary mb-2" />}
