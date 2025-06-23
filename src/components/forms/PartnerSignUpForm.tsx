@@ -326,7 +326,7 @@ export function PartnerSignUpForm() {
                                 <FormLabel className="font-normal">Company</FormLabel>
                               </FormItem>
                             </RadioGroup>
-                          </FormControl>
+                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
