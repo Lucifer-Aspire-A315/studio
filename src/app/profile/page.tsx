@@ -22,7 +22,25 @@ export default async function ProfilePage() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const userTypeDisplay = user.type === 'partner' ? 'Partner' : 'User';
+  let userTypeDisplay: string;
+  if (user.type === 'partner') {
+    switch (user.businessModel) {
+      case 'dsa':
+        userTypeDisplay = 'DSA Partner';
+        break;
+      case 'merchant':
+        userTypeDisplay = 'Merchant Partner';
+        break;
+      case 'referral':
+        userTypeDisplay = 'Referral Partner';
+        break;
+      default:
+        userTypeDisplay = 'Partner';
+    }
+  } else {
+    userTypeDisplay = 'User';
+  }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary">
