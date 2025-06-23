@@ -7,7 +7,6 @@ import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { ServicesSection } from '@/components/sections/ServicesSection';
 import { EMICalculatorSection } from '@/components/sections/EMICalculatorSection';
-import { SarkariLoanAdSection } from '@/components/sections/SarkariLoanAdSection';
 import { HomeLoanApplicationForm } from '@/components/forms/HomeLoanApplicationForm';
 import { PersonalLoanApplicationForm } from '@/components/forms/PersonalLoanApplicationForm';
 import { BusinessLoanApplicationForm } from '@/components/forms/BusinessLoanApplicationForm';
@@ -112,7 +111,6 @@ export default function Home() {
           <>
             <HeroSection setCurrentPage={setCurrentPage} />
             <ServicesSection setCurrentPage={setCurrentPage} />
-            <SarkariLoanAdSection setCurrentPage={setCurrentPage} />
             <EMICalculatorSection />
             <section id="about" className="py-16 md:py-20 bg-background hidden">
               <div className="container mx-auto px-6 text-center">
