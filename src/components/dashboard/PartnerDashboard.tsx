@@ -3,8 +3,9 @@
 
 import type { UserData, UserApplication } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Handshake, UserPlus, Store } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Handshake, UserPlus, Store, PlusCircle } from 'lucide-react';
 import { PartnerNewApplicationPortal } from './PartnerNewApplicationPortal';
 import { ApplicationsTable } from './ApplicationsTable';
 
@@ -13,101 +14,74 @@ interface PartnerDashboardViewProps {
     applications: UserApplication[];
 }
 
+const NewApplicationButton = ({ buttonText }: { buttonText: string }) => (
+    <Dialog>
+        <DialogTrigger asChild>
+            <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {buttonText}
+            </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+            <DialogHeader>
+                <DialogTitle>New Application Portal</DialogTitle>
+                <DialogDescription>
+                    Select a service below to start a new application for your client.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="flex-grow overflow-y-auto -mx-6 px-6">
+                 <PartnerNewApplicationPortal />
+            </div>
+        </DialogContent>
+    </Dialog>
+);
+
+
 const ReferralDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
-    <Tabs defaultValue="newApplication" className="space-y-4">
-        <TabsList>
-            <TabsTrigger value="newApplication">Start New Application</TabsTrigger>
-            <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
-        </TabsList>
-        <TabsContent value="newApplication">
-             <Card>
-                <CardHeader>
-                    <CardTitle>New Referral Application</CardTitle>
-                    <CardDescription>
-                        Start a new application on behalf of a client you are referring.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PartnerNewApplicationPortal />
-                </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="myApplications">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Referral Activity</CardTitle>
-                    <CardDescription>
-                        A list of all applications you have submitted.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ApplicationsTable applications={applications} />
-                </CardContent>
-            </Card>
-        </TabsContent>
-    </Tabs>
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Referral Activity</CardTitle>
+                <CardDescription>
+                    A list of all applications you have submitted.
+                </CardDescription>
+            </div>
+             <NewApplicationButton buttonText="Start New Referral" />
+        </CardHeader>
+        <CardContent>
+            <ApplicationsTable applications={applications} />
+        </CardContent>
+    </Card>
 );
 
 const DsaDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
-    <Tabs defaultValue="newApplication" className="space-y-4">
-        <TabsList>
-            <TabsTrigger value="newApplication">New Client Application</TabsTrigger>
-            <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
-        </TabsList>
-        <TabsContent value="newApplication">
-            <Card>
-                <CardHeader>
-                    <CardTitle>New Client Application</CardTitle>
-                    <CardDescription>Start a new application on behalf of a client. Select the service to begin.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PartnerNewApplicationPortal />
-                </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="myApplications">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Applications Submitted by You</CardTitle>
-                    <CardDescription>A list of all applications you have submitted for clients.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ApplicationsTable applications={applications} />
-                </CardContent>
-            </Card>
-        </TabsContent>
-    </Tabs>
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+             <div>
+                <CardTitle>Applications Submitted by You</CardTitle>
+                <CardDescription>A list of all applications you have submitted for clients.</CardDescription>
+             </div>
+             <NewApplicationButton buttonText="New Client Application" />
+        </CardHeader>
+        <CardContent>
+            <ApplicationsTable applications={applications} />
+        </CardContent>
+    </Card>
 );
 
 const MerchantDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
-    <Tabs defaultValue="newApplication" className="space-y-4">
-        <TabsList>
-            <TabsTrigger value="newApplication">New Customer Application</TabsTrigger>
-            <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
-        </TabsList>
-        <TabsContent value="newApplication">
-            <Card>
-                <CardHeader>
-                    <CardTitle>New Customer Application</CardTitle>
-                    <CardDescription>Start a new application for a customer. Select the service to begin.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <PartnerNewApplicationPortal /> 
-                </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="myApplications">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Applications Submitted by You</CardTitle>
-                    <CardDescription>A list of all applications you have submitted for your customers.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ApplicationsTable applications={applications} />
-                </CardContent>
-            </Card>
-        </TabsContent>
-    </Tabs>
+     <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+             <div>
+                <CardTitle>Applications Submitted by You</CardTitle>
+                <CardDescription>A list of all applications you have submitted for your customers.</CardDescription>
+             </div>
+             <NewApplicationButton buttonText="New Customer Application" />
+        </CardHeader>
+        <CardContent>
+            <ApplicationsTable applications={applications} />
+        </CardContent>
+    </Card>
 );
 
 const modelToComponent: Record<string, React.FC<PartnerDashboardViewProps>> = {
