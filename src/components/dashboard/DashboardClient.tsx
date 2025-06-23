@@ -4,17 +4,19 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ApplicationsTable } from './ApplicationsTable';
 import type { UserApplication, UserData } from '@/lib/types';
+import { PartnerDashboard } from './PartnerDashboard';
 
 interface DashboardClientProps {
-  user: UserData | null;
+  user: UserData;
   applications: UserApplication[];
 }
 
 export function DashboardClient({ user, applications }: DashboardClientProps) {
-  if (!user) {
-    return null; // Or a loading/error state
+  if (user.type === 'partner') {
+    return <PartnerDashboard user={user} />;
   }
 
+  // Fallback to the normal user dashboard
   return (
     <>
       <div className="flex justify-between items-center mb-8">

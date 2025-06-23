@@ -1,5 +1,6 @@
 
 
+
 'use server';
 
 import { cookies } from 'next/headers';
@@ -58,6 +59,9 @@ async function setSessionCookies(userData: UserData) {
     cookies().set('user_name', userData.fullName, cookieOptions);
     cookies().set('user_email', userData.email, cookieOptions);
     cookies().set('user_type', userData.type, cookieOptions);
+    if (userData.businessModel) {
+      cookies().set('business_model', userData.businessModel, cookieOptions);
+    }
     if (userData.isAdmin) {
       cookies().set('is_admin', 'true', cookieOptions);
       console.log(`[AuthActions - setSessionCookies] Admin flag set for user: ${userData.email}`);
@@ -81,7 +85,7 @@ async function clearSessionCookies() {
     console.error('[AuthActions - clearSessionCookies] Error during robust priming cookie read:', e.message);
   }
 
-  const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type', 'is_admin'];
+  const cookieNames = ['session_token', 'user_id', 'user_name', 'user_email', 'user_type', 'is_admin', 'business_model'];
   const clearOptions: CustomCookieSetOptions = {
     httpOnly: true,
     secure: true,
@@ -142,6 +146,7 @@ export async function partnerSignUpAction(
       fullName: data.fullName,
       email: data.email,
       type: 'partner',
+      businessModel: data.businessModel,
     };
 
     console.log('[AuthActions - partnerSignUpAction] Sign-up successful, pending approval for:', newUser.email);
@@ -207,6 +212,7 @@ export async function partnerLoginAction(
       email: partnerData.email,
       type: 'partner',
       isAdmin: !!partnerData.isAdmin,
+      businessModel: partnerData.businessModel,
     };
 
     await setSessionCookies(loggedInUser);
@@ -379,6 +385,7 @@ export async function checkSessionAction(): Promise<UserData | null> {
     const userTypeCookieVal = await cookies().get('user_type');
     const sessionTokenCookie = await cookies().get('session_token');
     const isAdminCookie = await cookies().get('is_admin');
+    const businessModelCookie = await cookies().get('business_model');
 
     const userId = userIdCookie?.value;
     const userName = userNameCookie?.value;
@@ -386,6 +393,8 @@ export async function checkSessionAction(): Promise<UserData | null> {
     const userType = (userTypeCookieVal?.value === 'partner' || userTypeCookieVal?.value === 'normal') ? userTypeCookieVal.value : undefined;
     const sessionToken = sessionTokenCookie?.value;
     const isAdmin = isAdminCookie?.value === 'true';
+    const businessModel = businessModelCookie?.value as UserData['businessModel'] | undefined;
+
 
     if (userId && userName && userEmail && userType && sessionToken) {
       return {
@@ -394,6 +403,7 @@ export async function checkSessionAction(): Promise<UserData | null> {
         email: userEmail,
         type: userType,
         isAdmin: isAdmin,
+        businessModel: businessModel,
       };
     }
     return null;
@@ -402,5 +412,3 @@ export async function checkSessionAction(): Promise<UserData | null> {
     return null;
   }
 }
-
-    

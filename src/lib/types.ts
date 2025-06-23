@@ -5,6 +5,7 @@ export interface UserData {
   email: string;
   type: 'partner' | 'normal';
   isAdmin?: boolean;
+  businessModel?: 'referral' | 'dsa' | 'merchant';
 }
 
 export interface UserApplication {
