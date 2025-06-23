@@ -7,13 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PartnerSignUpSchema, type PartnerSignUpFormData } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { uploadFileAction } from '@/app/actions/fileUploadActions';
-import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, UserPlus, Handshake, Store, Users, UploadCloud } from 'lucide-react';
 import { FormSection, FormFieldWrapper } from './FormSection';
 import { partnerSignUpAction } from '@/app/actions/authActions';
@@ -73,7 +73,6 @@ export function PartnerSignUpForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
 
   const form = useForm<PartnerSignUpFormData>({
     resolver: zodResolver(PartnerSignUpSchema),
@@ -135,7 +134,6 @@ export function PartnerSignUpForm() {
           title: "Sign Up Successful",
           description: result.message || "Your account has been created and is pending approval.",
         });
-        login(result.user);
         form.reset();
         router.push('/');
       } else {
