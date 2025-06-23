@@ -758,8 +758,8 @@ const merchantPartnerSchema = basePartnerSchema.extend({
     industry: z.string().min(1, "Industry is required"),
     businessAddress: z.string().min(1, "Business address is required"),
     gstNumber: z.string()
-      .transform(val => val.toUpperCase())
-      .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, "Invalid GST format. Must be 15 characters."),
+      .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i, "Invalid GST format. Must be 15 characters.")
+      .transform(val => val.toUpperCase()),
   }),
   merchantDocumentUploads: z.object({
     gstCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
