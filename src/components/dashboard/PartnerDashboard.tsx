@@ -14,22 +14,24 @@ interface PartnerDashboardViewProps {
 }
 
 const ReferralDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
-    <Card>
-        <CardHeader>
-            <CardTitle>Referral Partner Dashboard</CardTitle>
-            <CardDescription>Welcome, {user.fullName}. Track your referrals and earnings here.</CardDescription>
-        </CardHeader>
-        <CardContent>
-             <Tabs defaultValue="myApplications" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
-                </TabsList>
-                <TabsContent value="myApplications">
-                     <ApplicationsTable applications={applications} />
-                </TabsContent>
-            </Tabs>
-        </CardContent>
-    </Card>
+    <Tabs defaultValue="myApplications" className="space-y-4">
+        <TabsList>
+            <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
+        </TabsList>
+        <TabsContent value="myApplications">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Referral Activity</CardTitle>
+                    <CardDescription>
+                        A list of all applications you have submitted. Advanced referral tracking features are coming soon.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ApplicationsTable applications={applications} />
+                </CardContent>
+            </Card>
+        </TabsContent>
+    </Tabs>
 );
 
 const DsaDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
@@ -56,22 +58,26 @@ const DsaDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
 );
 
 const MerchantDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
-     <Card>
-        <CardHeader>
-            <CardTitle>Merchant Partner Dashboard</CardTitle>
-            <CardDescription>Welcome, {user.fullName}. Manage point-of-sale financing here.</CardDescription>
-        </CardHeader>
-        <CardContent>
-             <Tabs defaultValue="myApplications" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
-                </TabsList>
-                <TabsContent value="myApplications">
+    <Tabs defaultValue="newApplication" className="space-y-4">
+        <TabsList>
+            <TabsTrigger value="newApplication">New Customer Application</TabsTrigger>
+            <TabsTrigger value="myApplications">My Submitted Applications</TabsTrigger>
+        </TabsList>
+        <TabsContent value="newApplication">
+            <NewLoanApplication />
+        </TabsContent>
+        <TabsContent value="myApplications">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Applications Submitted by You</CardTitle>
+                    <CardDescription>A list of all applications you have submitted for your customers.</CardDescription>
+                </CardHeader>
+                <CardContent>
                     <ApplicationsTable applications={applications} />
-                </TabsContent>
-            </Tabs>
-        </CardContent>
-    </Card>
+                </CardContent>
+            </Card>
+        </TabsContent>
+    </Tabs>
 );
 
 const modelToComponent: Record<string, React.FC<PartnerDashboardViewProps>> = {
