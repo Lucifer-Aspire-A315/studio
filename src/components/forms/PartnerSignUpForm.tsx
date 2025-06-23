@@ -123,7 +123,7 @@ export function PartnerSignUpForm() {
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-           <FormField
+            <FormField
               control={form.control}
               name="businessModel"
               render={({ field }) => (
@@ -136,19 +136,27 @@ export function PartnerSignUpForm() {
                       className="flex flex-col space-y-1"
                     >
                       <FormItem className="flex items-center space-x-3 space-y-0">
-                        <RadioGroupItem value="dsa" />
+                        <FormControl>
+                          <RadioGroupItem value="dsa" />
+                        </FormControl>
                         <FormLabel className="font-normal">DSA (Direct Selling Agent)</FormLabel>
                       </FormItem>
                        <FormItem className="flex items-center space-x-3 space-y-0">
-                        <RadioGroupItem value="franchise" />
+                        <FormControl>
+                          <RadioGroupItem value="franchise" />
+                        </FormControl>
                         <FormLabel className="font-normal">Franchise</FormLabel>
                       </FormItem>
                        <FormItem className="flex items-center space-x-3 space-y-0">
-                        <RadioGroupItem value="referral" />
+                        <FormControl>
+                          <RadioGroupItem value="referral" />
+                        </FormControl>
                         <FormLabel className="font-normal">Referral Partner</FormLabel>
                       </FormItem>
                        <FormItem className="flex items-center space-x-3 space-y-0">
-                        <RadioGroupItem value="manchar" />
+                        <FormControl>
+                          <RadioGroupItem value="manchar" />
+                        </FormControl>
                         <FormLabel className="font-normal">Manchar Partner</FormLabel>
                       </FormItem>
                     </RadioGroup>
@@ -174,15 +182,21 @@ export function PartnerSignUpForm() {
                         <FormControl>
                           <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row gap-4">
                             <FormItem className="flex items-center space-x-2 space-y-0">
-                              <RadioGroupItem value="male" />
+                               <FormControl>
+                                <RadioGroupItem value="male" />
+                              </FormControl>
                               <FormLabel className="font-normal">Male</FormLabel>
                             </FormItem>
                              <FormItem className="flex items-center space-x-2 space-y-0">
-                              <RadioGroupItem value="female" />
+                               <FormControl>
+                                <RadioGroupItem value="female" />
+                              </FormControl>
                               <FormLabel className="font-normal">Female</FormLabel>
                             </FormItem>
                              <FormItem className="flex items-center space-x-2 space-y-0">
-                              <RadioGroupItem value="other" />
+                               <FormControl>
+                                <RadioGroupItem value="other" />
+                              </FormControl>
                               <FormLabel className="font-normal">Other</FormLabel>
                             </FormItem>
                           </RadioGroup>
@@ -208,11 +222,15 @@ export function PartnerSignUpForm() {
                            <FormControl>
                             <RadioGroup onValueChange={(value) => field.onChange(value === 'true')} defaultValue={String(field.value)} className="flex flex-row gap-4">
                               <FormItem className="flex items-center space-x-2 space-y-0">
-                                <RadioGroupItem value="true" />
+                                <FormControl>
+                                  <RadioGroupItem value="true" />
+                                </FormControl>
                                 <FormLabel className="font-normal">Yes</FormLabel>
                               </FormItem>
                               <FormItem className="flex items-center space-x-2 space-y-0">
-                                <RadioGroupItem value="false" />
+                                <FormControl>
+                                  <RadioGroupItem value="false" />
+                                </FormControl>
                                 <FormLabel className="font-normal">No</FormLabel>
                               </FormItem>
                             </RadioGroup>
@@ -254,11 +272,15 @@ export function PartnerSignUpForm() {
                               className="flex flex-row gap-4"
                             >
                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                <RadioGroupItem value="false" />
+                                <FormControl>
+                                  <RadioGroupItem value="false" />
+                                </FormControl>
                                 <FormLabel className="font-normal">No</FormLabel>
                               </FormItem>
                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                <RadioGroupItem value="true" />
+                                <FormControl>
+                                  <RadioGroupItem value="true" />
+                                </FormControl>
                                 <FormLabel className="font-normal">Yes</FormLabel>
                               </FormItem>
                             </RadioGroup>
@@ -286,15 +308,21 @@ export function PartnerSignUpForm() {
                               className="flex flex-row gap-4"
                             >
                               <FormItem className="flex items-center space-x-2 space-y-0">
-                                <RadioGroupItem value="individual" />
+                                <FormControl>
+                                  <RadioGroupItem value="individual" />
+                                </FormControl>
                                 <FormLabel className="font-normal">Individual</FormLabel>
                               </FormItem>
                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                <RadioGroupItem value="firm" />
+                                <FormControl>
+                                  <RadioGroupItem value="firm" />
+                                </FormControl>
                                 <FormLabel className="font-normal">Firm</FormLabel>
                               </FormItem>
                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                <RadioGroupItem value="company" />
+                                <FormControl>
+                                  <RadioGroupItem value="company" />
+                                </FormControl>
                                 <FormLabel className="font-normal">Company</FormLabel>
                               </FormItem>
                             </RadioGroup>
