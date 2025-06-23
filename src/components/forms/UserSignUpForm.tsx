@@ -159,9 +159,9 @@ export function UserSignUpForm() {
         </Link>
       </p>
        <p className="text-sm text-muted-foreground mt-4 text-center">
-        Are you a partner?{' '}
-        <Link href="/partner-login" className="font-medium text-accent hover:underline">
-          Partner Login
+        Want to become a partner?{' '}
+        <Link href="/partner-signup" className="font-medium text-accent hover:underline">
+          Partner Sign-up
         </Link>
       </p>
     </div>

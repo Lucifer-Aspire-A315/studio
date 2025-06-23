@@ -40,7 +40,11 @@ export function PartnerLoginForm() {
         });
         login(result.user);
         form.reset();
-        router.push('/dashboard'); 
+        if (result.user.isAdmin) {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         toast({
           variant: "destructive",
@@ -114,6 +118,12 @@ export function PartnerLoginForm() {
         Don&apos;t have a partner account?{' '}
         <Link href="/partner-signup" className="font-medium text-primary hover:underline">
           Sign up here
+        </Link>
+      </p>
+       <p className="text-sm text-muted-foreground mt-4 text-center">
+        Not a partner?{' '}
+        <Link href="/login" className="font-medium text-accent hover:underline">
+          User Login
         </Link>
       </p>
     </div>

@@ -322,7 +322,7 @@ export function PartnerSignUpForm() {
               {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting Application...</> : 'Complete Registration'}
             </Button>
              <p className="text-sm text-muted-foreground mt-6 text-center">
-                Already have an account?{' '}
+                Already a partner?{' '}
                 <Link href="/partner-login" className="font-medium text-primary hover:underline">
                 Login here
                 </Link>

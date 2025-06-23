@@ -40,7 +40,11 @@ export function UserLoginForm() {
         });
         login(result.user); 
         form.reset();
-        router.push('/dashboard'); 
+        if (result.user.isAdmin) {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/dashboard'); 
+        }
       } else {
         toast({
           variant: "destructive",
