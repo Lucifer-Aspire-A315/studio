@@ -1,8 +1,7 @@
-
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PartnerLoanApplication } from './PartnerLoanApplication';
+import { PartnerLoanApplication } from './NewLoanApplication';
 import { PartnerCAServiceApplication } from './PartnerCAServiceApplication';
 import { PartnerGovSchemeApplication } from './PartnerGovSchemeApplication';
 
