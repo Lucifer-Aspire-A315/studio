@@ -1,17 +1,29 @@
-
 "use client";
 
 import React from 'react';
 import { PartnerSignUpForm } from '@/components/forms/PartnerSignUpForm';
-// No longer need mockSetCurrentUser or SetCurrentUser type from app/page
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PartnerSignUpPage() {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+  
   return (
-    <section className="bg-secondary py-12 md:py-20 min-h-[calc(100vh-128px)] flex items-center"> {/* Adjust min-h based on header/footer */}
-      <div className="container mx-auto px-4 sm:px-6">
-        {/* PartnerSignUpForm will now use AuthContext for setCurrentUser */}
-        <PartnerSignUpForm />
-      </div>
-    </section>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-grow">
+        <section className="bg-secondary py-12 md:py-20 min-h-[calc(100vh-128px)] flex items-center">
+          <div className="container mx-auto px-4 sm:px-6">
+            <PartnerSignUpForm />
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
   );
 }
