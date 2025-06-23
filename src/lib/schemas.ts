@@ -694,17 +694,89 @@ export type AuditAndAssuranceFormData = z.infer<typeof AuditAndAssuranceFormSche
 
 // #region --- AUTHENTICATION SCHEMAS ---
 
-export const PartnerSignUpSchema = z.object({
+const basePartnerSchema = z.object({
   fullName: z.string().min(1, "Full Name is required"),
   email: z.string().email("Invalid email address"),
   mobileNumber: z.string().regex(/^\d{10}$/, "Invalid mobile number (must be 10 digits)"),
   password: z.string().min(8, "Password must be at least 8 characters long"),
   confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters long"),
-}).refine(data => data.password === data.confirmPassword, {
+});
+
+const referralPartnerSchema = basePartnerSchema.extend({
+  businessModel: z.literal('referral'),
+});
+
+const dsaPartnerSchema = basePartnerSchema.extend({
+  businessModel: z.literal('dsa'),
+  personalDetails: z.object({
+    fatherOrHusbandName: z.string().min(1, "This field is required"),
+    dob: z.string().min(1, "Date of Birth is required"),
+    gender: z.enum(['male', 'female', 'other'], { required_error: "Gender is required" }),
+    panNumber: z.string().regex(/^([A-Z]{5}[0-9]{4}[A-Z]{1})$/, "Invalid PAN format"),
+    aadhaarNumber: z.string().regex(/^\d{12}$/, "Invalid Aadhaar format"),
+    currentAddress: z.string().min(1, "Current address is required"),
+    isPermanentAddressSame: z.enum(['yes', 'no'], { required_error: "Please select an option" }),
+    permanentAddress: z.string().optional(),
+  }).superRefine((data, ctx) => {
+    if (data.isPermanentAddressSame === 'no' && !data.permanentAddress?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Permanent address is required", path: ["permanentAddress"] });
+    }
+  }),
+  professionalFinancial: z.object({
+    highestQualification: z.string().min(1, "Highest qualification is required"),
+    presentOccupation: z.string().min(1, "Present occupation is required"),
+    yearsInOccupation: z.preprocess((val) => val ? Number(val) : undefined, z.number().min(0)),
+    bankAccountNumber: z.string().min(1, "Bank account number is required"),
+    bankIfscCode: z.string().min(1, "IFSC code is required"),
+    bankName: z.string().min(1, "Bank name is required"),
+    annualIncome: z.preprocess((val) => val ? Number(val) : undefined, z.number().min(0)),
+  }),
+  businessScope: z.object({
+    constitution: z.enum(['individual', 'proprietorship', 'partnership'], { required_error: "Constitution is required" }),
+    operatingLocation: z.string().min(1, "Operating location is required"),
+    productsOfInterest: z.object({
+      homeLoan: z.boolean().default(false),
+      personalLoan: z.boolean().default(false),
+      businessLoan: z.boolean().default(false),
+      creditCard: z.boolean().default(false),
+    }).refine(data => Object.values(data).some(v => v), { message: 'Select at least one product of interest', path: ['homeLoan'] }),
+  }),
+  dsaDocumentUploads: z.object({
+    panCardCopy: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+    aadhaarCardCopy: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+    photograph: stringOrFileSchema(ACCEPTED_IMAGE_TYPES),
+    bankStatement: stringOrFileSchema(ACCEPTED_BANK_STATEMENT_TYPES),
+  }),
+  declaration: z.boolean().refine(v => v === true, { message: 'You must agree to the declaration.' }),
+});
+
+const merchantPartnerSchema = basePartnerSchema.extend({
+  businessModel: z.literal('merchant'),
+  businessInformation: z.object({
+    legalBusinessName: z.string().min(1, "Legal business name is required"),
+    businessType: z.enum(['proprietorship', 'partnership', 'pvt_ltd'], { required_error: "Business type is required" }),
+    industry: z.string().min(1, "Industry is required"),
+    businessAddress: z.string().min(1, "Business address is required"),
+    gstNumber: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, "Invalid GST format"),
+  }),
+  merchantDocumentUploads: z.object({
+    gstCertificate: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+    businessRegistration: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+    ownerPanCard: stringOrFileSchema(ACCEPTED_DOCUMENT_TYPES),
+  }),
+});
+
+
+export const PartnerSignUpSchema = z.discriminatedUnion('businessModel', [
+  referralPartnerSchema,
+  dsaPartnerSchema,
+  merchantPartnerSchema,
+]).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
 });
 export type PartnerSignUpFormData = z.infer<typeof PartnerSignUpSchema>;
+
 
 export const PartnerLoginSchema = z.object({
   email: z.string().email("Invalid email address"),

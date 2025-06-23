@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { cookies } from 'next/headers';
@@ -105,7 +106,7 @@ async function clearSessionCookies() {
 export async function partnerSignUpAction(
   data: PartnerSignUpFormData
 ): Promise<AuthServerActionResponse> {
-  console.log('[AuthActions - partnerSignUpAction] Initiated for email:', data.email);
+  console.log('[AuthActions - partnerSignUpAction] Initiated for email:', data.email, 'with model:', data.businessModel);
   try {
     await cookies().get('priming-cookie-partner-signup');
     const partnersRef = collection(db, 'partners');
@@ -146,7 +147,7 @@ export async function partnerSignUpAction(
     console.log('[AuthActions - partnerSignUpAction] Sign-up successful, pending approval for:', newUser.email);
     return {
       success: true,
-      message: 'Partner sign-up successful! Your account is pending approval from the admin.',
+      message: 'Partner application submitted! Your application is pending approval from the admin.',
       user: newUser,
     };
   } catch (error: any) {
