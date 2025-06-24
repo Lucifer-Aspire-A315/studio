@@ -3,12 +3,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const Logo = () => (
-    <Image
-      src="/logo.svg"
-      alt="RN Fintech Logo"
-      width={150}
-      height={40}
-    />
+    <div className="relative w-40 h-10">
+        <Image
+            src="/logo.svg"
+            alt="RN Fintech Logo"
+            fill
+            className="object-contain"
+        />
+    </div>
 );
 
 export function Footer() {
@@ -25,10 +27,14 @@ export function Footer() {
 >>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
           <div className="pb-8 md:pb-0 md:pr-8">
 <<<<<<< HEAD
+<<<<<<< HEAD
             <h3 className="text-xl font-bold text-[#FADA7A]"><AnimatedGradientText /></h3>
             <p className="mt-4 text-[#B2C8BA] text-sm">
 =======
             <h3 className="text-xl font-bold text-highlight"><Logo /></h3>
+=======
+            <div className="block"><Logo /></div>
+>>>>>>> 1a79126 (ok so now the logo is place can u now just correct the size and style of)
             <p className="mt-4 text-muted-foreground text-sm">
 >>>>>>> d36ee72 (ok ive created a public folder and uploaded an svg logo file  there can)
               Your trusted partner in achieving your financial goals.

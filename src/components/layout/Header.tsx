@@ -25,14 +25,17 @@ interface HeaderProps {
 }
 
 const Logo = () => (
-    <Image
-      src="/logo.svg"
-      alt="RN Fintech Logo"
-      width={150}
-      height={40}
-      priority
-    />
+    <div className="relative w-36 h-10 md:w-40">
+        <Image
+            src="/logo.svg"
+            alt="RN Fintech Logo"
+            fill
+            priority
+            className="object-contain"
+        />
+    </div>
 );
+
 
 export function Header({ setCurrentPage }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -107,11 +110,15 @@ export function Header({ setCurrentPage }: HeaderProps) {
 =======
     <header className={`bg-background border-b border-border shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <nav className="container mx-auto px-4 sm:px-6 py-2 flex justify-between items-center">
+<<<<<<< HEAD
         <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-primary">
 <<<<<<< HEAD
 >>>>>>> c3cf252 (great and also the header looks too long in mobile view can u narrow it)
           <AnimatedGradientText />
 =======
+=======
+        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="flex-shrink-0">
+>>>>>>> 1a79126 (ok so now the logo is place can u now just correct the size and style of)
           <Logo />
 >>>>>>> d36ee72 (ok ive created a public folder and uploaded an svg logo file  there can)
         </Link>
@@ -199,7 +206,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <SheetDescription className="sr-only">Site navigation and user options</SheetDescription>
               <div className="p-6 border-b">
-                <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-xl font-bold">
+                <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))}>
                   <Logo />
                 </Link>
               </div>
