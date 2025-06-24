@@ -2,10 +2,10 @@
 "use client";
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import type { SetPageView } from '@/app/page';
 import { NewsTicker } from '@/components/shared/NewsTicker';
 import { Sparkles } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface HeroSectionProps {
   setCurrentPage: SetPageView;
