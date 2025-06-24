@@ -5,9 +5,10 @@ import Image from 'next/image';
 const Logo = () => (
     <div className="relative w-40 h-10">
         <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="RN Fintech Logo"
             fill
+            priority
             className="object-contain"
         />
     </div>
@@ -28,6 +29,7 @@ export function Footer() {
           <div className="pb-8 md:pb-0 md:pr-8">
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             <h3 className="text-xl font-bold text-[#FADA7A]"><AnimatedGradientText /></h3>
             <p className="mt-4 text-[#B2C8BA] text-sm">
 =======
@@ -35,6 +37,11 @@ export function Footer() {
 =======
             <div className="block"><Logo /></div>
 >>>>>>> 1a79126 (ok so now the logo is place can u now just correct the size and style of)
+=======
+            <div className="inline-block bg-background p-2 rounded-lg">
+              <Logo />
+            </div>
+>>>>>>> d8a7cb5 (ok there was some misunderstanding the logo was in logo.png ive fixed it)
             <p className="mt-4 text-muted-foreground text-sm">
 >>>>>>> d36ee72 (ok ive created a public folder and uploaded an svg logo file  there can)
               Your trusted partner in achieving your financial goals.

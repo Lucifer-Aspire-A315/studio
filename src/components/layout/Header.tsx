@@ -27,7 +27,7 @@ interface HeaderProps {
 const Logo = () => (
     <div className="relative w-36 h-10 md:w-40">
         <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="RN Fintech Logo"
             fill
             priority
