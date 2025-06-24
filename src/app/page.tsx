@@ -117,7 +117,7 @@ export default function Home() {
             <EMICalculatorSection />
             <section id="about" className="py-16 md:py-20 bg-background hidden">
               <div className="container mx-auto px-6 text-center">
-                <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">About Us</h2>
+                <h2 className="text-3xl font-bold text-foreground">About Us</h2>
                 <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
                   RN Fintech is committed to providing transparent, quick, and easy financial solutions.
                   We leverage technology to simplify the loan application process and offer competitive rates.
@@ -127,7 +127,7 @@ export default function Home() {
             </section>
              <section id="contact" className="py-16 md:py-20 bg-secondary hidden">
               <div className="container mx-auto px-6 text-center">
-                <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Contact Us</h2>
+                <h2 className="text-3xl font-bold text-foreground">Contact Us</h2>
                 <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
                     Have questions? We're here to help. Reach out to us via email or visit our office.
                 </p>

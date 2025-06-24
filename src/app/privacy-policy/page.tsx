@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
               <CardTitle className="text-3xl">Privacy Policy</CardTitle>
               <CardDescription>Last Updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
             </CardHeader>
-            <CardContent className="prose prose-stone dark:prose-invert max-w-none space-y-6 text-foreground">
+            <CardContent className="prose dark:prose-invert max-w-none space-y-6 text-foreground">
               <p>
                 Welcome to FinSol RN. We are committed to protecting your privacy and ensuring that your personal information is handled in a safe and responsible manner. This Privacy Policy outlines how we collect, use, maintain, and disclose information collected from users (each, a "User") of the FinSol RN website ("Site").
               </p>

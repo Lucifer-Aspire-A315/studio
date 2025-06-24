@@ -23,7 +23,7 @@ export default function TermsOfServicePage() {
               <CardTitle className="text-3xl">Terms of Service</CardTitle>
               <CardDescription>Last Updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
             </CardHeader>
-            <CardContent className="prose prose-stone dark:prose-invert max-w-none space-y-6 text-foreground">
+            <CardContent className="prose dark:prose-invert max-w-none space-y-6 text-foreground">
               <h2 className="text-xl font-semibold">1. Acceptance of Terms</h2>
               <p>
                 By accessing and using the FinSol RN website ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using these particular services, you shall be subject to any posted guidelines or rules applicable to such services. Any participation in this service will constitute acceptance of this agreement.

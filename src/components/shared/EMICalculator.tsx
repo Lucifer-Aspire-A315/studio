@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -30,7 +31,7 @@ export function EMICalculator() {
   return (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Loan Amount (₹)</Label>
+        <Label htmlFor="amount" className="block text-sm font-medium text-foreground">Loan Amount (₹)</Label>
         <Input 
           type="number" 
           id="amount" 
@@ -41,7 +42,7 @@ export function EMICalculator() {
         />
       </div>
       <div>
-        <Label htmlFor="interest" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Interest Rate (%)</Label>
+        <Label htmlFor="interest" className="block text-sm font-medium text-foreground">Interest Rate (%)</Label>
         <Input 
           type="number" 
           id="interest" 
@@ -53,7 +54,7 @@ export function EMICalculator() {
         />
       </div>
       <div>
-        <Label htmlFor="tenure" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Loan Tenure (Years)</Label>
+        <Label htmlFor="tenure" className="block text-sm font-medium text-foreground">Loan Tenure (Years)</Label>
         <Input 
           type="number" 
           id="tenure" 
@@ -63,8 +64,8 @@ export function EMICalculator() {
           placeholder="e.g., 5"
         />
       </div>
-      <div id="emi-result" className="mt-8 text-center bg-primary/10 dark:bg-primary/20 p-6 rounded-lg">
-        <p className="text-gray-600 dark:text-gray-400">Your Monthly EMI</p>
+      <div id="emi-result" className="mt-8 text-center bg-primary/10 p-6 rounded-lg">
+        <p className="text-muted-foreground">Your Monthly EMI</p>
         <p id="emi-value" className="text-4xl font-bold text-primary mt-2">₹ {emi}</p>
       </div>
     </div>

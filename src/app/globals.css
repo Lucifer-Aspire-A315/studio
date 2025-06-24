@@ -27,6 +27,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     --secondary: 135 18% 80%;         /* #B2C8BA */
     --secondary-foreground: 168 10% 18%;
 =======
@@ -34,6 +35,9 @@
 =======
     --secondary: 210 40% 96.1%;
 >>>>>>> c827e8e (ok but can u remove the updated styles from last half hour the previous)
+=======
+    --secondary: 210 40% 98%;
+>>>>>>> ca4bd91 (ok but can u analyze and review everything to see if all styling ui colo)
     --secondary-foreground: 222.2 47.4% 11.2%;
 >>>>>>> 287e1e1 (ok remove the last update)
 
@@ -51,9 +55,18 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
+<<<<<<< HEAD
     --border: 135 18% 80%;
     --input: 135 18% 80%;
     --ring: 122 32% 45%;
+=======
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 0 0% 98%;
+
+    --border: 215 27.9% 82.9%;
+    --input: 215 27.9% 82.9%;
+    --ring: 225.9 71.8% 50%;
+>>>>>>> ca4bd91 (ok but can u analyze and review everything to see if all styling ui colo)
 
     --radius: 0.5rem;
 
@@ -97,6 +110,9 @@
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
+    
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 0 0% 98%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
@@ -128,36 +144,37 @@
   }
 }
 
-/* Animated Gradient Text for the brand name */
-.animated-gradient-text {
-    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), #9333ea, hsl(var(--primary))); /* Using theme colors */
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: moveGradient 5s ease-in-out infinite;
-}
+@layer utilities {
+  .animated-gradient-text {
+      background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), #9333ea, hsl(var(--primary))); /* Using theme colors */
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: moveGradient 5s ease-in-out infinite;
+  }
 
-@keyframes moveGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+  @keyframes moveGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+  }
 
-.cta-button {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px hsla(var(--primary), 0.2);
-}
+  .cta-button {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px hsla(var(--primary), 0.2);
+  }
 
-.card-hover-effect {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.card-hover-effect:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  .card-hover-effect {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card-hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  }
 }
 
 /* Add to globals.css */

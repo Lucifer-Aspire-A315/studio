@@ -15,7 +15,7 @@ export function EMICalculatorSection() {
             </p>
 =======
       <div className="container mx-auto px-6 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Plan Your Loan with our EMI Calculator</h2>
+        <h2 className="text-3xl font-bold text-foreground">Plan Your Loan with our EMI Calculator</h2>
         <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
           Estimate your monthly payments to plan your finances better. Just enter the loan amount, interest rate, and tenure.
         </p>

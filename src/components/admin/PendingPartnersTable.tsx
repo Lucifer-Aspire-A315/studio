@@ -48,7 +48,7 @@ export function PendingPartnersTable({ partners, onApprove, isApproving }: Pendi
                     size="sm" 
                     onClick={() => onApprove(partner.id)} 
                     disabled={isApproving}
-                    className="bg-green-600 hover:bg-green-700"
+                    variant="success"
                 >
                   {isApproving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Approve'}
                 </Button>
