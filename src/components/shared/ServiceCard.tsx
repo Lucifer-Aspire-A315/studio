@@ -13,19 +13,29 @@ interface ServiceCardProps {
   setCurrentPage: SetPageView;
 }
 
-export function ServiceCard({ icon, title, description, bgColorClass, textColorClass, targetPage, setCurrentPage }: ServiceCardProps) {
+export function ServiceCard({
+  icon,
+  title,
+  description,
+  bgColorClass,
+  textColorClass,
+  targetPage,
+  setCurrentPage,
+}: ServiceCardProps) {
   return (
-    <div className={cn(
-        "bg-card p-8 rounded-xl shadow-lg flex flex-col text-center items-center card-hover-effect"
-    )}>
-      <div className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto ${bgColorClass}`}>
+    <div
+      className={cn(
+        "bg-card p-8 rounded-xl shadow-lg flex flex-col text-center items-center border border-[#B2C8BA] transition-all duration-200 hover:border-[#4E944F] hover:shadow-xl card-hover-effect"
+      )}
+    >
+      <div className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto shadow ${bgColorClass}`}>
         <div className={textColorClass}>{icon}</div>
       </div>
-      <h3 className="text-xl font-semibold text-card-foreground mt-6">{title}</h3>
+      <h3 className="text-xl font-semibold mt-6 text-[#4E944F]">{title}</h3>
       <p className="text-muted-foreground mt-2 flex-grow text-sm">{description}</p>
-      <Button 
-        variant="link" 
-        className="inline-flex items-center justify-center mt-6 font-semibold text-primary hover:text-primary/80 group p-0"
+      <Button
+        variant="link"
+        className="inline-flex items-center justify-center mt-6 font-semibold text-[#F26A4B] hover:text-[#4E944F] group p-0"
         onClick={() => setCurrentPage(targetPage)}
         aria-label={`Apply for ${title}`}
       >

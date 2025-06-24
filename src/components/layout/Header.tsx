@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -84,13 +83,13 @@ export function Header({ setCurrentPage }: HeaderProps) {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const commonLinkClasses = "text-gray-600 hover:text-primary transition-colors";
-  const mobileLinkClasses = "block py-3 px-6 text-sm hover:bg-secondary";
+  const commonLinkClasses = "text-[#4E944F] hover:text-[#F26A4B] transition-colors font-semibold";
+  const mobileLinkClasses = "block py-3 px-6 text-sm hover:bg-[#B2C8BA]/40";
 
   return (
-    <header className={`bg-background shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
+    <header className={`bg-[#F8FAE5] border-b border-[#B2C8BA] shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <nav className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0">
+        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-[#4E944F]">
           <AnimatedGradientText />
         </Link>
         <div className="hidden md:flex items-center justify-center flex-grow space-x-3 lg:space-x-6">
@@ -152,13 +151,13 @@ export function Header({ setCurrentPage }: HeaderProps) {
             <>
               <Button
                 variant="outline"
-                className="hidden md:inline-flex cta-button border-primary text-primary hover:bg-primary/10 hover:text-primary"
+                className="hidden md:inline-flex cta-button border-[#4E944F] text-[#4E944F] hover:bg-[#F26A4B]/10 hover:text-[#F26A4B]"
                 onClick={() => router.push('/partner-login')}
               >
                 PARTNER LOGIN
               </Button>
               <Button
-                className="hidden md:inline-flex cta-button bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="hidden md:inline-flex cta-button bg-[#4E944F] hover:bg-[#F26A4B] text-white"
                 onClick={() => router.push('/login')}
               >
                 LOGIN

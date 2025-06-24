@@ -6,41 +6,83 @@ const AnimatedGradientText = () => (
 
 export function Footer() {
   return (
-    <footer className="bg-gray-800 text-gray-300">
+    <footer className="bg-[#2D3A3A] text-[#F8FAE5] border-t border-[#4E944F] shadow-[0_-4px_24px_0_rgba(76,175,80,0.07)] rounded-t-2xl">
       <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-xl font-bold"><AnimatedGradientText /></h3>
-            <p className="mt-4 text-gray-400 text-sm">Your trusted partner in achieving your financial goals.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#4E944F]/40">
+          <div className="pb-8 md:pb-0 md:pr-8">
+            <h3 className="text-xl font-bold text-[#FADA7A]"><AnimatedGradientText /></h3>
+            <p className="mt-4 text-[#B2C8BA] text-sm">
+              Your trusted partner in achieving your financial goals.
+            </p>
           </div>
-          <div>
-            <h4 className="font-semibold text-white">Quick Links</h4>
+          <div className="pt-8 md:pt-0 md:px-8">
+            <h4 className="font-semibold text-[#FADA7A]">Quick Links</h4>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link href="#about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="#contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>
-              <li><Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors">Terms of Service</Link></li>
+              <li>
+                <Link href="#about" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="#contact" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms-of-service" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-semibold text-white">Our Services</h4>
+          <div className="pt-8 md:pt-0 md:px-8">
+            <h4 className="font-semibold text-[#FADA7A]">Our Services</h4>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link href="#services" className="text-gray-400 hover:text-white transition-colors">Home Loan</Link></li>
-              <li><Link href="#services" className="text-gray-400 hover:text-white transition-colors">Personal Loan</Link></li>
-              <li><Link href="#services" className="text-gray-400 hover:text-white transition-colors">Business Loan</Link></li>
-              <li><Link href="#services" className="text-gray-400 hover:text-white transition-colors">Credit Card</Link></li>
+              <li>
+                <Link href="#services" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  Home Loan
+                </Link>
+              </li>
+              <li>
+                <Link href="#services" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  Personal Loan
+                </Link>
+              </li>
+              <li>
+                <Link href="#services" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  Business Loan
+                </Link>
+              </li>
+              <li>
+                <Link href="#services" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  Credit Card
+                </Link>
+              </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-semibold text-white">Connect With Us</h4>
+          <div className="pt-8 md:pt-0 md:pl-8">
+            <h4 className="font-semibold text-[#FADA7A]">Connect With Us</h4>
             <address className="mt-4 space-y-1 text-sm not-italic">
-              <p className="text-gray-400">Sunrise Apartment, A-101, Santoshi Mata Rd, near Yashoda Apartment, near KDMC Commissioners Bunglow, Syndicate, Kalyan, Maharashtra 421301</p>
-              <p><a href="mailto:contact@rnfintech.com" className="text-gray-400 hover:text-white transition-colors">contact@rnfintech.com</a></p>
+              <p className="text-[#B2C8BA]">
+                Sunrise Apartment, A-101, Santoshi Mata Rd, near Yashoda Apartment, near KDMC Commissioners Bunglow, Syndicate, Kalyan, Maharashtra 421301
+              </p>
+              <p>
+                <a href="mailto:contact@rnfintech.com" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
+                  contact@rnfintech.com
+                </a>
+              </p>
             </address>
           </div>
         </div>
-        <div className="mt-12 border-t border-gray-700 pt-8 text-center">
-          <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} RN Fintech. All Rights Reserved.</p>
+        <div className="mt-12 border-t border-[#4E944F] pt-8 text-center">
+          <p className="text-sm text-[#B2C8BA]">
+            &copy; {new Date().getFullYear()} RN Fintech. All Rights Reserved.
+          </p>
         </div>
       </div>
     </footer>

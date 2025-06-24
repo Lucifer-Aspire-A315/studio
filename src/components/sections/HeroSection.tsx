@@ -1,8 +1,6 @@
-
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import type { SetPageView } from '@/app/page';
 import { NewsTicker } from '@/components/shared/NewsTicker';
@@ -59,59 +57,63 @@ const governmentSchemes = [
   }
 ];
 
-
 export function HeroSection({ setCurrentPage }: HeroSectionProps) {
   return (
-    <section id="home" className="bg-background py-20 lg:py-24 overflow-hidden">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div className="text-center md:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight">
-              <span className="text-primary">Quick & Easy</span> Financial Solutions
-            </h1>
+    <section
+      id="home"
+      className="relative min-h-[80vh] flex flex-col justify-center items-center bg-gradient-to-b from-[#F8FAE5] to-[#E4EFE7] px-4 overflow-hidden"
+    >
+      {/* Decorative SVGs */}
+      <svg
+        className="absolute -top-32 -left-32 w-[400px] h-[400px] opacity-20 pointer-events-none select-none"
+        viewBox="0 0 400 400"
+        fill="none"
+      >
+        <ellipse cx="200" cy="200" rx="200" ry="160" fill="#B2C8BA" />
+      </svg>
+      <svg
+        className="absolute bottom-0 right-0 w-[320px] h-[320px] opacity-10 pointer-events-none select-none"
+        viewBox="0 0 320 320"
+        fill="none"
+      >
+        <ellipse cx="160" cy="160" rx="160" ry="120" fill="#4E944F" />
+      </svg>
 
-            <div
-              className="mt-8 max-w-xl mx-auto md:mx-0 cursor-pointer"
-              onClick={() => setCurrentPage('governmentSchemes')}
-              role="button"
-              aria-label="Click to explore Government Scheme Loans"
-            >
-              <NewsTicker items={governmentSchemes} />
-            </div>
+      <div className="z-10 flex flex-col items-center justify-center text-center w-full">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4" style={{ color: "#2D3A3A" }}>
+          <span className="text-[#4E944F]">Quick & Easy</span> Financial Solutions
+        </h1>
+        <p className="text-lg mb-8" style={{ color: "#4E944F" }}>
+          Empowering your dreams with transparent, technology-driven financial services.
+        </p>
 
-            <div className="mt-12 flex flex-col sm:flex-row justify-center md:justify-start items-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button 
-                size="lg" 
-                className="cta-button bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 w-full sm:w-auto"
-                onClick={() => setCurrentPage('caServices')} 
-                aria-label="Services Offered by a Chartered Accountant (CA)"
-              >
-                Chartered Accountant Services
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="cta-button bg-card hover:bg-secondary text-primary font-bold py-3 px-8 border-primary/30 w-full sm:w-auto"
-                onClick={() => setCurrentPage('governmentSchemes')} 
-                aria-label="Explore Government Scheme Loans"
-              >
-                Government Scheme Loan
-              </Button>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            <div className="relative w-full h-full aspect-square rounded-2xl overflow-hidden shadow-2xl">
-               <Image
-                src="https://placehold.co/600x600.png"
-                alt="Financial solutions and planning"
-                layout="fill"
-                objectFit="cover"
-                data-ai-hint="finance growth"
-                className="transform scale-105 hover:scale-100 transition-transform duration-500 ease-in-out"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
-            </div>
-          </div>
+        <div
+          className="mt-4 max-w-xl w-full cursor-pointer"
+          onClick={() => setCurrentPage('governmentSchemes')}
+          role="button"
+          aria-label="Click to explore Government Scheme Loans"
+        >
+          <NewsTicker items={governmentSchemes} />
+        </div>
+
+        <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+          <Button
+            size="lg"
+            className="bg-[#4E944F] text-white font-bold px-8 py-3 rounded-full shadow-md hover:bg-[#F26A4B] hover:text-white hover:scale-105 transition"
+            onClick={() => setCurrentPage('caServices')}
+            aria-label="Services Offered by a Chartered Accountant (CA)"
+          >
+            Chartered Accountant Services
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="border-[#4E944F] text-[#4E944F] font-bold px-8 py-3 rounded-full hover:bg-[#F26A4B] hover:text-white hover:scale-105 transition"
+            onClick={() => setCurrentPage('governmentSchemes')}
+            aria-label="Explore Government Scheme Loans"
+          >
+            Government Scheme Loan
+          </Button>
         </div>
       </div>
     </section>

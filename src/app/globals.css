@@ -1,37 +1,36 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 220 20% 94%;
-    --foreground: 224 71.4% 4.1%;
+    --background: 74 44% 95%;         /* #F8FAE5 */
+    --foreground: 168 10% 18%;        /* #2D3A3A */
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 168 10% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
+    --popover-foreground: 168 10% 18%;
 
-    --primary: 225.9 71.8% 50%; /* Indigo */
+    --primary: 122 32% 45%;           /* #4E944F */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 97%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 135 18% 80%;         /* #B2C8BA */
+    --secondary-foreground: 168 10% 18%;
 
-    --muted: 220 20% 97%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 135 18% 80%;
+    --muted-foreground: 168 10% 40%;
 
-    --accent: 286.9 83.3% 58.6%; /* Fuchsia */
+    --accent: 16 89% 62%;             /* #F26A4B */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 215 27.9% 82.9%;
-    --input: 215 27.9% 82.9%;
-    --ring: 225.9 71.8% 50%;
+    --border: 135 18% 80%;
+    --input: 135 18% 80%;
+    --ring: 122 32% 45%;
 
     --radius: 0.5rem;
 
@@ -146,4 +145,12 @@
 .card-hover-effect:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+}
+
+/* Add to globals.css */
+.theme-card {
+  @apply bg-card text-card-foreground border border-secondary rounded-xl shadow-lg p-6 card-hover-effect;
+}
+.theme-footer {
+  @apply bg-secondary text-secondary-foreground border-t border-secondary py-8;
 }
