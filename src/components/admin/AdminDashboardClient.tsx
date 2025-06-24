@@ -1,29 +1,64 @@
 
 "use client";
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 import type { UserApplication, PartnerData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminApplicationsTable } from './AdminApplicationsTable';
 import { PendingPartnersTable } from './PendingPartnersTable';
-import { approvePartner, updateApplicationStatus } from '@/app/actions/adminActions';
+import { approvePartner, updateApplicationStatus, getAllApplications, getPendingPartners } from '@/app/actions/adminActions';
 import { useToast } from '@/hooks/use-toast';
-
+import { Skeleton } from '../ui/skeleton';
 
 interface AdminDashboardClientProps {
-    initialApplications: UserApplication[];
-    initialPendingPartners: PartnerData[];
+    // No initial props needed, will fetch data itself
 }
 
-export function AdminDashboardClient({ initialApplications, initialPendingPartners }: AdminDashboardClientProps) {
-  const [applications, setApplications] = useState(initialApplications);
-  const [pendingPartners, setPendingPartners] = useState(initialPendingPartners);
-  const [isPending, startTransition] = useTransition();
+function TableSkeleton() {
+    return (
+        <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+        </div>
+    )
+}
+
+export function AdminDashboardClient({}: AdminDashboardClientProps) {
+  const [applications, setApplications] = useState<UserApplication[]>([]);
+  const [pendingPartners, setPendingPartners] = useState<PartnerData[]>([]);
+  const [isUpdating, startUpdateTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  useEffect(() => {
+    async function fetchData() {
+        setIsLoading(true);
+        try {
+            const [apps, partners] = await Promise.all([
+                getAllApplications(),
+                getPendingPartners()
+            ]);
+            setApplications(apps);
+            setPendingPartners(partners);
+        } catch (error) {
+            console.error("Failed to fetch admin dashboard data:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to load dashboard data."
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    fetchData();
+  }, [toast]);
+
   const handleApprovePartner = (partnerId: string) => {
-    startTransition(async () => {
+    startUpdateTransition(async () => {
         const result = await approvePartner(partnerId);
         if (result.success) {
             toast({
@@ -43,7 +78,7 @@ export function AdminDashboardClient({ initialApplications, initialPendingPartne
   };
 
   const handleUpdateStatus = (applicationId: string, serviceCategory: UserApplication['serviceCategory'], newStatus: string) => {
-    startTransition(async () => {
+    startUpdateTransition(async () => {
         const result = await updateApplicationStatus(applicationId, serviceCategory, newStatus);
         if (result.success) {
             toast({
@@ -70,8 +105,8 @@ export function AdminDashboardClient({ initialApplications, initialPendingPartne
   return (
     <Tabs defaultValue="partners" className="space-y-4">
       <TabsList>
-        <TabsTrigger value="partners">Pending Partners ({pendingPartners.length})</TabsTrigger>
-        <TabsTrigger value="applications">All Applications ({applications.length})</TabsTrigger>
+        <TabsTrigger value="partners">Pending Partners ({isLoading ? '...' : pendingPartners.length})</TabsTrigger>
+        <TabsTrigger value="applications">All Applications ({isLoading ? '...' : applications.length})</TabsTrigger>
       </TabsList>
       <TabsContent value="partners">
          <Card>
@@ -80,11 +115,15 @@ export function AdminDashboardClient({ initialApplications, initialPendingPartne
               <CardDescription>Review and approve new partner registrations.</CardDescription>
             </CardHeader>
             <CardContent>
-                <PendingPartnersTable 
-                    partners={pendingPartners}
-                    onApprove={handleApprovePartner}
-                    isApproving={isPending}
-                />
+                {isLoading ? (
+                    <TableSkeleton />
+                ) : (
+                    <PendingPartnersTable 
+                        partners={pendingPartners}
+                        onApprove={handleApprovePartner}
+                        isApproving={isUpdating}
+                    />
+                )}
             </CardContent>
           </Card>
       </TabsContent>
@@ -95,11 +134,15 @@ export function AdminDashboardClient({ initialApplications, initialPendingPartne
               <CardDescription>A list of all applications submitted across the platform.</CardDescription>
             </CardHeader>
             <CardContent>
-              <AdminApplicationsTable 
-                applications={applications} 
-                onUpdateStatus={handleUpdateStatus}
-                isUpdating={isPending}
-              />
+                {isLoading ? (
+                    <TableSkeleton />
+                ) : (
+                    <AdminApplicationsTable 
+                        applications={applications} 
+                        onUpdateStatus={handleUpdateStatus}
+                        isUpdating={isUpdating}
+                    />
+                )}
             </CardContent>
           </Card>
       </TabsContent>

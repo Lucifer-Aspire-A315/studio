@@ -8,10 +8,23 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Handshake, UserPlus, Store, PlusCircle } from 'lucide-react';
 import { PartnerNewApplicationPortal } from './PartnerNewApplicationPortal';
 import { ApplicationsTable } from './ApplicationsTable';
+import { Skeleton } from '../ui/skeleton';
 
 interface PartnerDashboardViewProps {
     user: UserData;
     applications: UserApplication[];
+    isLoading: boolean;
+}
+
+function ApplicationsTableSkeleton() {
+  return (
+    <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+    </div>
+  );
 }
 
 const NewApplicationButton = ({ buttonText }: { buttonText: string }) => (
@@ -37,7 +50,7 @@ const NewApplicationButton = ({ buttonText }: { buttonText: string }) => (
 );
 
 
-const ReferralDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
+const ReferralDashboard = ({ user, applications, isLoading }: PartnerDashboardViewProps) => (
     <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -49,12 +62,12 @@ const ReferralDashboard = ({ user, applications }: PartnerDashboardViewProps) =>
              <NewApplicationButton buttonText="Start New Referral" />
         </CardHeader>
         <CardContent>
-            <ApplicationsTable applications={applications} />
+            {isLoading ? <ApplicationsTableSkeleton /> : <ApplicationsTable applications={applications} />}
         </CardContent>
     </Card>
 );
 
-const DsaDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
+const DsaDashboard = ({ user, applications, isLoading }: PartnerDashboardViewProps) => (
     <Card>
         <CardHeader className="flex flex-row items-center justify-between">
              <div>
@@ -64,12 +77,12 @@ const DsaDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
              <NewApplicationButton buttonText="New Client Application" />
         </CardHeader>
         <CardContent>
-            <ApplicationsTable applications={applications} />
+            {isLoading ? <ApplicationsTableSkeleton /> : <ApplicationsTable applications={applications} />}
         </CardContent>
     </Card>
 );
 
-const MerchantDashboard = ({ user, applications }: PartnerDashboardViewProps) => (
+const MerchantDashboard = ({ user, applications, isLoading }: PartnerDashboardViewProps) => (
      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
              <div>
@@ -79,7 +92,7 @@ const MerchantDashboard = ({ user, applications }: PartnerDashboardViewProps) =>
              <NewApplicationButton buttonText="New Customer Application" />
         </CardHeader>
         <CardContent>
-            <ApplicationsTable applications={applications} />
+            {isLoading ? <ApplicationsTableSkeleton /> : <ApplicationsTable applications={applications} />}
         </CardContent>
     </Card>
 );
@@ -102,7 +115,7 @@ const modelToTitle: Record<string, string> = {
     merchant: 'Merchant Partner',
 }
 
-export function PartnerDashboard({ user, applications }: PartnerDashboardViewProps) {
+export function PartnerDashboard({ user, applications, isLoading }: PartnerDashboardViewProps) {
     if (!user.businessModel) {
         return (
             <Card>
@@ -129,7 +142,7 @@ export function PartnerDashboard({ user, applications }: PartnerDashboardViewPro
                     <p className="text-muted-foreground">Welcome, {user.fullName}! Manage your partner activities here.</p>
                 </div>
             </div>
-            {DashboardComponent ? <DashboardComponent user={user} applications={applications} /> : <p>Dashboard for your partner type is not available yet.</p>}
+            {DashboardComponent ? <DashboardComponent user={user} applications={applications} isLoading={isLoading} /> : <p>Dashboard for your partner type is not available yet.</p>}
         </div>
     );
 }

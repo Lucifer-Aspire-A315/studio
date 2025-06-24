@@ -23,15 +23,14 @@ export default async function AdminApplicationDetailsPage({ params, searchParams
     return <div>Error: Service category not specified.</div>;
   }
 
-  const applicationData = await getApplicationDetails(id, category);
-
+  // Data fetching is now handled inside ApplicationDetailsView
   return (
-    <div className="flex flex-col min-h-screen bg-secondary">
+    <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
         <ApplicationDetailsView
           applicationId={id}
-          applicationData={applicationData}
+          serviceCategory={category}
           title="Admin View: Application Details"
           subtitle={`Viewing details for application ID: ${id}`}
           isAdmin={true}

@@ -1,4 +1,3 @@
-import { getApplicationDetails } from '@/app/actions/applicationActions';
 import { Header } from '@/components/layout/Header';
 import { ApplicationDetailsView } from '@/components/application/ApplicationDetailsView';
 import type { UserApplication } from '@/lib/types';
@@ -23,15 +22,14 @@ export default async function ApplicationDetailsPage({ params, searchParams }: A
     return <div>Error: Service category not specified.</div>;
   }
 
-  const applicationData = await getApplicationDetails(id, category);
-
+  // Data fetching is now handled inside ApplicationDetailsView
   return (
-    <div className="flex flex-col min-h-screen bg-secondary">
+    <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
         <ApplicationDetailsView
           applicationId={id}
-          applicationData={applicationData}
+          serviceCategory={category}
           title="Application Details"
           subtitle={`Viewing details for application ID: ${id}`}
           isAdmin={false}

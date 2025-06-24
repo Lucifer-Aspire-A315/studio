@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
@@ -11,9 +11,11 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateApplicationStatus } from '@/app/actions/adminActions';
+import { getApplicationDetails } from '@/app/actions/applicationActions';
 import { useToast } from '@/hooks/use-toast';
 import type { UserApplication } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '../ui/skeleton';
 
 // Helper to format keys for display (e.g., 'fullName' -> 'Full Name')
 const formatKey = (key: string) => {
@@ -93,7 +95,7 @@ const DetailItem = ({ itemKey, itemValue }: { itemKey: string; itemValue: any })
 
 interface ApplicationDetailsViewProps {
   applicationId: string;
-  applicationData: any | null;
+  serviceCategory: UserApplication['serviceCategory'];
   title: string;
   subtitle: string;
   isAdmin: boolean;
@@ -111,12 +113,69 @@ const getStatusVariant = (status: string): "default" | "secondary" | "destructiv
   }
 };
 
-export function ApplicationDetailsView({ applicationId, applicationData, title, subtitle, isAdmin = false }: ApplicationDetailsViewProps) {
+const ApplicationDetailsSkeleton = () => (
+    <Card className="max-w-4xl mx-auto shadow-lg">
+        <CardHeader className="bg-muted/30">
+            <Skeleton className="h-8 w-1/4" />
+            <Skeleton className="h-6 w-1/2 mt-2" />
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+            <div className="p-4 bg-background rounded-lg border space-y-4">
+                <Skeleton className="h-6 w-1/3" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-5 w-3/4" /></div>
+                    <div className="space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-5 w-3/4" /></div>
+                    <div className="space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-5 w-3/4" /></div>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div className="space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-5 w-3/4" /></div>
+                <div className="space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-5 w-3/4" /></div>
+                <div className="md:col-span-2 space-y-4">
+                    <Skeleton className="h-7 w-1/4 mt-4" />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div className="space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-5 w-3/4" /></div>
+                        <div className="space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-5 w-3/4" /></div>
+                     </div>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+);
+
+
+export function ApplicationDetailsView({ applicationId, serviceCategory, title, subtitle, isAdmin = false }: ApplicationDetailsViewProps) {
     const router = useRouter();
     const { toast } = useToast();
-    const [isPending, startTransition] = useTransition();
-    const [currentStatus, setCurrentStatus] = useState<string>(applicationData?.status || '');
-    const [selectedStatus, setSelectedStatus] = useState<string>(applicationData?.status || '');
+    const [isUpdatingStatus, startUpdateTransition] = useTransition();
+    const [isLoading, setIsLoading] = useState(true);
+    const [applicationData, setApplicationData] = useState<any | null>(null);
+
+    const [currentStatus, setCurrentStatus] = useState<string>('');
+    const [selectedStatus, setSelectedStatus] = useState<string>('');
+
+    useEffect(() => {
+        async function fetchData() {
+            setIsLoading(true);
+            try {
+                const data = await getApplicationDetails(applicationId, serviceCategory);
+                setApplicationData(data);
+                if (data) {
+                    setCurrentStatus(data.status);
+                    setSelectedStatus(data.status);
+                }
+            } catch (error: any) {
+                toast({ variant: "destructive", title: "Error", description: error.message });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, [applicationId, serviceCategory, toast]);
+
+    if (isLoading) {
+        return <ApplicationDetailsSkeleton />;
+    }
 
     if (!applicationData) {
         return (
@@ -138,7 +197,7 @@ export function ApplicationDetailsView({ applicationId, applicationData, title, 
     const handleUpdateStatus = () => {
         if (!selectedStatus || selectedStatus === currentStatus) return;
 
-        startTransition(async () => {
+        startUpdateTransition(async () => {
             const result = await updateApplicationStatus(
                 applicationId, 
                 applicationData.serviceCategory as UserApplication['serviceCategory'], 
@@ -167,14 +226,13 @@ export function ApplicationDetailsView({ applicationId, applicationData, title, 
       formData,
       status,
       applicationType,
-      serviceCategory,
       ...restOfData
     } = applicationData;
   
     const displayData = { ...restOfData, ...formData };
-    delete displayData.status; // Handled in summary
-    delete displayData.applicationType; // Handled in summary
-    delete displayData.serviceCategory; // Handled in summary
+    delete displayData.status; 
+    delete displayData.applicationType;
+    delete displayData.serviceCategory; 
 
 
   return (
@@ -205,8 +263,8 @@ export function ApplicationDetailsView({ applicationId, applicationData, title, 
                             ))}
                         </SelectContent>
                     </Select>
-                    <Button onClick={handleUpdateStatus} disabled={isPending || selectedStatus === currentStatus}>
-                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button onClick={handleUpdateStatus} disabled={isUpdatingStatus || selectedStatus === currentStatus}>
+                        {isUpdatingStatus && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Update Status
                     </Button>
                 </div>
@@ -223,12 +281,12 @@ export function ApplicationDetailsView({ applicationId, applicationData, title, 
                 </div>
                  <div className="flex flex-col space-y-1.5">
                     <dt className="text-sm font-medium text-muted-foreground">Service Category</dt>
-                    <dd className="text-base text-foreground">{serviceCategory}</dd>
+                    <dd className="text-base text-foreground">{applicationData.serviceCategory}</dd>
                 </div>
                  <div className="flex flex-col space-y-1.5">
                     <dt className="text-sm font-medium text-muted-foreground">Status</dt>
                     <dd className="text-base text-foreground">
-                        <Badge variant={getStatusVariant(status)} className="capitalize text-sm">{status}</Badge>
+                        <Badge variant={getStatusVariant(currentStatus)} className="capitalize text-sm">{currentStatus}</Badge>
                     </dd>
                 </div>
             </div>

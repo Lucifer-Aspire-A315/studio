@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 
 import { checkSessionAction } from '@/app/actions/authActions';
-import { getUserApplications } from '@/app/actions/dashboardActions';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,17 +35,12 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  // This action now works for both normal users and partners,
-  // fetching applications where they are the 'submitter'.
-  const applications = await getUserApplications();
-
+  // Data fetching is now handled inside DashboardClient
   return (
-    <div className="flex flex-col min-h-screen bg-secondary">
+    <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
-        <Suspense fallback={<ApplicationsTableSkeleton />}>
-           <DashboardClient user={user} applications={applications} />
-        </Suspense>
+        <DashboardClient user={user} />
       </main>
     </div>
   );
