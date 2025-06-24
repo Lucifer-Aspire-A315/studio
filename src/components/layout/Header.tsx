@@ -18,13 +18,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { PageView, SetPageView } from '@/app/page';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 interface HeaderProps {
   setCurrentPage?: SetPageView;
 }
 
-const AnimatedGradientText = () => (
-  <span className="animated-gradient-text">RN Fintech</span>
+const Logo = () => (
+    <Image
+      src="/logo.svg"
+      alt="RN Fintech Logo"
+      width={150}
+      height={40}
+      priority
+    />
 );
 
 export function Header({ setCurrentPage }: HeaderProps) {
@@ -99,10 +106,14 @@ export function Header({ setCurrentPage }: HeaderProps) {
         <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-[#4E944F]">
 =======
     <header className={`bg-background border-b border-border shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
-      <nav className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+      <nav className="container mx-auto px-4 sm:px-6 py-2 flex justify-between items-center">
         <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-primary">
+<<<<<<< HEAD
 >>>>>>> c3cf252 (great and also the header looks too long in mobile view can u narrow it)
           <AnimatedGradientText />
+=======
+          <Logo />
+>>>>>>> d36ee72 (ok ive created a public folder and uploaded an svg logo file  there can)
         </Link>
         <div className="hidden md:flex items-center justify-center flex-grow space-x-3 lg:space-x-6">
           {navLinks.map(link => (
@@ -118,8 +129,8 @@ export function Header({ setCurrentPage }: HeaderProps) {
             <div className="hidden md:block">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
+                  <Button variant="ghost" className="relative h-12 w-12 rounded-full">
+                    <Avatar className="h-12 w-12">
                       <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser.fullName}`} alt={currentUser.fullName} />
                       <AvatarFallback>{getInitials(currentUser.fullName)}</AvatarFallback>
                     </Avatar>
@@ -189,7 +200,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
               <SheetDescription className="sr-only">Site navigation and user options</SheetDescription>
               <div className="p-6 border-b">
                 <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-xl font-bold">
-                  <AnimatedGradientText />
+                  <Logo />
                 </Link>
               </div>
               <nav className="flex flex-col py-2">

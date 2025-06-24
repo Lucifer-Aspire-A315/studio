@@ -154,6 +154,7 @@
       animation: moveGradient 5s ease-in-out infinite;
   }
 
+<<<<<<< HEAD
   @keyframes moveGradient {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -183,4 +184,20 @@
 }
 .theme-footer {
   @apply bg-secondary text-secondary-foreground border-t border-secondary py-8;
+=======
+.cta-button {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px hsla(var(--primary), 0.2);
+}
+
+.card-hover-effect {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+>>>>>>> d36ee72 (ok ive created a public folder and uploaded an svg logo file  there can)
 }

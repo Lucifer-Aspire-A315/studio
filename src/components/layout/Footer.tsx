@@ -1,8 +1,14 @@
 
 import Link from 'next/link';
+import Image from 'next/image';
 
-const AnimatedGradientText = () => (
-  <span className="animated-gradient-text">RN Fintech</span>
+const Logo = () => (
+    <Image
+      src="/logo.svg"
+      alt="RN Fintech Logo"
+      width={150}
+      height={40}
+    />
 );
 
 export function Footer() {
@@ -14,12 +20,17 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#4E944F]/40">
 =======
     <footer className="bg-foreground text-background border-t border-primary shadow-[0_-4px_24px_0_rgba(76,175,80,0.07)] rounded-t-2xl">
-      <div className="container mx-auto px-6 py-6 md:py-10">
+      <div className="container mx-auto px-6 py-6 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-primary/40">
 >>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
           <div className="pb-8 md:pb-0 md:pr-8">
+<<<<<<< HEAD
             <h3 className="text-xl font-bold text-[#FADA7A]"><AnimatedGradientText /></h3>
             <p className="mt-4 text-[#B2C8BA] text-sm">
+=======
+            <h3 className="text-xl font-bold text-highlight"><Logo /></h3>
+            <p className="mt-4 text-muted-foreground text-sm">
+>>>>>>> d36ee72 (ok ive created a public folder and uploaded an svg logo file  there can)
               Your trusted partner in achieving your financial goals.
             </p>
           </div>
