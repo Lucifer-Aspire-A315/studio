@@ -55,8 +55,8 @@ export function Footer() {
               <Logo />
 =======
       <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-primary/40">
-          <div className="pb-8 md:pb-0 md:pr-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 divide-x-2 lg:divide-y-0 divide-primary/40">
+          <div>
              <div className="inline-block bg-background p-2 rounded-lg">
                 <Logo />
 >>>>>>> de8626a (<footer className="bg-[#2D3A3A] text-[#F8FAE5] border-t border-[#4E944F])
@@ -69,6 +69,7 @@ export function Footer() {
           </div>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
           <div className="pt-8 md:pt-0 md:px-8">
             <h4 className="font-semibold text-[#FADA7A]">Quick Links</h4>
             <ul className="mt-4 space-y-2 text-sm">
@@ -76,6 +77,9 @@ export function Footer() {
                 <Link href="#about" className="text-[#F8FAE5] hover:text-[#F26A4B] transition-colors">
 =======
           <div className="pt-8 md:pt-0 md:px-8">
+=======
+          <div>
+>>>>>>> 3b8ffa8 (ok this is great but for the mobile view also make it upto 2 columns bec)
             <h4 className="font-semibold text-highlight">Quick Links</h4>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
@@ -199,7 +203,7 @@ export function Footer() {
 =======
 >>>>>>> de8626a (<footer className="bg-[#2D3A3A] text-[#F8FAE5] border-t border-[#4E944F])
           </div>
-          <div className="pt-8 md:pt-0 md:px-8">
+          <div>
             <h4 className="font-semibold text-highlight">Our Services</h4>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
@@ -224,7 +228,7 @@ export function Footer() {
               </li>
             </ul>
           </div>
-          <div className="pt-8 md:pt-0 md:pl-8">
+          <div>
             <h4 className="font-semibold text-highlight">Connect With Us</h4>
 >>>>>>> 510ce53 (ohh that great and also ive a thought that we can make our footer little)
             <address className="mt-4 space-y-1 text-sm not-italic">
