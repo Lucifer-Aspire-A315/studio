@@ -15,7 +15,7 @@ const governmentSchemes = [
     text: (
       <div>
         <p className="font-medium">Pradhan Mantri Mudra Yojana (PMMY)</p>
-        <p className="mt-1 text-lg">प्रधानमंत्री मुद्रा योजना (PMMY)</p>
+        <p className="mt-1">प्रधानमंत्री मुद्रा योजना (PMMY)</p>
       </div>
     ), 
     className: "text-primary" 
@@ -24,7 +24,7 @@ const governmentSchemes = [
     text: (
       <div>
         <p className="font-medium">Stand-Up India Scheme</p>
-        <p className="mt-1 text-lg">स्टैंड-अप इंडिया योजना</p>
+        <p className="mt-1">स्टैंड-अप इंडिया योजना</p>
       </div>
     ),
     className: "text-accent" 
@@ -33,7 +33,7 @@ const governmentSchemes = [
     text: (
       <div>
         <p className="font-medium">Prime Minister’s Employment Generation Programme (PMEGP)</p>
-        <p className="mt-1 text-lg">प्रधानमंत्री रोजगार सृजन कार्यक्रम (PMEGP)</p>
+        <p className="mt-1">प्रधानमंत्री रोजगार सृजन कार्यक्रम (PMEGP)</p>
       </div>
     ), 
     className: "text-green-600 dark:text-green-400"
@@ -42,7 +42,7 @@ const governmentSchemes = [
     text: (
       <div>
         <p className="font-medium">PM SVANidhi Scheme</p>
-        <p className="mt-1 text-lg">पीएम स्वनिधि योजना</p>
+        <p className="mt-1">पीएम स्वनिधि योजना</p>
       </div>
     ), 
     className: "text-orange-600 dark:text-orange-400" 
@@ -51,7 +51,7 @@ const governmentSchemes = [
     text: (
       <div>
         <p className="font-medium">PM Vishwakarma Scheme</p>
-        <p className="mt-1 text-lg">पीएम विश्वकर्मा योजना</p>
+        <p className="mt-1">पीएम विश्वकर्मा योजना</p>
       </div>
     ), 
     className: "text-sky-600 dark:text-sky-400" 
