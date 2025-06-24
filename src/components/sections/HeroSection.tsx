@@ -4,7 +4,6 @@
 import React from 'react';
 import type { SetPageView } from '@/app/page';
 import { NewsTicker } from '@/components/shared/NewsTicker';
-import { Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
 
 interface HeroSectionProps {
@@ -19,7 +18,8 @@ const governmentSchemes = [
         <p className="mt-1">प्रधानमंत्री मुद्रा योजना (PMMY)</p>
       </div>
     ), 
-    className: "text-primary" 
+    textColor: "text-primary",
+    bgColor: "bg-primary/10"
   },
   { 
     text: (
@@ -28,7 +28,8 @@ const governmentSchemes = [
         <p className="mt-1">स्टैंड-अप इंडिया योजना</p>
       </div>
     ),
-    className: "text-accent" 
+    textColor: "text-accent",
+    bgColor: "bg-accent/10"
   },
   { 
     text: (
@@ -37,7 +38,8 @@ const governmentSchemes = [
         <p className="mt-1">प्रधानमंत्री रोजगार सृजन कार्यक्रम (PMEGP)</p>
       </div>
     ), 
-    className: "text-green-600 dark:text-green-400"
+    textColor: "text-green-600 dark:text-green-400",
+    bgColor: "bg-green-500/10"
   },
   { 
     text: (
@@ -46,7 +48,8 @@ const governmentSchemes = [
         <p className="mt-1">पीएम स्वनिधि योजना</p>
       </div>
     ), 
-    className: "text-orange-600 dark:text-orange-400" 
+    textColor: "text-orange-600 dark:text-orange-400",
+    bgColor: "bg-orange-500/10"
   },
   { 
     text: (
@@ -55,7 +58,8 @@ const governmentSchemes = [
         <p className="mt-1">पीएम विश्वकर्मा योजना</p>
       </div>
     ), 
-    className: "text-sky-600 dark:text-sky-400" 
+    textColor: "text-sky-600 dark:text-sky-400",
+    bgColor: "bg-sky-500/10"
   }
 ];
 
@@ -99,21 +103,8 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           Empowering your dreams with transparent, technology-driven financial services.
         </p>
 
-        <div
-          className="mt-8 max-w-2xl w-full"
-        >
-          <div
-            onClick={() => setCurrentPage('governmentSchemes')}
-            role="button"
-            aria-label="Click to explore Government Scheme Loans"
-            className="group cursor-pointer rounded-xl border border-border bg-card p-4 text-center shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20"
-          >
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-accent" />
-              <h3 className="font-semibold text-foreground">Featured Government Schemes</h3>
-            </div>
-            <NewsTicker items={governmentSchemes} className="text-lg sm:text-xl font-medium" />
-          </div>
+        <div className="mt-8 max-w-2xl w-full">
+          <NewsTicker items={governmentSchemes} onContainerClick={() => setCurrentPage('governmentSchemes')} />
         </div>
 
         <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
