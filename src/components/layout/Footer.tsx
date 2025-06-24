@@ -14,7 +14,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#4E944F]/40">
 =======
     <footer className="bg-foreground text-background border-t border-primary shadow-[0_-4px_24px_0_rgba(76,175,80,0.07)] rounded-t-2xl">
-      <div className="container mx-auto px-6 py-8 md:py-12">
+      <div className="container mx-auto px-6 py-6 md:py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-primary/40">
 >>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
           <div className="pb-8 md:pb-0 md:pr-8">
@@ -87,8 +87,13 @@ export function Footer() {
             </address>
           </div>
         </div>
+<<<<<<< HEAD
         <div className="mt-12 border-t border-[#4E944F] pt-8 text-center">
           <p className="text-sm text-[#B2C8BA]">
+=======
+        <div className="mt-8 md:mt-10 border-t border-primary pt-6 md:pt-8 text-center">
+          <p className="text-sm text-muted-foreground">
+>>>>>>> b09805a (sorry i mean the footer it is too long can u narrow it)
             &copy; {new Date().getFullYear()} RN Fintech. All Rights Reserved.
           </p>
 =======
