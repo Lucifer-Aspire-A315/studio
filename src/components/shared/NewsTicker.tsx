@@ -79,9 +79,9 @@ export function NewsTicker({ items, duration = 5000, onContainerClick }: NewsTic
       role="button"
       aria-label="Click to explore Government Scheme Loans"
       className={cn(
-        'group cursor-pointer rounded-xl border border-border p-4 text-center shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20',
+        'group cursor-pointer rounded-xl border border-border p-4 sm:p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20',
         'relative overflow-hidden transition-colors',
-        isFadingOut ? 'bg-card' : currentItem.bgColor
+        currentItem.bgColor
       )}
     >
       <div className="flex items-center justify-center gap-2 mb-2">
@@ -89,7 +89,7 @@ export function NewsTicker({ items, duration = 5000, onContainerClick }: NewsTic
         <h3 className="font-semibold text-foreground">Featured Government Schemes</h3>
       </div>
       
-      <div className="flex items-center justify-center min-h-[100px]">
+      <div className="flex items-center justify-center min-h-[80px]">
         <Button
           variant="ghost"
           size="icon"

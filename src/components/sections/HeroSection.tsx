@@ -19,7 +19,7 @@ const governmentSchemes = [
       </div>
     ), 
     textColor: "text-primary",
-    bgColor: "bg-primary/10"
+    bgColor: "bg-primary/20"
   },
   { 
     text: (
@@ -29,7 +29,7 @@ const governmentSchemes = [
       </div>
     ),
     textColor: "text-accent",
-    bgColor: "bg-accent/10"
+    bgColor: "bg-accent/20"
   },
   { 
     text: (
@@ -39,7 +39,7 @@ const governmentSchemes = [
       </div>
     ), 
     textColor: "text-green-600 dark:text-green-400",
-    bgColor: "bg-green-500/10"
+    bgColor: "bg-green-500/20"
   },
   { 
     text: (
@@ -49,7 +49,7 @@ const governmentSchemes = [
       </div>
     ), 
     textColor: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-500/10"
+    bgColor: "bg-orange-500/20"
   },
   { 
     text: (
@@ -59,7 +59,7 @@ const governmentSchemes = [
       </div>
     ), 
     textColor: "text-sky-600 dark:text-sky-400",
-    bgColor: "bg-sky-500/10"
+    bgColor: "bg-sky-500/20"
   }
 ];
 
