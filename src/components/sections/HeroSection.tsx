@@ -106,7 +106,7 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
             onClick={() => setCurrentPage('governmentSchemes')}
             role="button"
             aria-label="Click to explore Government Scheme Loans"
-            className="group rounded-xl border border-primary/20 bg-primary/5 p-4 text-center transition-colors hover:bg-primary/10 cursor-pointer"
+            className="group cursor-pointer rounded-xl border border-border bg-card p-4 text-center shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20"
           >
             <div className="flex items-center justify-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-accent" />
