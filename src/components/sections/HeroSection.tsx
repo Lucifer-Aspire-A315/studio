@@ -5,6 +5,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import type { SetPageView } from '@/app/page';
 import { NewsTicker } from '@/components/shared/NewsTicker';
+import { Sparkles } from 'lucide-react';
 
 interface HeroSectionProps {
   setCurrentPage: SetPageView;
@@ -63,7 +64,11 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
 <<<<<<< HEAD
     <section
       id="home"
+<<<<<<< HEAD
       className="relative min-h-[80vh] flex flex-col justify-center items-center bg-gradient-to-b from-[#F8FAE5] to-[#E4EFE7] px-4 overflow-hidden"
+=======
+      className="relative flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-b from-background to-secondary/30 px-4 py-16 overflow-hidden"
+>>>>>>> 9af06bf (ok so in the header section can u see something like ads or something wh)
     >
       {/* Decorative SVGs */}
       <svg
@@ -82,20 +87,33 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
       </svg>
 
       <div className="z-10 flex flex-col items-center justify-center text-center w-full">
+<<<<<<< HEAD
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4" style={{ color: "#2D3A3A" }}>
           <span className="text-[#4E944F]">Quick & Easy</span> Financial Solutions
+=======
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 text-foreground responsive-text-4xl-6xl">
+          <span className="text-primary">Quick & Easy</span> Financial Solutions
+>>>>>>> 9af06bf (ok so in the header section can u see something like ads or something wh)
         </h1>
         <p className="text-lg mb-8" style={{ color: "#4E944F" }}>
           Empowering your dreams with transparent, technology-driven financial services.
         </p>
 
         <div
-          className="mt-4 max-w-xl w-full cursor-pointer"
-          onClick={() => setCurrentPage('governmentSchemes')}
-          role="button"
-          aria-label="Click to explore Government Scheme Loans"
+          className="mt-8 max-w-2xl w-full"
         >
-          <NewsTicker items={governmentSchemes} />
+          <div
+            onClick={() => setCurrentPage('governmentSchemes')}
+            role="button"
+            aria-label="Click to explore Government Scheme Loans"
+            className="group rounded-xl border border-primary/20 bg-primary/5 p-4 text-center transition-colors hover:bg-primary/10 cursor-pointer"
+          >
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-accent" />
+              <h3 className="font-semibold text-foreground">Featured Government Schemes</h3>
+            </div>
+            <NewsTicker items={governmentSchemes} className="text-lg sm:text-xl font-medium" />
+          </div>
         </div>
 
         <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
