@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation';
 import { checkSessionAction } from '@/app/actions/authActions';
 import { getUserApplications } from '@/app/actions/dashboardActions';
 import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
@@ -49,7 +48,6 @@ export default async function DashboardPage() {
            <DashboardClient user={user} applications={applications} />
         </Suspense>
       </main>
-      <Footer />
     </div>
   );
 }

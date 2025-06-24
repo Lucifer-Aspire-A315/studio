@@ -1,6 +1,5 @@
 import { getApplicationDetails } from '@/app/actions/applicationActions';
 import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { ApplicationDetailsView } from '@/components/application/ApplicationDetailsView';
 import type { UserApplication } from '@/lib/types';
 import { redirect } from 'next/navigation';
@@ -38,7 +37,6 @@ export default async function ApplicationDetailsPage({ params, searchParams }: A
           isAdmin={false}
         />
       </main>
-      <Footer />
     </div>
   );
 }
