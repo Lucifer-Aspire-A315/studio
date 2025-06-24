@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -13,8 +14,8 @@ const governmentSchemes = [
   { 
     text: (
       <div>
-        <p className="text-2xl font-medium">Pradhan Mantri Mudra Yojana (PMMY)</p>
-        <p className="mt-1">प्रधानमंत्री मुद्रा योजना (PMMY)</p>
+        <p className="font-medium">Pradhan Mantri Mudra Yojana (PMMY)</p>
+        <p className="mt-1 text-lg">प्रधानमंत्री मुद्रा योजना (PMMY)</p>
       </div>
     ), 
     className: "text-primary" 
@@ -22,8 +23,8 @@ const governmentSchemes = [
   { 
     text: (
       <div>
-        <p className="text-2xl font-medium">Stand-Up India Scheme</p>
-        <p className="mt-1">स्टैंड-अप इंडिया योजना</p>
+        <p className="font-medium">Stand-Up India Scheme</p>
+        <p className="mt-1 text-lg">स्टैंड-अप इंडिया योजना</p>
       </div>
     ),
     className: "text-accent" 
@@ -31,8 +32,8 @@ const governmentSchemes = [
   { 
     text: (
       <div>
-        <p className="text-2xl font-medium">Prime Minister’s Employment Generation Programme (PMEGP)</p>
-        <p className="mt-1">प्रधानमंत्री रोजगार सृजन कार्यक्रम (PMEGP)</p>
+        <p className="font-medium">Prime Minister’s Employment Generation Programme (PMEGP)</p>
+        <p className="mt-1 text-lg">प्रधानमंत्री रोजगार सृजन कार्यक्रम (PMEGP)</p>
       </div>
     ), 
     className: "text-green-600 dark:text-green-400"
@@ -40,8 +41,8 @@ const governmentSchemes = [
   { 
     text: (
       <div>
-        <p className="text-2xl font-medium">PM SVANidhi Scheme</p>
-        <p className="mt-1">पीएम स्वनिधि योजना</p>
+        <p className="font-medium">PM SVANidhi Scheme</p>
+        <p className="mt-1 text-lg">पीएम स्वनिधि योजना</p>
       </div>
     ), 
     className: "text-orange-600 dark:text-orange-400" 
@@ -49,8 +50,8 @@ const governmentSchemes = [
   { 
     text: (
       <div>
-        <p className="text-2xl font-medium">PM Vishwakarma Scheme</p>
-        <p className="mt-1">पीएम विश्वकर्मा योजना</p>
+        <p className="font-medium">PM Vishwakarma Scheme</p>
+        <p className="mt-1 text-lg">पीएम विश्वकर्मा योजना</p>
       </div>
     ), 
     className: "text-sky-600 dark:text-sky-400" 
@@ -100,7 +101,11 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
         <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
           <Button
             size="lg"
+<<<<<<< HEAD
             className="bg-[#4E944F] text-white font-bold px-8 py-3 rounded-full shadow-md hover:bg-[#F26A4B] hover:text-white hover:scale-105 transition"
+=======
+            className="w-full sm:w-auto cta-button bg-primary text-primary-foreground font-bold px-8 py-3 rounded-full shadow-md hover:bg-accent hover:text-accent-foreground hover:scale-105 transition"
+>>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
             onClick={() => setCurrentPage('caServices')}
 =======
     <section id="home" className="bg-background py-20 md:py-32">
@@ -132,7 +137,11 @@ export function HeroSection({ setCurrentPage }: HeroSectionProps) {
           <Button
             variant="outline"
             size="lg"
+<<<<<<< HEAD
             className="border-[#4E944F] text-[#4E944F] font-bold px-8 py-3 rounded-full hover:bg-[#F26A4B] hover:text-white hover:scale-105 transition"
+=======
+            className="w-full sm:w-auto cta-button border-primary text-primary font-bold px-8 py-3 rounded-full hover:bg-accent hover:text-accent-foreground hover:border-accent hover:scale-105 transition"
+>>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
             onClick={() => setCurrentPage('governmentSchemes')}
 =======
           <Button 

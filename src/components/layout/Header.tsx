@@ -83,8 +83,13 @@ export function Header({ setCurrentPage }: HeaderProps) {
     return name.substring(0, 2).toUpperCase();
   };
 
+<<<<<<< HEAD
   const commonLinkClasses = "text-[#4E944F] hover:text-[#F26A4B] transition-colors font-semibold";
   const mobileLinkClasses = "block py-3 px-6 text-sm hover:bg-[#B2C8BA]/40";
+=======
+  const commonLinkClasses = "text-primary hover:text-accent transition-colors font-semibold";
+  const mobileLinkClasses = "block py-3 px-4 text-sm hover:bg-secondary/40";
+>>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
 
   return (
     <header className={`bg-[#F8FAE5] border-b border-[#B2C8BA] shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
@@ -188,9 +193,9 @@ export function Header({ setCurrentPage }: HeaderProps) {
                 ))}
                 <div className="border-t my-2 mx-6"></div>
                 {isLoading ? (
-                  <div className="px-6 py-3 text-center"><Loader2 className="w-5 h-5 animate-spin inline-block" /></div>
+                  <div className="px-4 py-3 text-center"><Loader2 className="w-5 h-5 animate-spin inline-block" /></div>
                 ) : currentUser ? (
-                   <div className="px-6 py-3 space-y-2">
+                   <div className="px-4 py-3 space-y-2">
                       <p className="text-sm text-muted-foreground mb-2">Welcome, {currentUser.fullName}!</p>
                       {currentUser.isAdmin && (
                         <SheetClose asChild>
@@ -229,7 +234,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
                       </SheetClose>
                    </div>
                 ) : (
-                  <div className="px-6 py-3 space-y-2">
+                  <div className="px-4 py-3 space-y-2">
                     <SheetClose asChild>
                       <Button
                         variant="outline"

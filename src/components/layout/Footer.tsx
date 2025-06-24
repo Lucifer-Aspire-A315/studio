@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 
 const AnimatedGradientText = () => (
@@ -7,9 +8,15 @@ const AnimatedGradientText = () => (
 export function Footer() {
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
     <footer className="bg-[#2D3A3A] text-[#F8FAE5] border-t border-[#4E944F] shadow-[0_-4px_24px_0_rgba(76,175,80,0.07)] rounded-t-2xl">
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#4E944F]/40">
+=======
+    <footer className="bg-foreground text-background border-t border-primary shadow-[0_-4px_24px_0_rgba(76,175,80,0.07)] rounded-t-2xl">
+      <div className="container mx-auto px-6 py-8 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-primary/40">
+>>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
           <div className="pb-8 md:pb-0 md:pr-8">
             <h3 className="text-xl font-bold text-[#FADA7A]"><AnimatedGradientText /></h3>
             <p className="mt-4 text-[#B2C8BA] text-sm">
