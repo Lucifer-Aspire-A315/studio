@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -24,6 +23,7 @@ export function Footer() {
 =======
     <footer className="bg-foreground text-background border-t border-primary shadow-[0_-4px_24px_0_rgba(76,175,80,0.07)] rounded-t-2xl">
       <div className="container mx-auto px-6 py-6 md:py-8">
+<<<<<<< HEAD
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-primary/40">
 >>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
           <div className="pb-8 md:pb-0 md:pr-8">
@@ -38,6 +38,10 @@ export function Footer() {
             <div className="block"><Logo /></div>
 >>>>>>> 1a79126 (ok so now the logo is place can u now just correct the size and style of)
 =======
+=======
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-primary/40">
+          <div className="pb-8 lg:pb-0 lg:pr-8">
+>>>>>>> 510ce53 (ohh that great and also ive a thought that we can make our footer little)
             <div className="inline-block bg-background p-2 rounded-lg">
               <Logo />
             </div>
@@ -47,6 +51,7 @@ export function Footer() {
               Your trusted partner in achieving your financial goals.
             </p>
           </div>
+<<<<<<< HEAD
           <div className="pt-8 md:pt-0 md:px-8">
             <h4 className="font-semibold text-[#FADA7A]">Quick Links</h4>
             <ul className="mt-4 space-y-2 text-sm">
@@ -99,6 +104,66 @@ export function Footer() {
           </div>
           <div className="pt-8 md:pt-0 md:pl-8">
             <h4 className="font-semibold text-[#FADA7A]">Connect With Us</h4>
+=======
+          
+          <div className="pt-8 lg:pt-0 lg:px-8">
+             <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-semibold text-highlight">Quick Links</h4>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    <li>
+                      <Link href="#about" className="text-background hover:text-accent transition-colors">
+                        About Us
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="#contact" className="text-background hover:text-accent transition-colors">
+                        Contact
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/privacy-policy" className="text-background hover:text-accent transition-colors">
+                        Privacy Policy
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/terms-of-service" className="text-background hover:text-accent transition-colors">
+                        Terms of Service
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+                 <div>
+                  <h4 className="font-semibold text-highlight">Our Services</h4>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    <li>
+                      <Link href="#services" className="text-background hover:text-accent transition-colors">
+                        Home Loan
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="#services" className="text-background hover:text-accent transition-colors">
+                        Personal Loan
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="#services" className="text-background hover:text-accent transition-colors">
+                        Business Loan
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="#services" className="text-background hover:text-accent transition-colors">
+                        Credit Card
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+            </div>
+          </div>
+          
+          <div className="pt-8 lg:pt-0 lg:pl-8">
+            <h4 className="font-semibold text-highlight">Connect With Us</h4>
+>>>>>>> 510ce53 (ohh that great and also ive a thought that we can make our footer little)
             <address className="mt-4 space-y-1 text-sm not-italic">
               <p className="text-[#B2C8BA]">
                 Sunrise Apartment, A-101, Santoshi Mata Rd, near Yashoda Apartment, near KDMC Commissioners Bunglow, Syndicate, Kalyan, Maharashtra 421301
