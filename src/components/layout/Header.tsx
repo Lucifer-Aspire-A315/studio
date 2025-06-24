@@ -93,9 +93,15 @@ export function Header({ setCurrentPage }: HeaderProps) {
 >>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
 
   return (
+<<<<<<< HEAD
     <header className={`bg-[#F8FAE5] border-b border-[#B2C8BA] shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <nav className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-[#4E944F]">
+=======
+    <header className={`bg-background border-b border-border shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
+      <nav className="container mx-auto px-4 sm:px-6 py-3 md:py-4 flex justify-between items-center">
+        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-primary">
+>>>>>>> c3cf252 (great and also the header looks too long in mobile view can u narrow it)
           <AnimatedGradientText />
         </Link>
         <div className="hidden md:flex items-center justify-center flex-grow space-x-3 lg:space-x-6">
@@ -230,9 +236,9 @@ export function Header({ setCurrentPage }: HeaderProps) {
                           <Button
                               variant="destructive"
                               onClick={handleLogout}
-                              className="w-full justify-start"
+                              className="w-full justify-start px-3"
                           >
-                            <LogOut className="mr-2 h-4 w-4" /> Logout
+                            <LogOut className="mr-2 h-4 w-4" /> <span>Log out</span>
                           </Button>
                       </SheetClose>
                    </div>
