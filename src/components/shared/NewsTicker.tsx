@@ -3,8 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export interface NewsTickerItem {
   text: React.ReactNode;
@@ -31,20 +30,22 @@ export function NewsTicker({ items, duration = 5000, onContainerClick }: NewsTic
     }, 300);
   }, [items.length]);
 
-  const goToPrev = useCallback(() => {
-    setIsFadingOut(true);
-    setTimeout(() => {
-      setIndex((prevIndex) => (prevIndex - 1 + items.length) % items.length);
-      setIsFadingOut(false);
-    }, 300);
-  }, [items.length]);
-  
   const resetTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
     timerRef.current = setInterval(goToNext, duration);
   }, [duration, goToNext]);
+
+  const goToIndex = (newIndex: number) => {
+    if (newIndex === index) return;
+    setIsFadingOut(true);
+    setTimeout(() => {
+      setIndex(newIndex);
+      setIsFadingOut(false);
+    }, 300);
+    resetTimer();
+  };
 
   useEffect(() => {
     resetTimer();
@@ -54,24 +55,14 @@ export function NewsTicker({ items, duration = 5000, onContainerClick }: NewsTic
       }
     };
   }, [resetTimer]);
-  
-  const handlePrevClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    goToPrev();
-    resetTimer();
-  };
-
-  const handleNextClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    goToNext();
-    resetTimer();
-  };
 
   if (!items || items.length === 0) {
     return null;
   }
 
   const currentItem = items[index];
+  const previousItem = items[(index - 1 + items.length) % items.length];
+  const activeBgClass = isFadingOut ? previousItem.bgColor : currentItem.bgColor;
 
   return (
     <div
@@ -81,7 +72,7 @@ export function NewsTicker({ items, duration = 5000, onContainerClick }: NewsTic
       className={cn(
         'group cursor-pointer rounded-xl border border-border p-4 sm:p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/20',
         'relative overflow-hidden transition-colors',
-        currentItem.bgColor
+        activeBgClass
       )}
     >
       <div className="flex items-center justify-center gap-2 mb-2">
@@ -90,16 +81,6 @@ export function NewsTicker({ items, duration = 5000, onContainerClick }: NewsTic
       </div>
       
       <div className="flex items-center justify-center min-h-[80px]">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-          onClick={handlePrevClick}
-          aria-label="Previous scheme"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        
         <div
           className={cn(
             'text-lg sm:text-xl font-medium transition-opacity duration-300 ease-in-out w-full px-10',
@@ -109,17 +90,24 @@ export function NewsTicker({ items, duration = 5000, onContainerClick }: NewsTic
         >
           {currentItem.text}
         </div>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-          onClick={handleNextClick}
-          aria-label="Next scheme"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
       </div>
+
+       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2">
+          {items.map((_, i) => (
+            <button
+              key={i}
+              onClick={(e) => {
+                e.stopPropagation();
+                goToIndex(i);
+              }}
+              className={cn(
+                'h-2 w-2 rounded-full transition-all duration-300',
+                i === index ? 'w-4 bg-primary' : 'bg-muted-foreground/50 hover:bg-muted-foreground'
+              )}
+              aria-label={`Go to slide ${i + 1}`}
+            />
+          ))}
+        </div>
     </div>
   );
 }
