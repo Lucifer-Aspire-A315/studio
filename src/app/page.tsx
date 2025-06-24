@@ -23,6 +23,7 @@ import { FinancialAdvisoryForm } from '@/components/forms/FinancialAdvisoryForm'
 import { AuditAndAssuranceForm } from '@/components/forms/AuditAndAssuranceForm';
 import { Skeleton } from '@/components/ui/skeleton'; 
 import { useAuth } from '@/contexts/AuthContext';
+import { LoginPrompt } from '@/components/shared/LoginPrompt';
 
 export type PageView = 
   'main' | 
@@ -50,7 +51,7 @@ export default function Home() {
   const [selectedGovernmentScheme, setSelectedGovernmentScheme] = useState<string | undefined>();
   const [otherGovernmentSchemeName, setOtherGovernmentSchemeName] = useState<string | undefined>();
   
-  const { isLoading: isAuthLoading } = useAuth();
+  const { currentUser, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
   // This useEffect was removed as it forced logged-in users to the dashboard.
@@ -108,6 +109,13 @@ export default function Home() {
   const renderPageContent = () => {
     const handleBackToMain = () => setCurrentPage('main');
 
+    const ProtectedFormComponent = ({ children, onBack }: { children: React.ReactNode; onBack: () => void }) => {
+      if (!currentUser) {
+        return <LoginPrompt onBack={onBack} />;
+      }
+      return <>{children}</>;
+    };
+
     switch (currentPage) {
       case 'main':
         return (
@@ -138,13 +146,13 @@ export default function Home() {
           </>
         );
       case 'homeLoan':
-        return <HomeLoanApplicationForm onBack={handleBackToMain} />;
+        return <ProtectedFormComponent onBack={handleBackToMain}><HomeLoanApplicationForm onBack={handleBackToMain} /></ProtectedFormComponent>;
       case 'personalLoan':
-        return <PersonalLoanApplicationForm onBack={handleBackToMain} />;
+        return <ProtectedFormComponent onBack={handleBackToMain}><PersonalLoanApplicationForm onBack={handleBackToMain} /></ProtectedFormComponent>;
       case 'businessLoan':
-        return <BusinessLoanApplicationForm onBack={handleBackToMain} />;
+        return <ProtectedFormComponent onBack={handleBackToMain}><BusinessLoanApplicationForm onBack={handleBackToMain} /></ProtectedFormComponent>;
       case 'creditCard':
-        return <CreditCardApplicationForm onBack={handleBackToMain} />;
+        return <ProtectedFormComponent onBack={handleBackToMain}><CreditCardApplicationForm onBack={handleBackToMain} /></ProtectedFormComponent>;
       case 'governmentSchemes':
         return <GovernmentSchemesPage
                   setCurrentPage={setCurrentPage}
@@ -156,25 +164,29 @@ export default function Home() {
           setCurrentPage('governmentSchemes'); 
           return <p>Please select a scheme first.</p>;
         }
-        return <GovernmentSchemeLoanApplicationForm
-                  onBack={() => setCurrentPage('governmentSchemes')}
-                  selectedScheme={selectedGovernmentScheme}
-                  otherSchemeName={otherGovernmentSchemeName}
-                />;
+        return (
+          <ProtectedFormComponent onBack={() => setCurrentPage('governmentSchemes')}>
+            <GovernmentSchemeLoanApplicationForm
+              onBack={() => setCurrentPage('governmentSchemes')}
+              selectedScheme={selectedGovernmentScheme}
+              otherSchemeName={otherGovernmentSchemeName}
+            />
+          </ProtectedFormComponent>
+        );
       case 'caServices':
         return <CAServicesPage setCurrentPage={setCurrentPage} />;
       case 'gstServiceForm':
-        return <GstServiceApplicationForm setCurrentPage={setCurrentPage} />;
+        return <ProtectedFormComponent onBack={() => setCurrentPage('caServices')}><GstServiceApplicationForm setCurrentPage={setCurrentPage} /></ProtectedFormComponent>;
       case 'itrFilingConsultationForm':
-        return <ItrFilingConsultationForm setCurrentPage={setCurrentPage} />;
+        return <ProtectedFormComponent onBack={() => setCurrentPage('caServices')}><ItrFilingConsultationForm setCurrentPage={setCurrentPage} /></ProtectedFormComponent>;
       case 'accountingBookkeepingForm':
-        return <AccountingBookkeepingForm setCurrentPage={setCurrentPage} />;
+        return <ProtectedFormComponent onBack={() => setCurrentPage('caServices')}><AccountingBookkeepingForm setCurrentPage={setCurrentPage} /></ProtectedFormComponent>;
       case 'companyIncorporationForm':
-        return <CompanyIncorporationForm setCurrentPage={setCurrentPage} />;
+        return <ProtectedFormComponent onBack={() => setCurrentPage('caServices')}><CompanyIncorporationForm setCurrentPage={setCurrentPage} /></ProtectedFormComponent>;
       case 'financialAdvisoryForm':
-        return <FinancialAdvisoryForm setCurrentPage={setCurrentPage} />;
+        return <ProtectedFormComponent onBack={() => setCurrentPage('caServices')}><FinancialAdvisoryForm setCurrentPage={setCurrentPage} /></ProtectedFormComponent>;
       case 'auditAndAssuranceForm':
-        return <AuditAndAssuranceForm setCurrentPage={setCurrentPage} />;
+        return <ProtectedFormComponent onBack={() => setCurrentPage('caServices')}><AuditAndAssuranceForm setCurrentPage={setCurrentPage} /></ProtectedFormComponent>;
       default:
         return <p>Page not found.</p>;
     }
