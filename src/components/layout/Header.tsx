@@ -54,7 +54,8 @@ export function Header({ setCurrentPage }: HeaderProps) {
     setMobileMenuOpen(false);
     
     if (href.startsWith('/#')) {
-        if (router.pathname === '/') {
+        const path = router.pathname || window.location.pathname;
+        if (path === '/') {
             const elementId = href.substring(2);
             const element = document.getElementById(elementId);
             if (element) {
@@ -195,8 +196,8 @@ export function Header({ setCurrentPage }: HeaderProps) {
                 {isLoading ? (
                   <div className="px-4 py-3 text-center"><Loader2 className="w-5 h-5 animate-spin inline-block" /></div>
                 ) : currentUser ? (
-                   <div className="px-4 py-3 space-y-2">
-                      <p className="text-sm text-muted-foreground mb-2">Welcome, {currentUser.fullName}!</p>
+                   <div className="p-4 space-y-3">
+                      <p className="text-sm text-muted-foreground">Welcome, {currentUser.fullName}!</p>
                       {currentUser.isAdmin && (
                         <SheetClose asChild>
                           <Button asChild variant="destructive" className="w-full justify-start">
@@ -225,9 +226,9 @@ export function Header({ setCurrentPage }: HeaderProps) {
                       </SheetClose>
                       <SheetClose asChild>
                           <Button
-                              variant="outline"
+                              variant="destructive"
                               onClick={handleLogout}
-                              className={`${mobileLinkClasses} text-destructive font-semibold text-left justify-start border-destructive w-full`}
+                              className="w-full justify-start"
                           >
                             <LogOut className="mr-2 h-4 w-4" /> Logout
                           </Button>
