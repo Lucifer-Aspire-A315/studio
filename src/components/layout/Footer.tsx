@@ -22,6 +22,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#4E944F]/40">
 =======
     <footer className="bg-foreground text-background border-t border-primary shadow-[0_-4px_24px_0_rgba(76,175,80,0.07)] rounded-t-2xl">
+<<<<<<< HEAD
       <div className="container mx-auto px-6 py-6 md:py-8">
 <<<<<<< HEAD
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 divide-y-2 md:divide-y-0 md:divide-x-2 divide-primary/40">
@@ -42,6 +43,11 @@ export function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-primary/40">
           <div className="pb-8 lg:pb-0 lg:pr-8">
 >>>>>>> 510ce53 (ohh that great and also ive a thought that we can make our footer little)
+=======
+      <div className="container mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:pr-6">
+>>>>>>> 17ffd8d (its still taking the same space can u minimize the space  of footer it i)
             <div className="inline-block bg-background p-2 rounded-lg">
               <Logo />
             </div>
@@ -106,8 +112,8 @@ export function Footer() {
             <h4 className="font-semibold text-[#FADA7A]">Connect With Us</h4>
 =======
           
-          <div className="pt-8 lg:pt-0 lg:px-8">
-             <div className="grid grid-cols-2 gap-8">
+          <div className="lg:px-6">
+             <div className="grid grid-cols-2 gap-6">
                 <div>
                   <h4 className="font-semibold text-highlight">Quick Links</h4>
                   <ul className="mt-4 space-y-2 text-sm">
@@ -161,7 +167,7 @@ export function Footer() {
             </div>
           </div>
           
-          <div className="pt-8 lg:pt-0 lg:pl-8">
+          <div className="lg:pl-6">
             <h4 className="font-semibold text-highlight">Connect With Us</h4>
 >>>>>>> 510ce53 (ohh that great and also ive a thought that we can make our footer little)
             <address className="mt-4 space-y-1 text-sm not-italic">
@@ -177,10 +183,14 @@ export function Footer() {
           </div>
         </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <div className="mt-12 border-t border-[#4E944F] pt-8 text-center">
           <p className="text-sm text-[#B2C8BA]">
 =======
         <div className="mt-8 md:mt-10 border-t border-primary pt-6 md:pt-8 text-center">
+=======
+        <div className="mt-6 border-t border-primary pt-6 text-center">
+>>>>>>> 17ffd8d (its still taking the same space can u minimize the space  of footer it i)
           <p className="text-sm text-muted-foreground">
 >>>>>>> b09805a (sorry i mean the footer it is too long can u narrow it)
             &copy; {new Date().getFullYear()} RN Fintech. All Rights Reserved.
