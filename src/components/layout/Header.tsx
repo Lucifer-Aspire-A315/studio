@@ -99,7 +99,7 @@ export function Header({ setCurrentPage }: HeaderProps) {
         <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-[#4E944F]">
 =======
     <header className={`bg-background border-b border-border shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
-      <nav className="container mx-auto px-4 sm:px-6 py-3 md:py-4 flex justify-between items-center">
+      <nav className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
         <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-primary">
 >>>>>>> c3cf252 (great and also the header looks too long in mobile view can u narrow it)
           <AnimatedGradientText />
@@ -118,8 +118,8 @@ export function Header({ setCurrentPage }: HeaderProps) {
             <div className="hidden md:block">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-9 w-9">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
                       <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${currentUser.fullName}`} alt={currentUser.fullName} />
                       <AvatarFallback>{getInitials(currentUser.fullName)}</AvatarFallback>
                     </Avatar>
