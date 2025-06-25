@@ -12,25 +12,6 @@ interface ServiceCardProps {
   setCurrentPage: SetPageView;
 }
 
-<<<<<<< HEAD
-export function ServiceCard({
-  icon,
-  title,
-  description,
-  bgColorClass,
-  textColorClass,
-  targetPage,
-  setCurrentPage,
-}: ServiceCardProps) {
-  return (
-    <div
-      className={cn(
-        "bg-card p-8 rounded-xl shadow-lg flex flex-col text-center items-center border border-[#B2C8BA] transition-all duration-200 hover:border-[#4E944F] hover:shadow-xl card-hover-effect"
-      )}
-    >
-      <div className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto shadow ${bgColorClass}`}>
-        <div className={textColorClass}>{icon}</div>
-=======
 const bgColors: Record<ServiceCardProps['colorIndex'], string> = {
     1: 'bg-chart-1/10',
     2: 'bg-chart-2/10',
@@ -54,13 +35,12 @@ export function ServiceCard({ icon, title, description, colorIndex, targetPage, 
     )}>
       <div className={cn('rounded-full w-16 h-16 flex items-center justify-center mx-auto', bgColors[colorIndex])}>
         <div className={cn(textColors[colorIndex])}>{icon}</div>
->>>>>>> ca4bd91 (ok but can u analyze and review everything to see if all styling ui colo)
       </div>
-      <h3 className="text-xl font-semibold mt-6 text-[#4E944F]">{title}</h3>
+      <h3 className="text-xl font-semibold mt-6 text-primary">{title}</h3>
       <p className="text-muted-foreground mt-2 flex-grow text-sm">{description}</p>
       <Button
         variant="link"
-        className="inline-flex items-center justify-center mt-6 font-semibold text-[#F26A4B] hover:text-[#4E944F] group p-0"
+        className="inline-flex items-center justify-center mt-6 font-semibold text-accent hover:text-primary group p-0"
         onClick={() => setCurrentPage(targetPage)}
         aria-label={`Apply for ${title}`}
       >

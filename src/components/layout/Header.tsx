@@ -94,33 +94,14 @@ export function Header({ setCurrentPage }: HeaderProps) {
     return name.substring(0, 2).toUpperCase();
   };
 
-<<<<<<< HEAD
-  const commonLinkClasses = "text-[#4E944F] hover:text-[#F26A4B] transition-colors font-semibold";
-  const mobileLinkClasses = "block py-3 px-6 text-sm hover:bg-[#B2C8BA]/40";
-=======
   const commonLinkClasses = "text-primary hover:text-accent transition-colors font-semibold";
   const mobileLinkClasses = "block py-3 px-4 text-sm hover:bg-secondary/40";
->>>>>>> d4ecd83 (can u review and fix the responsiveness of the website like there are so)
 
   return (
-<<<<<<< HEAD
-    <header className={`bg-[#F8FAE5] border-b border-[#B2C8BA] shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
-      <nav className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-[#4E944F]">
-=======
     <header className={`bg-background border-b border-border shadow-sm sticky top-0 z-50 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <nav className="container mx-auto px-4 sm:px-6 py-2 flex justify-between items-center">
-<<<<<<< HEAD
-        <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="text-2xl font-bold flex-shrink-0 text-primary">
-<<<<<<< HEAD
->>>>>>> c3cf252 (great and also the header looks too long in mobile view can u narrow it)
-          <AnimatedGradientText />
-=======
-=======
         <Link href="/" onClick={() => handleNavClick('/', () => setCurrentPage?.('main'))} className="flex-shrink-0">
->>>>>>> 1a79126 (ok so now the logo is place can u now just correct the size and style of)
           <Logo />
->>>>>>> d36ee72 (ok ive created a public folder and uploaded an svg logo file  there can)
         </Link>
         <div className="hidden md:flex items-center justify-center flex-grow space-x-3 lg:space-x-6">
           {navLinks.map(link => (
@@ -183,13 +164,13 @@ export function Header({ setCurrentPage }: HeaderProps) {
             <>
               <Button
                 variant="outline"
-                className="hidden md:inline-flex cta-button border-[#4E944F] text-[#4E944F] hover:bg-[#F26A4B]/10 hover:text-[#F26A4B]"
+                className="hidden md:inline-flex cta-button border-primary text-primary hover:bg-accent/10 hover:text-accent"
                 onClick={() => router.push('/partner-login')}
               >
                 PARTNER LOGIN
               </Button>
               <Button
-                className="hidden md:inline-flex cta-button bg-[#4E944F] hover:bg-[#F26A4B] text-white"
+                className="hidden md:inline-flex cta-button bg-primary hover:bg-accent text-white"
                 onClick={() => router.push('/login')}
               >
                 LOGIN
